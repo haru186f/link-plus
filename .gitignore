@@ -12,8 +12,6 @@ venv/
 
 # Django
 *.sqlite3
-staticfiles/
-static/
 
 # IDE
 .DS_Store
