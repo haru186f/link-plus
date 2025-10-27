@@ -24,8 +24,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 開発アプリはここに追加
     'django_extensions',
+    # 開発アプリはここに追加
+    'apps.accounts'
 ]
 
 MIDDLEWARE = [
@@ -78,6 +79,14 @@ DATABASES = {
 # ==========================================================
 
 LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
+AUTHENTICATION_BACKENDS = [
+    'apps.accounts.backends.UsernameOrEmailBackend',  # ユーザー名 or メールでログイン
+    'django.contrib.auth.backends.ModelBackend',      # Django標準（管理画面など）
+]
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},

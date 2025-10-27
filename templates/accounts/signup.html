@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>新規登録</title>
+</head>
+<body>
+<h2>サインアップ</h2>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+
+  <div>
+    {{ form.username.label_tag }}
+    {{ form.username }}
+    {{ form.username.errors }}
+  </div>
+
+  <div>
+    {{ form.email.label_tag }}
+    {{ form.email }}
+    {{ form.email.errors }}
+  </div>
+
+  <div>
+    {{ form.password1.label_tag }}
+    {{ form.password1 }}
+    {{ form.password1.errors }}
+  </div>
+
+  <div>
+    {{ form.password2.label_tag }}
+    {{ form.password2 }}
+    {{ form.password2.errors }}
+  </div>
+
+  <div>
+    {{ form.grade.label_tag }}
+    {{ form.grade }}
+    {{ form.grade.errors }}
+  </div>
+
+  <div>
+    {{ form.faculty.label_tag }}
+    {{ form.faculty }}
+    {{ form.faculty.errors }}
+  </div>
+
+  <div>
+    {{ form.department.label_tag }}
+    {{ form.department }}
+    {{ form.department.errors }}
+  </div>
+
+
+  <div>
+    {{ form.course.label_tag }}
+    {{ form.course }}
+    {{ form.course.errors }}
+  </div>
+
+  <button type="submit">登録</button>
+</form>
+
+<p><a href="{% url 'login' %}">ログインはこちら</a></p>
+</body>
+</html>
