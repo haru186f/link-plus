@@ -37,6 +37,19 @@ DATABASES = {
 }
 
 # ==========================================================
+# Django Debug Toolbar 設定
+# ==========================================================
+
+if DEBUG:
+    INSTALLED_APPS += ['debug_toolbar']
+
+    # SecurityMiddleware の直後に追加
+    index = MIDDLEWARE.index('django.middleware.security.SecurityMiddleware') + 1
+    MIDDLEWARE.insert(index, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+
+    INTERNAL_IPS = ['127.0.0.1', 'localhost']
+
+# ==========================================================
 # メールやキャッシュなどの開発用設定
 # ==========================================================
 
