@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+
 # 学部（例：ITカレッジ）
 class Faculty(models.Model):
     name = models.CharField(max_length=100)
@@ -34,6 +35,7 @@ class Bus(models.Model):
     def __str__(self):
         return self.name
 
+      
 # カスタムユーザー
 class CustomUser(AbstractUser):
     GRADE_CHOICES = [(i, f"{i}年") for i in range(1, 5)]

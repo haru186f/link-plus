@@ -48,6 +48,7 @@ class CustomUserCreationForm(UserCreationForm):
         }
         help_texts = {field: '' for field in fields}
 
+
     # 🔽 ここを追加：メールアドレスのドメイン制限
     def clean_email(self):
         email = self.cleaned_data.get('email')
