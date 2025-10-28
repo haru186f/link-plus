@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.core.exceptions import ValidationError
 from .models import CustomUser, Faculty, Department, Course
 
 
@@ -47,6 +48,17 @@ class CustomUserCreationForm(UserCreationForm):
         }
         help_texts = {field: '' for field in fields}
 
+    # 🔽 ここを追加：メールアドレスのドメイン制限
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        required_domain = '@g.neec.ac.jp'
+
+        if not email or not email.lower().endswith(required_domain):
+            raise ValidationError(f'登録には {required_domain} のメールアドレスが必要です。')
+
+        return email
+
+
 class CustomAuthenticationForm(AuthenticationForm):
     """ログインフォーム（ユーザー名またはメールアドレス）"""
 
@@ -54,7 +66,7 @@ class CustomAuthenticationForm(AuthenticationForm):
         label='ユーザー名またはメールアドレス',
         widget=forms.TextInput(attrs={'autofocus': True})
     )
-    
+
     password = forms.CharField(
         label='パスワード',
         strip=False,
