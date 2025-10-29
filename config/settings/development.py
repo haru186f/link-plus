@@ -26,6 +26,21 @@ DEBUG = True    # 開発中は詳細なエラーメッセージを表示
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']   # ローカル環境でのアクセスを許可
 
 # ==========================================================
+# データベース設定（PostgreSQL 共通）
+# ==========================================================
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',                  # PostgreSQLを使用
+        'NAME': os.getenv('POSTGRES_DB', 'postgres'),               # データベース名
+        'USER': os.getenv('POSTGRES_USER', 'postgres'),             # DBユーザー名
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),     # パスワード
+        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),            # ホスト名
+        'PORT': os.getenv('POSTGRES_PORT', '5432'),                 # ポート番号
+    }
+}
+
+# ==========================================================
 # Django Debug Toolbar 設定
 # ==========================================================
 

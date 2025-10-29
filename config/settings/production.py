@@ -26,6 +26,21 @@ DEBUG = False   # 本番環境ではエラーページなどに内部情報を�
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
 # ==========================================================
+# データベース設定（PostgreSQL 共通）
+# ==========================================================
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',   # PostgreSQLを使用
+        'NAME': os.getenv('POSTGRES_DB'),            # データベース名
+        'USER': os.getenv('POSTGRES_USER'),          # DBユーザー名
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),  # パスワード
+        'HOST': os.getenv('POSTGRES_HOST'),          # ホスト名
+        'PORT': os.getenv('POSTGRES_PORT'),          # ポート番号
+    }
+}
+
+# ==========================================================
 # 静的ファイル設定
 # ==========================================================
 

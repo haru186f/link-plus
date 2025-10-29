@@ -69,19 +69,10 @@ ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # ==========================================================
-# データベース設定（PostgreSQL 共通）
+# データベース設定（PostgreSQL 共通、ここで上書き）
 # ==========================================================
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',                  # PostgreSQLを使用
-        'NAME': os.getenv('POSTGRES_DB', 'postgres'),               # データベース名
-        'USER': os.getenv('POSTGRES_USER', 'postgres'),             # DBユーザー名
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),     # パスワード
-        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),            # ホスト名
-        'PORT': os.getenv('POSTGRES_PORT', '5432'),                 # ポート番号
-    }
-}
+DATABASES = {}
 
 # ==========================================================
 # 認証
