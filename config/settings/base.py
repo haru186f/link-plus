@@ -14,12 +14,6 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # ==========================================================
-# 環境変数読み込み
-# ==========================================================
-
-load_dotenv(BASE_DIR / ".env")
-
-# ==========================================================
 # アプリケーション設定
 # ==========================================================
 
@@ -80,12 +74,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',          # PostgreSQLを使用
-        'NAME': os.getenv('POSTGRES_DB', 'postgres'),       # データベース名
-        'USER': os.getenv('POSTGRES_USER', 'postgres'),     # DBユーザー名
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),     # パスワード
-        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),    # ホスト名
-        'PORT': os.getenv('POSTGRES_PORT', '5432'),         # ポート番号
+        'ENGINE': 'django.db.backends.postgresql',                  # PostgreSQLを使用
+        'NAME': os.getenv('POSTGRES_DB', 'postgres'),               # データベース名
+        'USER': os.getenv('POSTGRES_USER', 'postgres'),             # DBユーザー名
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),     # パスワード
+        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),            # ホスト名
+        'PORT': os.getenv('POSTGRES_PORT', '5432'),                 # ポート番号
     }
 }
 

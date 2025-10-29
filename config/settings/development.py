@@ -10,7 +10,7 @@ import os
 # 環境変数の読み込み(.env.development)
 # ==========================================================
 
-load_dotenv(BASE_DIR / ".env.development")  # 開発環境用の.envファイルを読み込む
+load_dotenv(BASE_DIR / ".env.development", override=True)  # 開発環境用の.envファイルを読み込む
 SECRET_KEY = os.getenv('SECRET_KEY')        # 環境変数からSECRET_KEYを取得
 
 # ==========================================================
