@@ -14,10 +14,20 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # ==========================================================
+# 環境変数読み込み
+# ==========================================================
+
+load_dotenv(BASE_DIR / ".env")
+
+# ==========================================================
 # アプリケーション設定
 # ==========================================================
 
 INSTALLED_APPS = [
+    # アプリケーション
+    'apps.accounts',
+
+    # デフォルト
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -25,8 +35,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
-    # 開発アプリはここに追加
-    'apps.accounts'
 ]
 
 MIDDLEWARE = [
@@ -67,26 +75,37 @@ ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # ==========================================================
-# データベース（個別環境で上書きするため、ここでは空）
+# データベース設定（PostgreSQL 共通）
 # ==========================================================
 
 DATABASES = {
-    'default': {}
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',          # PostgreSQLを使用
+        'NAME': os.getenv('POSTGRES_DB', 'postgres'),       # データベース名
+        'USER': os.getenv('POSTGRES_USER', 'postgres'),     # DBユーザー名
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),     # パスワード
+        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),    # ホスト名
+        'PORT': os.getenv('POSTGRES_PORT', '5432'),         # ポート番号
+    }
 }
 
 # ==========================================================
-# 認証・パスワードバリデーション
+# 認証
 # ==========================================================
+
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
-
-AUTH_USER_MODEL = 'accounts.CustomUser'
 
 AUTHENTICATION_BACKENDS = [
     'apps.accounts.backends.UsernameOrEmailBackend',  # ユーザー名 or メールでログイン
     'django.contrib.auth.backends.ModelBackend',      # Django標準（管理画面など）
 ]
+
+# ==========================================================
+# パスワードバリデーション
+# ==========================================================
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -105,11 +124,11 @@ USE_I18N = True             # 国際化対応を有効化
 USE_TZ = True               # タイムゾーンを有効化
 
 # ==========================================================
-# 静的ファイル設定（開発環境で使用）
+# 静的ファイル設定
 # ==========================================================
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']  # 開発用
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # ==========================================================
 # デフォルト設定
