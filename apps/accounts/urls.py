@@ -1,11 +1,11 @@
 from django.urls import path
-from . import views
+from .views import *
 
 urlpatterns = [
-    path('signup/', views.signup_view, name='signup'),
-    path('login/', views.login_view, name='login'),
-    path('logout/', views.logout_view, name='logout'),
-    path('ajax/get-departments/', views.get_departments, name="get_departments"),
-    path('ajax/get-courses/', views.get_courses, name="get_courses"),
-    path('', views.home_view, name='home'),
+    path('signup/', SignupView.as_view(), name='signup'),
+    path('signup/done/', SignupDoneView.as_view(), name='signup_done'),
+    path('login/', CustomLoginView.as_view(), name='login'),
+    path('logout/', CustomLogoutView.as_view(), name='logout'),
+    path('ajax/get-departments/', GetDepartmentsView.as_view(), name="get_departments"),
+    path('ajax/get-courses/', GetCoursesView.as_view(), name="get_courses"),
 ]
