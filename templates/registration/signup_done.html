@@ -1,2 +1,12 @@
+{% extends "base.html" %}
+
+
+{% block title %}登録完了{% endblock title %}
+
+
+{% block content %}
+
 <h2>こんにちは、{{ user.username }}さん！</h2>
 <a href="{% url 'login' %}">ログアウト</a>
+
+{% endblock content %}
