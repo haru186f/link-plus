@@ -1,7 +1,10 @@
 {% extends "base.html" %}
+{% load static %}
 
 
 {% block title %}新規登録{% endblock title %}
+{% block css %}<link rel="stylesheet" href="{% static 'registration/signup.css' %}">{% endblock css %}
+{% block script %}<script src="{% static 'registration/js/signup.js' %}" defer></script>{% endblock script %}
 
 
 {% block content %}
@@ -42,11 +45,31 @@
     {{ form.grade.errors }}
   </div>
 
+  <!-- 🔽 URLをdata属性で渡す -->
   <div>
-    {% include './select_form.html' %}
+    <label>学部：</label>
+    <select id="faculty" data-departments-url="{% url 'get_departments' %}">
+      <option value="">---------</option>
+      {% for f in faculties %}
+        <option value="{{ f.id }}">{{ f.name }}</option>
+      {% endfor %}
+    </select>
+    <br>
+
+    <label>学科：</label>
+    <select id="department" data-courses-url="{% url 'get_courses' %}">
+      <option value="">---------</option>
+    </select>
+    <br>
+
+    <label>コース：</label>
+    <select id="course">
+      <option value="">---------</option>
+    </select>
+    <br>
+
     <button type="submit">登録</button>
   </div>
-
 </form>
 
 <p><a href="{% url 'login' %}">ログインはこちら</a></p>
