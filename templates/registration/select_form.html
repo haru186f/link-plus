@@ -22,51 +22,60 @@
 </select>
 
 <script>
-  // === 学部選択時 ===
-  document.getElementById('faculty').addEventListener('change', async (e) => {
-    const facultyId = e.target.value;
-    const departmentSelect = document.getElementById('department');
-    const courseSelect = document.getElementById('course');
+document.addEventListener("DOMContentLoaded", () => {
 
-    // 一旦リセット
+  const facultySelect = document.getElementById("faculty");
+  const departmentSelect = document.getElementById("department");
+  const courseSelect = document.getElementById("course");
+
+  // === 学部選択時 ===
+  facultySelect.addEventListener("change", async (e) => {
+    const facultyId = e.target.value;
     departmentSelect.innerHTML = '<option value="">---------</option>';
     courseSelect.innerHTML = '<option value="">---------</option>';
 
     if (!facultyId) return;
 
-    // Djangoのビュー get_departments() を呼び出し
-    const res = await fetch(`/ajax/get-departments/?faculty_id=${facultyId}`);
-    const data = await res.json();
+    try {
+      // Django の GetDepartmentsView を呼び出し
+      const res = await fetch("{% url 'get_departments' %}?faculty_id=" + facultyId);
+      if (!res.ok) throw new Error("学科データの取得に失敗しました");
+      const data = await res.json();
 
-    // 学科リストを動的に追加
-    data.forEach(dep => {
-      const opt = document.createElement('option');
-      opt.value = dep.id;
-      opt.textContent = dep.name;
-      departmentSelect.appendChild(opt);
-    });
+      data.forEach(dep => {
+        const opt = document.createElement("option");
+        opt.value = dep.id;
+        opt.textContent = dep.name;
+        departmentSelect.appendChild(opt);
+      });
+    } catch (err) {
+      console.error(err);
+    }
   });
 
   // === 学科選択時 ===
-  document.getElementById('department').addEventListener('change', async (e) => {
+  departmentSelect.addEventListener("change", async (e) => {
     const departmentId = e.target.value;
-    const courseSelect = document.getElementById('course');
-
-    // 一旦リセット
     courseSelect.innerHTML = '<option value="">---------</option>';
 
     if (!departmentId) return;
 
-    // Djangoのビュー get_courses() を呼び出し
-    const res = await fetch(`/ajax/get-courses/?department_id=${departmentId}`);
-    const data = await res.json();
+    try {
+      // Django の GetCoursesView を呼び出し
+      const res = await fetch("{% url 'get_courses' %}?department_id=" + departmentId);
+      if (!res.ok) throw new Error("コースデータの取得に失敗しました");
+      const data = await res.json();
 
-    // コースリストを動的に追加
-    data.forEach(course => {
-      const opt = document.createElement('option');
-      opt.value = course.id;
-      opt.textContent = course.name;
-      courseSelect.appendChild(opt);
-    });
+      data.forEach(course => {
+        const opt = document.createElement("option");
+        opt.value = course.id;
+        opt.textContent = course.name;
+        courseSelect.appendChild(opt);
+      });
+    } catch (err) {
+      console.error(err);
+    }
   });
+
+});
 </script>
