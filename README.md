@@ -21,9 +21,10 @@ Link Plus は **PostgreSQL** を使用します。
    - ユーザー名: `postgres`
    - パスワード: `postgres`
    - ポート: `5432`
-3. インストール後、以下のコマンドでログイン確認
+3. インストール後、以下のコマンドでログインしデータベースを作成
    ```bash
    psql -U postgres
+   CREATE DATABASE linkplus;
     ```
 
 ### Linux (Ubuntu)
@@ -32,13 +33,10 @@ sudo apt update
 sudo apt install postgresql postgresql-contrib
 sudo systemctl enable postgresql
 sudo systemctl start postgresql
-```
-
-### データベース作成
-```bash
-psql -U postgres
+sudo -u postgres psql
 CREATE DATABASE linkplus;
 ```
+
 ---
 
 ## 🛠️ セットアップ手順
@@ -64,9 +62,9 @@ pip install -r requirements.txt
 ```bash
 cp .env.example .env.development    # Windows の場合は copy .env .env.development
 ```
-> 🔑 注意
-> .env.example はテンプレートです。
-> 各自 .env.development を作成し、SECRET_KEY を自分で生成してください。
+> 🔑 注意  
+> .env.example はテンプレートです。  
+> 各自 .env.development を作成し、SECRET_KEY を自分で生成してください。  
 > 生成コマンド:
 > ```bash
 > python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
@@ -74,14 +72,14 @@ cp .env.example .env.development    # Windows の場合は copy .env .env.develo
 
 ### 5. データベースマイグレーションを実行
 ```bash
-python manage.py migrate --settings=config.settings.development
+python manage.py migrate
 ```
 
 ### 6. 開発サーバーを起動
 ```bash
-python manage.py runserver --settings=config.settings.development
+python manage.py runserver
 ```
-起動後、以下の URL にアクセスして動作を確認できます。
+起動後、以下の URL にアクセスして動作を確認できます。  
 👉 [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
 
 ---
