@@ -42,25 +42,10 @@
   </div>
 
   <div>
-    {{ form.faculty.label_tag }}
-    {{ form.faculty }}
-    {{ form.faculty.errors }}
+    {% include './select_form.html' %}
+    <button type="submit">登録</button>
   </div>
 
-  <div>
-    {{ form.department.label_tag }}
-    {{ form.department }}
-    {{ form.department.errors }}
-  </div>
-
-
-  <div>
-    {{ form.course.label_tag }}
-    {{ form.course }}
-    {{ form.course.errors }}
-  </div>
-
-  <button type="submit">登録</button>
 </form>
 
 <p><a href="{% url 'login' %}">ログインはこちら</a></p>

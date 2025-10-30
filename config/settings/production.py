@@ -7,58 +7,57 @@ from dotenv import load_dotenv
 import os
 
 # ==========================================================
+# 環境変数の読み込み（.env.production）
+# ==========================================================
+
+load_dotenv(BASE_DIR / ".env.production")
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+# ==========================================================
 # デバッグ設定
 # ==========================================================
 
 DEBUG = False   # 本番環境ではエラーページなどに内部情報を表示しない
 
 # ==========================================================
-# 環境変数 (.env.production) の読み込み
-# ==========================================================
-
-load_dotenv(BASE_DIR / ".env.production")  # 本番環境用の環境変数を読み込む
-SECRET_KEY = os.getenv("SECRET_KEY")    # 環境変数からSECRET_KEYを取得
-
-# ==========================================================
 # 許可するホスト
 # ==========================================================
 
-ALLOWED_HOSTS = []  # 本番環境のドメインを許可
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
 # ==========================================================
-# データベース設定
+# データベース設定（PostgreSQL 共通）
 # ==========================================================
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',          # PostgreSQLを使用
-        'NAME': os.getenv('POSTGRES_DB'),                   # データベース名
-        'USER': os.getenv('POSTGRES_USER'),                 # DBユーザー名
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),         # パスワード
-        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),    # ホスト名
-        'PORT': os.getenv('POSTGRES_PORT', '5432'),         # ポート番号
+        'ENGINE': 'django.db.backends.postgresql',   # PostgreSQLを使用
+        'NAME': os.getenv('POSTGRES_DB'),            # データベース名
+        'USER': os.getenv('POSTGRES_USER'),          # DBユーザー名
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),  # パスワード
+        'HOST': os.getenv('POSTGRES_HOST'),          # ホスト名
+        'PORT': os.getenv('POSTGRES_PORT'),          # ポート番号
     }
 }
 
 # ==========================================================
-# 静的ファイル（CSS, JS, 画像など）の設定
+# 静的ファイル設定
 # ==========================================================
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
-# collectstaticコマンドで全ての静的ファイルをこのフォルダに集約
-# RenderやPythonAnywhereの「静的ファイル配信設定」でこのパスを指定する
-# 本番デプロイ前に必ず「python manage.py collectstatic」を実行する
+# collectstatic コマンドで全ての静的ファイルをこのフォルダに集約
+# 本番デプロイ前に必ず「python manage.py collectstatic」を実行
 
 # ==========================================================
 # セキュリティ設定
 # ==========================================================
 
-CSRF_COOKIE_SECURE = True        # HTTPSでのみCSRFクッキーを送信
-SESSION_COOKIE_SECURE = True     # HTTPSでのみセッションクッキーを送信
-SECURE_HSTS_SECONDS = 31536000   # HTTPSを強制（1年間）
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-SECURE_SSL_REDIRECT = True       # HTTPアクセスをHTTPSにリダイレクト
+CSRF_COOKIE_SECURE = True               # HTTPS通信でのみCSRFクッキーを送信
+SESSION_COOKIE_SECURE = True            # HTTPS通信でのみセッションクッキーを送信
+SECURE_HSTS_SECONDS = 31536000          # HSTSを1年間適用（HTTPS通信を強制）
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True   # サブドメインにもHSTSを適用
+SECURE_HSTS_PRELOAD = True              # HSTSプリロード対応
+SECURE_SSL_REDIRECT = True              # HTTPアクセスをHTTPSに自動リダイレクト
 
 # ==========================================================
 # メール設定（必要なら追加）
