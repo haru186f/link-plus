@@ -1,29 +1,87 @@
-<!-- 学部プルダウン -->
-<label>学部：</label>
-<select id="faculty">
-  <option value="">---------</option>
-  {% for f in faculties %}
-    <option value="{{ f.id }}">{{ f.name }}</option>
-  {% endfor %}
-</select>
-<br>
+{% extends "base.html" %}
+{% load static %}
 
-<!-- 学科プルダウン -->
-<label>学科：</label>
-<select id="department">
-  <option value="">---------</option>
-</select>
-<br>
 
-<!-- コースプルダウン -->
-<label>コース：</label>
-<select id="course">
-  <option value="">---------</option>
-</select>
+{% block title %}新規登録{% endblock title %}
 
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'registration/signup.css' %}">
+{% endblock css %}
+
+
+{% block content %}
+<h2>サインアップ</h2>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+
+  <div>
+    {{ form.username.label_tag }}
+    {{ form.username }}
+    {{ form.username.errors }}
+  </div>
+
+  <div>
+    {{ form.email.label_tag }}
+    {{ form.email }}
+    {{ form.email.errors }}
+  </div>
+
+  <div>
+    {{ form.password1.label_tag }}
+    {{ form.password1 }}
+    {{ form.password1.errors }}
+  </div>
+
+  <div>
+    {{ form.password2.label_tag }}
+    {{ form.password2 }}
+    {{ form.password2.errors }}
+  </div>
+
+  <div>
+    {{ form.grade.label_tag }}
+    {{ form.grade }}
+    {{ form.grade.errors }}
+  </div>
+
+  <!-- ✅ includeせず直接select_form.htmlの中身を記述 -->
+  <div>
+    <!-- 学部プルダウン -->
+    <label>学部：</label>
+    <select id="faculty">
+      <option value="">---------</option>
+      {% for f in faculties %}
+        <option value="{{ f.id }}">{{ f.name }}</option>
+      {% endfor %}
+    </select>
+    <br>
+
+    <!-- 学科プルダウン -->
+    <label>学科：</label>
+    <select id="department">
+      <option value="">---------</option>
+    </select>
+    <br>
+
+    <!-- コースプルダウン -->
+    <label>コース：</label>
+    <select id="course">
+      <option value="">---------</option>
+    </select>
+
+    <br>
+    <button type="submit">登録</button>
+  </div>
+</form>
+
+<p><a href="{% url 'login' %}">ログインはこちら</a></p>
+
+<!-- JSを同じテンプレート内に記述 -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-
   const facultySelect = document.getElementById("faculty");
   const departmentSelect = document.getElementById("department");
   const courseSelect = document.getElementById("course");
@@ -37,7 +95,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!facultyId) return;
 
     try {
-      // Django の GetDepartmentsView を呼び出し
       const res = await fetch("{% url 'get_departments' %}?faculty_id=" + facultyId);
       if (!res.ok) throw new Error("学科データの取得に失敗しました");
       const data = await res.json();
@@ -61,7 +118,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!departmentId) return;
 
     try {
-      // Django の GetCoursesView を呼び出し
       const res = await fetch("{% url 'get_courses' %}?department_id=" + departmentId);
       if (!res.ok) throw new Error("コースデータの取得に失敗しました");
       const data = await res.json();
@@ -76,6 +132,6 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error(err);
     }
   });
-
 });
 </script>
+{% endblock content %}
