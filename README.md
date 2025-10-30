@@ -72,12 +72,12 @@ cp .env.example .env.development    # Windows の場合は copy .env .env.develo
 
 ### 5. データベースマイグレーションを実行
 ```bash
-python manage.py migrate --settings=config.settings.development
+python manage.py migrate
 ```
 
 ### 6. 開発サーバーを起動
 ```bash
-python manage.py runserver --settings=config.settings.development
+python manage.py runserver
 ```
 起動後、以下の URL にアクセスして動作を確認できます。  
 👉 [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
