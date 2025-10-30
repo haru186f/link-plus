@@ -64,7 +64,7 @@ class CustomAuthenticationForm(AuthenticationForm):
     """ログインフォーム（ユーザー名またはメールアドレス）"""
 
     username = forms.CharField(
-        label='ユーザー名またはメールアドレス',
+        label='ユーザー名',
         widget=forms.TextInput(attrs={'autofocus': True})
     )
 

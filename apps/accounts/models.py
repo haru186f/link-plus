@@ -35,7 +35,6 @@ class Bus(models.Model):
     def __str__(self):
         return self.name
 
-      
 # カスタムユーザー
 class CustomUser(AbstractUser):
     GRADE_CHOICES = [(i, f"{i}年") for i in range(1, 5)]
@@ -47,6 +46,8 @@ class CustomUser(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    faculty = models.ForeignKey('Faculty', on_delete=models.SET_NULL, null=True, blank=True)
+    department = models.ForeignKey('Department', on_delete=models.SET_NULL, null=True, blank=True)
     course = models.ForeignKey('Course', on_delete=models.SET_NULL, null=True, blank=True)
     bus = models.ForeignKey('Bus', on_delete=models.SET_NULL, null=True, blank=True)
 
