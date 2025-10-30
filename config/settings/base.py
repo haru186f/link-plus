@@ -19,7 +19,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 INSTALLED_APPS = [
     # アプリケーション
-    'apps.accounts',
+    'apps.core.apps.CoreConfig',
+    'apps.accounts.apps.AccountsConfig',
 
     # デフォルト
     'django.contrib.admin',
@@ -80,7 +81,7 @@ DATABASES = {}
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/home/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 AUTHENTICATION_BACKENDS = [
