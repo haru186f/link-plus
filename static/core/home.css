@@ -1,0 +1,166 @@
+@charset "UTF-8";
+
+body {
+    font-family: sans-serif;
+    width:100vw;
+    height:100vh;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4; /* 背景色 */
+}
+#monitor {
+    margin: 0;
+    padding: 0 50px;
+    width:100vw;
+    height:100vh;
+}
+.main-content {
+    display:flex;
+    flex-wrap:wrap;
+    align-content:flex-start;
+    padding: 10px;
+    margin: 20px;
+}
+.distanceright {
+    margin-right:1rem;
+}
+.distanceleft {
+    margin-left:1rem;
+}
+/*メインコンテンツ*/
+header {
+    display:flex;
+    height:20%;
+    justify-content:space-between;
+    align-items:center;
+    border-bottom:2px solid black;
+}
+.head {
+    display:flex;
+    align-items:center;
+    padding:20px;
+    margin:0;
+    width:33.3%;
+    height:90%;
+}
+
+.head img {
+    width:5em;
+    height: 5em;
+}
+.headerCenter {
+    justify-content:center;
+}
+
+.headerRight {
+    justify-content:flex-end;
+    
+}
+.headerRight h3 {
+    padding-right:3rem;
+}
+
+.calendar-container {
+    width:68%;
+    border: 1px solid #333; /* スケッチの太枠 */
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items:center;
+    margin-bottom: 10px;
+}
+.calendar-header button {
+    padding: 0 10px;
+    font-size: 16px;
+}
+
+.calendar {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* セルの幅を均等に */
+}
+
+.calendar th, .calendar td {
+    border: 1px solid #ccc;
+    text-align: center;
+    padding: 5px 0;
+    height: 30px; /* セルの高さを確保 */
+}
+
+.calendar th {
+    background-color: #eee;
+}
+/*------news------*/
+.news {
+    width:28%;
+    border: 1px solid #333;
+}
+.news table{
+    width:100%;
+    height:100%;
+    border: 1px solid #333;
+}
+.sync {
+    width:20%;
+}
+.title {
+    width:80%;
+}
+th,td {
+    border: 1px solid #333;
+}
+td {
+    text-align:center;
+}
+/*------dairy------*/
+.dairy {
+    display:flex;
+    flex-wrap:nowrap;
+    justify-content:flex-start;
+    width:68%;
+    height:40%;
+    border: 1px solid #333;
+    margin-top:20px;
+}
+.slot {
+    width:12.5%;
+    border-right: 1px solid #333;
+    border-left: 1px solid #333;
+}
+.slot h3{
+    text-align:center;
+}
+/*------bus------*/
+.bus {
+    width:28%;
+    height: auto;
+    border: 1px solid #333;
+    margin-top:20px;
+}
+.bus-info {
+    display:flex;
+    justify-content:center;
+    height:10%;
+}
+.bus-info h3 {
+    text-align:center;
+    justify-content:space-between;
+    margin-right:2rem;
+}
+.bus-info img {
+    width:100%;
+    height:100%;
+}
+.bus-png {
+    width:20%;
+    margin-right:2rem;
+    margin-left:2rem;
+}
+.bus h4 {
+    text-align:center;
+}
+.bus-time p{
+    text-align:center;
+}
