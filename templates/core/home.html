@@ -8,9 +8,81 @@
 
 
 {% block content %}
+    <body>
+        <div id="monitor">
+            <header>
+                <div class="headerLeft head">
+                    <img src="{% static 'core/home.css' %}">
+                </div> 
+                <div class="headerCenter head"><h1>LINK+</h1></div>
+                <div class="headerRight head">
+                    <h3><a href="#">ログイン</a></h3>
+                    <img src="images/kkrn_icon_haguruma_10.png">
+                </div>
+            </header>
+            <div class="main-content">
+                <div class="calendar-container distanceright">
+                    <div class="calendar-header">
+                        <button>←</button>
+                        <span>2024年10月</span>
+                        <button>→</button>
+                    </div>
+                    <table class="calendar">
+                        <thead>
+                            <tr>
+                                <th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td></td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td></tr>
+                            <tr><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td></tr>
+                            <tr><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td></tr>
+                            <tr><td>21</td><td>22</td><td>23</td><td>24</td><td>25</td><td>26</td><td>27</td></tr>
+                            <tr><td>28</td><td>29</td><td>30</td><td>31</td><td></td><td></td><td></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="news distanceLeft">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="sync">発信日</th>
+                                <th class="title">タイトル</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><th>10/24</th><td>ニュース1</td></tr>
+                            <tr><th>10/26</th><td>ニュース2</td></tr>
+                            <tr><th>10/28</th><td>ニュース3</td></tr>
+                            <tr><th>10/30</th><td>ニュース4</td></tr>
+                            <tr><th>10/31</th><td>ニュース5</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="dairy distanceright">
+                    <div class="slot1 slot"><h3>科学総合</h3><h3>kb-6</h3></div><div class="slot2 slot"><h3>名前</h3><h3>場所</h3></div>
+                    <div class="slot3 slot"><h3>名前</h3><h3>場所</h3></div><div class="slot4 slot"><h3>名前</h3><h3>場所</h3></div>
+                    <div class="slot5 slot"><h3>名前</h3><h3>場所</h3></div><div class="slot6 slot"><h3>名前</h3><h3>場所</h3></div>
+                    <div class="slot7 slot"><h3>名前</h3><h3>場所</h3></div><div class="slot8 slot"><h3>名前</h3><h3>場所</h3></div>
+                </div>
+                <div class="bus distanceLeft">
+                    <div class="bus-info">
+                        <p></p>
+                        <h3>八王子駅行き</h3>
+                        <button><a href="#"><image src="images/kkrn_icon_haguruma_10.png"></a></button>
+                    </div>
+                    <h4><image src="images/bus_nonstep_close.png" class="bus-png"></image></h4>
+                    <div class="bus-times">
+                        <h5>到着まで</h5>
+                        <p>08:00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer>
+        </footer>
+        <a href="{% url 'login' %}">ログイン</a>
+    </body>
 
-<h1>ホームページ</h1>
-
-<a href="{% url 'login' %}">ログイン</a>
 
 {% endblock content %}
