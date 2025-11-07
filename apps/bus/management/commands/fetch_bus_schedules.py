@@ -11,6 +11,19 @@ class Command(BaseCommand):
     help = "スクールバス時刻表を取得し、データベースに保存します。"
 
     def handle(self, *args, **options):
+        self.stdout.write("🧹 既存のバスデータを削除中...")
+        BusSchedule.objects.all().delete()
+        Bus.objects.all().delete()
+        self.stdout.write(self.style.WARNING("🗑️ Bus および BusSchedule データを削除しました。"))
+
+        # バス情報の基本登録（バスが存在しないと後続処理が失敗するため）
+        buses = [
+            Bus(name="八王子みなみ野"),
+            Bus(name="八王子"),
+        ]
+        Bus.objects.bulk_create(buses)
+        self.stdout.write("🚌 Bus データを再登録しました。")
+
         self.stdout.write("🚍 バス時刻表を取得中...")
 
         urls = self.fetch_bus_urls()
