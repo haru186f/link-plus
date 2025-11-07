@@ -24,10 +24,10 @@ INSTALLED_APPS = [
     'apps.news.apps.NewsConfig',            # お知らせ
     'apps.bus.apps.BusConfig',              # バス時刻
     'apps.accounts.apps.AccountsConfig',    # 認証関係
-  
+
     # デフォルト
     'django.contrib.admin',
-    'django.contrib.auth',
+    'django.contrib.auth',                  # 認証システム（ログイン、ログアウト、パスワード変更、パスワード再設定）
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -87,7 +87,7 @@ DATABASES = {}
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
-LOGIN_REDIRECT_URL = '/home/'
+LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 AUTHENTICATION_BACKENDS = [

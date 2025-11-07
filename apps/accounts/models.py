@@ -2,9 +2,10 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-# 学部（例：ITカレッジ）
-class Faculty(models.Model):
+# カレッジ（例：ITカレッジ）
+class College(models.Model):
     name = models.CharField(max_length=100)
+    max_grade = models.PositiveSmallIntegerField(default=4)
 
     def __str__(self):
         return self.name
@@ -13,7 +14,7 @@ class Faculty(models.Model):
 # 学科（例：情報処理科）
 class Department(models.Model):
     name = models.CharField(max_length=100)
-    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE, related_name='departments')
+    college = models.ForeignKey(College, on_delete=models.CASCADE, related_name='departments')
 
     def __str__(self):
         return self.name
@@ -46,7 +47,7 @@ class CustomUser(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    faculty = models.ForeignKey('Faculty', on_delete=models.SET_NULL, null=True, blank=True)
+    college = models.ForeignKey('College', on_delete=models.SET_NULL, null=True, blank=True)
     department = models.ForeignKey('Department', on_delete=models.SET_NULL, null=True, blank=True)
     course = models.ForeignKey('Course', on_delete=models.SET_NULL, null=True, blank=True)
     bus = models.ForeignKey('Bus', on_delete=models.SET_NULL, null=True, blank=True)
