@@ -1,56 +1,68 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const facultySelect = document.getElementById("faculty");
+document.addEventListener("DOMContentLoaded", function() {
+  const collegeSelect = document.getElementById("college");
   const departmentSelect = document.getElementById("department");
   const courseSelect = document.getElementById("course");
+  const gradeSelect = document.getElementById("grade");
 
-  // HTMLのdata属性からURLを取得
-  const departmentsUrl = facultySelect.dataset.departmentsUrl;
-  const coursesUrl = departmentSelect.dataset.coursesUrl;
+  // 学部変更 → 学科更新
+  collegeSelect.addEventListener("change", function() {
+    const collegeId = this.value;
+    const url = this.dataset.departmentsUrl;
 
-  // === 学部選択時 ===
-  facultySelect.addEventListener("change", async (e) => {
-    const facultyId = e.target.value;
     departmentSelect.innerHTML = '<option value="">---------</option>';
     courseSelect.innerHTML = '<option value="">---------</option>';
+    gradeSelect.innerHTML = '<option value="">---------</option>';
 
-    if (!facultyId) return;
-
-    try {
-      const res = await fetch(`${departmentsUrl}?faculty_id=${facultyId}`);
-      if (!res.ok) throw new Error("学科データの取得に失敗しました");
-      const data = await res.json();
-
-      data.forEach(dep => {
-        const opt = document.createElement("option");
-        opt.value = dep.id;
-        opt.textContent = dep.name;
-        departmentSelect.appendChild(opt);
-      });
-    } catch (err) {
-      console.error(err);
+    if (collegeId) {
+      fetch(`${url}?college_id=${collegeId}`)
+        .then(response => response.json())
+        .then(data => {
+          data.forEach(dept => {
+            const option = document.createElement("option");
+            option.value = dept.id;
+            option.textContent = dept.name;
+            departmentSelect.appendChild(option);
+          });
+        })
+        .catch(err => console.error("学科取得エラー:", err));
     }
   });
 
-  // === 学科選択時 ===
-  departmentSelect.addEventListener("change", async (e) => {
-    const departmentId = e.target.value;
+  // 学科変更 → コース・学年更新
+  departmentSelect.addEventListener("change", function() {
+    const departmentId = this.value;
+    const coursesUrl = this.dataset.coursesUrl;
+    const gradesUrl = this.dataset.gradesUrl;
+
     courseSelect.innerHTML = '<option value="">---------</option>';
+    gradeSelect.innerHTML = '<option value="">---------</option>';
 
-    if (!departmentId) return;
+    if (departmentId) {
+      // コース取得
+      fetch(`${coursesUrl}?department_id=${departmentId}`)
+        .then(response => response.json())
+        .then(data => {
+          data.forEach(course => {
+            const option = document.createElement("option");
+            option.value = course.id;
+            option.textContent = course.name;
+            courseSelect.appendChild(option);
+          });
+        })
+        .catch(err => console.error("コース取得エラー:", err));
 
-    try {
-      const res = await fetch(`${coursesUrl}?department_id=${departmentId}`);
-      if (!res.ok) throw new Error("コースデータの取得に失敗しました");
-      const data = await res.json();
-
-      data.forEach(course => {
-        const opt = document.createElement("option");
-        opt.value = course.id;
-        opt.textContent = course.name;
-        courseSelect.appendChild(opt);
-      });
-    } catch (err) {
-      console.error(err);
+      // 学年取得
+      fetch(`${gradesUrl}?department_id=${departmentId}`)
+        .then(response => response.json())
+        .then(data => {
+          for (let i = 1; i <= data.max_grade; i++) {
+            const option = document.createElement("option");
+            option.value = i;
+            option.textContent = `${i}年`;
+            gradeSelect.appendChild(option);
+          }
+        })
+        .catch(err => console.error("学年取得エラー:", err));
     }
   });
 });

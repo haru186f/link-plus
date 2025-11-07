@@ -2,76 +2,53 @@
 {% load static %}
 
 
-{% block title %}新規登録{% endblock title %}
+{% block title %}ユーザ登録{% endblock title %}
 {% block css %}<link rel="stylesheet" href="{% static 'registration/signup.css' %}">{% endblock css %}
 {% block script %}<script src="{% static 'registration/js/signup.js' %}" defer></script>{% endblock script %}
 
 
 {% block content %}
-
-<h2>サインアップ</h2>
+<h2>ユーザ登録</h2>
 
 <form method="post">
   {% csrf_token %}
-  {{ form.non_field_errors }}
+  {{ form.username.label_tag }} {{ form.username }}<br>
+  {{ form.email.label_tag }} {{ form.email }}<br>
+  {{ form.password1.label_tag }} {{ form.password1 }}<br>
+  {{ form.password2.label_tag }} {{ form.password2 }}<br>
 
-  <div>
-    {{ form.username.label_tag }}
-    {{ form.username }}
-    {{ form.username.errors }}
-  </div>
 
-  <div>
-    {{ form.email.label_tag }}
-    {{ form.email }}
-    {{ form.email.errors }}
-  </div>
+  <label for="college">カレッジ：</label>
+  <select id="college" name="college" data-departments-url="{% url 'accounts:get_departments' %}">
+    <option value="">---------</option>
+    {% for college in colleges %}
+      <option value="{{ college.id }}">{{ college.name }}</option>
+    {% endfor %}
+  </select>
+  <br>
 
-  <div>
-    {{ form.password1.label_tag }}
-    {{ form.password1 }}
-    {{ form.password1.errors }}
-  </div>
+  <label for="department">学科：</label>
+  <select id="department" name="department"
+          data-courses-url="{% url 'accounts:get_courses' %}"
+          data-grades-url="{% url 'accounts:get_grades' %}">
+    <option value="">---------</option>
+  </select>
+  <br>
 
-  <div>
-    {{ form.password2.label_tag }}
-    {{ form.password2 }}
-    {{ form.password2.errors }}
-  </div>
+  <label for="course">コース：</label>
+  <select id="course" name="course">
+    <option value="">---------</option>
+  </select>
+  <br>
 
-  <div>
-    {{ form.grade.label_tag }}
-    {{ form.grade }}
-    {{ form.grade.errors }}
-  </div>
+  <label for="grade">学年：</label>
+  <select id="grade" name="grade">
+    <option value="">---------</option>
+  </select>
+  <br>
 
-  <!-- 🔽 URLをdata属性で渡す -->
-  <div>
-    <label>学部：</label>
-    <select id="faculty" data-departments-url="{% url 'get_departments' %}">
-      <option value="">---------</option>
-      {% for f in faculties %}
-        <option value="{{ f.id }}">{{ f.name }}</option>
-      {% endfor %}
-    </select>
-    <br>
-
-    <label>学科：</label>
-    <select id="department" data-courses-url="{% url 'get_courses' %}">
-      <option value="">---------</option>
-    </select>
-    <br>
-
-    <label>コース：</label>
-    <select id="course">
-      <option value="">---------</option>
-    </select>
-    <br>
-
-    <button type="submit">登録</button>
-  </div>
+  <button type="submit">登録</button>
 </form>
 
 <p><a href="{% url 'login' %}">ログインはこちら</a></p>
-
 {% endblock content %}

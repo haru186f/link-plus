@@ -12,11 +12,9 @@
 <h2>ログイン</h2>
 <form method="post">
     {% csrf_token %}
-    {{ form.non_field_errors }}
-    <p>{{ form.username.label_tag }} {{ form.username }}</p>
-    <p>{{ form.password.label_tag }} {{ form.password }}</p>
+    {{ form.as_p }}
     <button type="submit">ログイン</button>
 </form>
-<a href="{% url 'signup' %}">新規登録はこちら</a>
+{% comment %} <a href="{% url 'signup' %}">新規登録はこちら</a> {% endcomment %}
 
 {% endblock content %}
