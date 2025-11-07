@@ -7,4 +7,4 @@ django-extensions
 django-debug-toolbar
 requests
 beautifulsoup4
-apscheduler
+django-crontab

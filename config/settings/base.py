@@ -32,7 +32,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # ライブラリ
     'django_extensions',
+    'django_crontab',
 ]
 
 MIDDLEWARE = [
@@ -124,3 +127,21 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 # ==========================================================
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ==========================================================
+# django-crontab 設定
+# ==========================================================
+
+CRONJOBS = [
+
+]
+
+# 例：
+# 毎朝6時に天気APIを更新
+# ('0 6 * * *', 'apps.core.cron.fetch_weather'),
+
+# 10分ごとにバス時刻表を更新
+# ('*/10 * * * *', 'apps.bus.cron.fetch_bus_timetable'),
+
+# 毎朝8時に定期メールを送信
+# ('0 8 * * *', 'apps.core.cron.send_daily_mail'),
