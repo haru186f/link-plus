@@ -4,7 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('', include('apps.home.urls')),        # その他
+    path('', include('apps.home.urls')),                # その他
     path('lecture/', include('apps.lecture.urls')),     # 講義
     path('news/', include('apps.news.urls')),        # お知らせ
     path('bus/', include('apps.bus.urls')),         # バス時刻
