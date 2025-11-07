@@ -24,7 +24,7 @@ INSTALLED_APPS = [
     'apps.news.apps.NewsConfig',            # お知らせ
     'apps.bus.apps.BusConfig',              # バス時刻
     'apps.accounts.apps.AccountsConfig',    # 認証関係
-
+  
     # デフォルト
     'django.contrib.admin',
     'django.contrib.auth',
