@@ -3,8 +3,25 @@
 
 
 {% block title %}ホーム{% endblock title %}
-{% block css %}<link rel="stylesheet" href="{% static 'home/home.css' %}">{% endblock css %}
+{% block css %}
+    <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+    <link rel="stylesheet" href="{% static 'home/home.css' %}">
+{% endblock css %}
 {% block script %}{% endblock script %}
+
+{% comment %}
+Djangoテンプレートタグです。自由に使ってください。
+
+ユーザ名の表示
+{{ user.get_username }}
+
+ログアウトURL
+{% url 'logout' %}
+
+ログインURL
+{% url 'login' %}
+
+{% endcomment %}
 
 
 {% block content %}
@@ -13,7 +30,7 @@
             <header>
                 <div class="headerLeft head">
                     <img src="{% static 'home/images/mark_tenki_hare.png' %}">
-                </div> 
+                </div>
                 <div class="headerCenter head"><h1>LINK+</h1></div>
                 <div class="headerRight head">
                     <h3><a href="{% url 'login' %}">ログイン</a></h3>

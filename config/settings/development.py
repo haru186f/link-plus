@@ -52,3 +52,14 @@ if DEBUG:
     MIDDLEWARE.insert(index, 'debug_toolbar.middleware.DebugToolbarMiddleware')
 
     INTERNAL_IPS = ['127.0.0.1', 'localhost']
+
+# ==========================================================
+# メール設定（必要なら追加）
+# ==========================================================
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_HOST = os.getenv('EMAIL_HOST')
+# EMAIL_PORT = os.getenv('EMAIL_PORT')
+# EMAIL_HOST_USER = os.getenv('EMAIL_USER')
+# EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD')
+# EMAIL_USE_TLS = True

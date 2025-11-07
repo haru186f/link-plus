@@ -1,15 +1,14 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
-from .models import CustomUser, Faculty, Department, Course
+from .models import CustomUser, College, Department, Course
 
 
-class CustomUserCreationForm(UserCreationForm):
-    """ユーザー登録フォーム（新規登録用）"""
+class SignupForm(UserCreationForm):
+    """ユーザー登録フォーム"""
 
-    # 学部・学科・コースを選択肢として追加
-    faculty = forms.ModelChoiceField(
-        queryset=Faculty.objects.all(),
+    college = forms.ModelChoiceField(
+        queryset=College.objects.all(),
         required=False,
         label='学部'
     )
@@ -21,10 +20,10 @@ class CustomUserCreationForm(UserCreationForm):
     course = forms.ModelChoiceField(
         queryset=Course.objects.all(),
         required=False,
-        label='コース'
+        label='コース／専攻'
     )
 
-    class Meta:
+    class Meta(UserCreationForm.Meta):
         model = CustomUser
         fields = [
             'username',
@@ -32,33 +31,10 @@ class CustomUserCreationForm(UserCreationForm):
             'password1',
             'password2',
             'grade',
-            'faculty',
+            'college',
             'department',
             'course',
         ]
-        labels = {
-            'username': '名前',
-            'email': 'メールアドレス',
-            'password1': 'パスワード',
-            'password2': 'パスワード（確認）',
-            'grade': '学年',
-            'faculty': '学部',
-            'department': '学科',
-            'course': 'コース',
-        }
-        help_texts = {field: '' for field in fields}
-
-
-    # 🔽 ここを追加：メールアドレスのドメイン制限
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        required_domain = '@g.neec.ac.jp'
-
-        if not email or not email.lower().endswith(required_domain):
-            raise ValidationError(f'登録には {required_domain} のメールアドレスが必要です。')
-
-        return email
-
 
 class CustomAuthenticationForm(AuthenticationForm):
     """ログインフォーム（ユーザー名またはメールアドレス）"""

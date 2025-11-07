@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="_tDs0RsYlQ4fGwmbFPf8" name="画面遷移図">
-        <mxGraphModel dx="2540" dy="2001" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+        <mxGraphModel dx="1643" dy="1668" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -25,18 +25,20 @@
                 <mxCell id="5" value="ホーム画面" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="370" y="40" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="kCsaJ0fg4Aw9UNDFYanI-15" value="" style="edgeStyle=segmentEdgeStyle;endArrow=classic;html=1;curved=0;rounded=0;endSize=8;startSize=8;entryX=0.25;entryY=0;entryDx=0;entryDy=0;exitX=0.412;exitY=-0.01;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" target="2" edge="1">
+                <mxCell id="kCsaJ0fg4Aw9UNDFYanI-15" value="" style="edgeStyle=segmentEdgeStyle;endArrow=classic;html=1;curved=0;rounded=0;endSize=8;startSize=8;exitX=0.412;exitY=-0.01;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
-                        <mxPoint x="169.4399999999996" y="39.399999999999864" as="sourcePoint"/>
-                        <mxPoint x="150" as="targetPoint"/>
+                        <mxPoint x="179.4399999999996" y="39.399999999999864" as="sourcePoint"/>
+                        <mxPoint x="180" y="40" as="targetPoint"/>
                         <Array as="points">
-                            <mxPoint x="169"/>
-                            <mxPoint x="120"/>
+                            <mxPoint x="210" y="39"/>
+                            <mxPoint x="210"/>
+                            <mxPoint x="180"/>
+                            <mxPoint x="180" y="40"/>
                         </Array>
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="kCsaJ0fg4Aw9UNDFYanI-16" value="ログイン失敗" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
-                    <mxGeometry x="100" y="-30" width="100" height="30" as="geometry"/>
+                    <mxGeometry x="140" y="-30" width="100" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="kCsaJ0fg4Aw9UNDFYanI-41" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="kCsaJ0fg4Aw9UNDFYanI-19" target="kCsaJ0fg4Aw9UNDFYanI-38" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
