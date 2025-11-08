@@ -1,6 +1,5 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.core.exceptions import ValidationError
 from .models import CustomUser, College, Department, Course
 
 
@@ -26,26 +25,21 @@ class SignupForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = CustomUser
         fields = [
-            'username',
             'email',
             'password1',
             'password2',
-            'grade',
             'college',
             'department',
             'course',
+            'grade',
         ]
+        labels = {
+            'email': 'メールアドレス',
+            'password1': 'パスワード',
+            'password2': 'パスワード(確認用)',
+            'college': 'カレッジ',
+            'department': '学科',
+            'course': 'コース／専攻',
+            'grade': '学年',
+        }
 
-class CustomAuthenticationForm(AuthenticationForm):
-    """ログインフォーム（ユーザー名またはメールアドレス）"""
-
-    username = forms.CharField(
-        label='ユーザー名',
-        widget=forms.TextInput(attrs={'autofocus': True})
-    )
-
-    password = forms.CharField(
-        label='パスワード',
-        strip=False,
-        widget=forms.PasswordInput()
-    )
