@@ -95,29 +95,3 @@ class GetGradesView(View):
             max_grade = 2
 
         return JsonResponse({'max_grade': max_grade})
-
-
-class CustomLoginView(LoginView):
-    """
-    ログインビュー
-    """
-    template_name = 'registration/login.html'  # ← Django 標準に合わせた
-    authentication_form = CustomAuthenticationForm
-
-    def get_success_url(self):
-        """ログイン後リダイレクト先を決定"""
-        return self.request.GET.get('next', reverse_lazy('home'))
-
-
-class CustomLogoutView(LogoutView):
-    """
-    ログアウト処理
-    """
-    next_page = reverse_lazy('login')
-
-
-class HomeView(LoginRequiredMixin, TemplateView):
-    """
-    ログイン後のホーム画面
-    """
-    template_name = 'accounts/home.html'
