@@ -3,40 +3,8 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-
-# カレッジ（例：ITカレッジ）
-class College(models.Model):
-    name = models.CharField(max_length=100)
-    max_grade = models.PositiveSmallIntegerField(default=4)
-
-    def __str__(self):
-        return self.name
-
-
-# 学科（例：情報処理科）
-class Department(models.Model):
-    name = models.CharField(max_length=100)
-    college = models.ForeignKey(College, on_delete=models.CASCADE, related_name='departments')
-
-    def __str__(self):
-        return self.name
-
-
-# コース（例：システム開発コース）
-class Course(models.Model):
-    name = models.CharField(max_length=100)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='courses')
-
-    def __str__(self):
-        return self.name
-
-
-# バス停（例：八王子みなみ野）
-class Bus(models.Model):
-    BUS_CHOICES = [('hachiouji', '八王子'), ('minamino', '八王子みなみ野')]
-    name = models.CharField(max_length=20, choices=BUS_CHOICES, default='hachiouji')
-    def __str__(self):
-        return self.name
+from apps.bus.models import Bus
+from apps.lecture.models import College, Department, Course
 
 
 class CustomUserManager(UserManager):
