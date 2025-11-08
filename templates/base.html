@@ -6,11 +6,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Link plus | {% block title %}{% endblock title %}</title>
-  <link rel="stylesheet" href="{% static 'style.css' %}">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" defer></script>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
   {% block css %}{% endblock css %}
   {% block script %}{% endblock script %}
 </head>
 <body>
-  {% block content %}{% endblock content %}
+  {# Navigation #}
+  {% include '_navbar.html' %}
+
+  {# Header #}
+  {% block header %}{% endblock header %}
+
+  {# Main Content #}
+  <main class="bg-light">
+    <section class="container py-5 bg-white">
+      <div class="px-4 px-lg-5 my-5">
+        {% block content %}{% endblock content %}
+      </div>
+    </section>
+  </main>
+
+  {# Footer #}
+  {% include '_footer.html' %}
+
 </body>
 </html>
