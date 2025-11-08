@@ -1,15 +1,11 @@
 from django.contrib.auth import login
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, TemplateView
-
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.views import LoginView, LogoutView
+from django.views.generic import CreateView
 from django.views import View
 from django.http import JsonResponse
-from django.shortcuts import redirect
 
-from .forms import SignupForm, CustomAuthenticationForm
-from .models import College, Department, Course
+from .forms import SignupForm
+from apps.lecture.models import College, Department, Course
 
 
 class SignupView(CreateView):

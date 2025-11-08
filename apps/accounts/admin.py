@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
 
-from .models import College, Department, Course, CustomUser
+from .models import CustomUser
 
 class CustomUserAdmin(UserAdmin):
     # 「まずユーザー名とパスワードを登録してください。」という文言を非表示にする
@@ -26,10 +26,3 @@ class CustomUserAdmin(UserAdmin):
     ordering = ('email',)
 
 admin.site.register(CustomUser, CustomUserAdmin)
-
-
-
-
-admin.site.register(College)
-admin.site.register(Department)
-admin.site.register(Course)

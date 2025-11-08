@@ -91,7 +91,6 @@ LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 AUTHENTICATION_BACKENDS = [
-    'apps.accounts.backends.UsernameOrEmailBackend',  # ユーザー名 or メールでログイン
     'django.contrib.auth.backends.ModelBackend',      # Django標準（管理画面など）
 ]
 
