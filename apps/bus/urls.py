@@ -1,9 +1,10 @@
 from django.urls import path
-from .views import *
+from . import views
 
-urlpatterns = []
 
-# 例：
-# urlpatterns = [
-#     path('', .as_view(), name=''),
-# ]
+
+app_name = "bus"
+
+urlpatterns = [
+    path("", views.next_bus_times, name="next_bus_times"),
+]
