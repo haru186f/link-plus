@@ -132,7 +132,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ==========================================================
 
 CRONJOBS = [
-
+    ('*/10 * * * *', 'apps.news.tasks.fetch_and_save_emails','>> /tmp/email_fetch.log'),
 ]
 
 # 例：
@@ -144,3 +144,6 @@ CRONJOBS = [
 
 # 毎朝8時に定期メールを送信
 # ('0 8 * * *', 'apps.core.cron.send_daily_mail'),
+
+# ログを記録したい場合は以下を追加（推奨）
+# '>> /var/log/cron.log 2>&1'
