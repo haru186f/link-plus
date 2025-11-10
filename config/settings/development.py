@@ -52,3 +52,14 @@ if DEBUG:
     MIDDLEWARE.insert(index, 'debug_toolbar.middleware.DebugToolbarMiddleware')
 
     INTERNAL_IPS = ['127.0.0.1', 'localhost']
+
+# ==========================================================
+# メールサーバー接続設定 (IMAP) 
+# ==========================================================
+
+# IMAP接続情報 (環境変数から読み込む)
+# 実際のメールアドレスとパスワードは .env.development に設定してください
+EMAIL_IMAP_HOST = os.getenv('EMAIL_IMAP_HOST', 'imap.example.com')  # ホスト名
+EMAIL_IMAP_PORT = int(os.getenv('EMAIL_IMAP_PORT', 993))            # ポート番号 (int型に変換)
+EMAIL_IMAP_USER = os.getenv('EMAIL_IMAP_USER', None)                      # ユーザー名/メールアドレス
+EMAIL_IMAP_PASS = os.getenv('EMAIL_IMAP_PASS', None)                      # パスワード
