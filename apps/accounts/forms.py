@@ -1,6 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 
 from .models import CustomUser, College, Department, Course
 
@@ -46,9 +45,20 @@ class SignupForm(UserCreationForm):
         }
 
 
+
 class CustomAuthenticationForm(AuthenticationForm):
-    """メールアドレスでログインするためのフォーム"""
     username = forms.EmailField(
         label="メールアドレス",
-        widget=forms.EmailInput(attrs={"autofocus": True})
+        widget=forms.EmailInput(attrs={
+            "class": "form-control",
+            "placeholder": "メールアドレスを入力してください",
+            "autofocus": True
+        }),
+    )
+    password = forms.CharField(
+        label="パスワード",
+        widget=forms.PasswordInput(attrs={
+            "class": "form-control",
+            "placeholder": "パスワードを入力してください"
+        }),
     )
