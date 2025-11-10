@@ -1,6 +1,7 @@
-# 🚀 Link Plus 開発環境構築＋開発手順
+# 🚀 Link Plus 開発環境構築 & 開発手順
 
-このドキュメントでは、**Link Plus**のローカル開発環境構築とチーム開発の流れを説明します。
+このドキュメントでは、**Link Plus** のローカル開発環境の構築方法と、<br>
+チームでの開発フロー（ブランチ運用・コミット・PR作成）について説明します。
 
 ---
 
@@ -98,8 +99,6 @@ git pull origin main
 > 他の開発者の変更によってコンフリクトが発生する場合があります。<br>
 > その際は「コンフリクト解決」の手順を参照してください。
 
----
-
 ### 2. 新しいブランチを作成
 新しい作業を始めるときは、必ず`main`から新しいブランチを作成してください。<br>
 ブランチ名は「何をするブランチか」が明確に分かるように命名しましょう。
@@ -123,7 +122,6 @@ git switch -c feature/your-branch-name
 ```bash
 git add --all
 git commit -m "feat: ログイン画面を追加"
-
 ```
 > 💬 コミットメッセージの書き方
 > | タイプ | 説明 | 例 |
@@ -145,8 +143,6 @@ git push origin feature/your-branch-name
 > 💡 補足<br>
 > 初回のみブランチ名を明示します。<br>
 > 2回目以降は git push のみでOKです。
-
----
 
 ### 5. Pull request (PR) を作成
 GitHub上で、`feature/your-branch-name`→`main`への**Pull Request**を作成します。<br>
