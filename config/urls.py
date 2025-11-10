@@ -2,14 +2,20 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 
 urlpatterns = [
-    path('', include('apps.core.urls')),        # その他
-    path('', include('apps.lecture.urls')),     # 講義
-    path('', include('apps.news.urls')),        # お知らせ
-    path('', include('apps.bus.urls')),         # バス時刻
+    # ホームページ
+    path('', TemplateView.as_view(template_name='home/home.html'), name='home'),
+    path('lecture/', include('apps.lecture.urls')),
+    path('news/', include('apps.news.urls')),
+    path('bus/', include('apps.bus.urls')),
+
+    # ユーザ登録ページ
     path('accounts/', include('apps.accounts.urls')),
-    path("accounts/", include("django.contrib.auth.urls")),
+    path('accounts/', include('django.contrib.auth.urls')),
+
+    # 管理者ページ
     path('admin/', admin.site.urls),
 ]
 

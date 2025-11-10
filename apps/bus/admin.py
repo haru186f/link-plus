@@ -3,5 +3,5 @@ from .models import *
 
 # Register your models here.
 
-# admin.site.register()
-
+admin.site.register(Bus)
+admin.site.register(BusSchedule)

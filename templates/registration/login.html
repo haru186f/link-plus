@@ -9,14 +9,31 @@
 
 {% block content %}
 
-<h2>ログイン</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.non_field_errors }}
-    <p>{{ form.username.label_tag }} {{ form.username }}</p>
-    <p>{{ form.password.label_tag }} {{ form.password }}</p>
-    <button type="submit">ログイン</button>
-</form>
-<a href="{% url 'signup' %}">新規登録はこちら</a>
+<div class="border border-dark-subtle border-3 rounded-3 p-5 mx-auto" style="max-width: 540px">
+    <h3 class="mb-3 text-center">ログインフォーム</h3>
+
+    <form method="POST">{% csrf_token %}
+
+        {# Login form #}
+        <div class="mb-3">
+            {# ここにユーザー名入力欄 #}
+            <label for="id_username">ユーザー名:</label>
+            <input type="text" id="id_username" required class="form-control">
+        </div>
+        <div class="mb-3">
+            {# ここにパスワード入力欄 #}
+            <label for="id_password">パスワード:</label>
+            <input type="password" id="id_password" required class="form-control">
+        </div>
+
+        {# Submit button #}
+        <div class="text-center">
+            <a href="{% url 'accounts:signup' %}" class="btn btn-secondary">はじめての方はこちら</a>
+            <button type="submit" class="btn btn-dark">ログイン</button>
+        </div>
+
+    </form>
+
+</div>
 
 {% endblock content %}

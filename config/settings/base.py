@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 INSTALLED_APPS = [
     # アプリケーション
-    'apps.core.apps.CoreConfig',            # その他のアプリ（設定、天気、マップ等）
+    'apps.home.apps.HomeConfig',            # その他のアプリ（設定、天気、マップ等）
     'apps.lecture.apps.LectureConfig',      # 講義
     'apps.news.apps.NewsConfig',            # お知らせ
     'apps.bus.apps.BusConfig',              # バス時刻
@@ -27,7 +27,7 @@ INSTALLED_APPS = [
 
     # デフォルト
     'django.contrib.admin',
-    'django.contrib.auth',
+    'django.contrib.auth',                  # 認証システム（ログイン、ログアウト、パスワード変更、パスワード再設定）
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -87,11 +87,10 @@ DATABASES = {}
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
-LOGIN_REDIRECT_URL = '/home/'
+LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 AUTHENTICATION_BACKENDS = [
-    'apps.accounts.backends.UsernameOrEmailBackend',  # ユーザー名 or メールでログイン
     'django.contrib.auth.backends.ModelBackend',      # Django標準（管理画面など）
 ]
 
