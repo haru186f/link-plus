@@ -1,4 +1,4 @@
-from django.contrib.auth import login
+from django.contrib.auth import login, get_user_model
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
 
@@ -6,11 +6,13 @@ from .forms import SignupForm, CustomAuthenticationForm
 from django.contrib.auth.views import LoginView
 from apps.lecture.models import College
 
+User = get_user_model()
 class SignupView(CreateView):
     """
     ユーザ登録ビュー
     登録後に自動ログインし、ホーム画面へリダイレクトする
     """
+    model = User
     form_class = SignupForm
     success_url = reverse_lazy('home')
     template_name = 'registration/signup.html'
@@ -31,4 +33,5 @@ class SignupView(CreateView):
 
 class CustomLoginView(LoginView):
     template_name = 'registration/login.html'
+    success_url = reverse_lazy('login')
     authentication_form = CustomAuthenticationForm

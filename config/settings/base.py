@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 INSTALLED_APPS = [
     # アプリケーション
-    'apps.home.apps.HomeConfig',            # その他のアプリ（設定、天気、マップ等）
+    'apps.core.apps.CoreConfig',            # その他のアプリ（設定、天気、マップ等）
     'apps.lecture.apps.LectureConfig',      # 講義
     'apps.news.apps.NewsConfig',            # お知らせ
     'apps.bus.apps.BusConfig',              # バス時刻

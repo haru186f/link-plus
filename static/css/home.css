@@ -8,12 +8,14 @@ body {
     padding: 0;
     background-color: #f4f4f4; /* 背景色 */
 }
+/*
 #monitor {
     margin: 0;
     padding: 0 50px;
     width:100vw;
     height:100vh;
 }
+*/
 .main-content {
     display:flex;
     flex-wrap:wrap;
@@ -54,7 +56,7 @@ header {
 
 .headerRight {
     justify-content:flex-end;
-    
+
 }
 .headerRight h3 {
     padding-right:3rem;
