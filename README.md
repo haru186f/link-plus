@@ -14,7 +14,7 @@
 
 ## 🐘 PostgreSQL のインストール
 Link Plus は **PostgreSQL** を使用します。<br>
-未インストールの場合は、以下の手順でセットアップしてください。。
+未インストールの場合は、以下の手順でセットアップしてください。
 
 ### Windows
 1. [PostgreSQL 公式サイト](https://www.postgresql.org/download/windows/) からインストーラーをダウンロード
@@ -61,7 +61,7 @@ pip install -r requirements.txt
 
 ### 4. 環境変数ファイルを作成
 ```bash
-cp .env.example .env.development    # Windows の場合は copy .env .env.development
+cp .env.example .env.development    # Windows の場合は copy .env.example .env.development
 ```
 > 🔑 注意
 > `.env.example`はテンプレートです。<br>
@@ -96,22 +96,24 @@ git pull origin main
 ```
 
 > 💡 注意<br>
-> 他の開発者の変更によってコンフリクトが発生する場合があります。<br>
-> その際は「コンフリクト解決」の手順を参照してください。
+> 他の開発者の変更を取り込まないまま作業を続けると、**コンフリクト**の原因になります。<br>
+> 作業中でも、**定期的に `main` を pull して最新の状態を保つ**ようにしましょう。
 
 ### 2. 新しいブランチを作成
 新しい作業を始めるときは、必ず`main`から新しいブランチを作成してください。<br>
 ブランチ名は「何をするブランチか」が明確に分かるように命名しましょう。
 ```bash
-git switch -c feature/your-branch-name
+git switch -c feat/your-branch-name
 ```
 > 🏷️ ブランチ命名規則
 > | 種類 | 例 |
 > |-------------|------|
-> | 新機能 | `feature/add-login-page` |
+> | 新機能 | `feat/add-login-page` |
 > | バグ修正 | `fix/user-login-error` |
 > | リファクタリング | `refactor/update-model-structure` |
 > | ドキュメント修正 | `docs/update-readme` |
+> | 環境構築・設定変更 | `chore/setup-development-settings` |
+> | テスト追加・修正 | `test/add-login-tests` |
 
 ---
 
@@ -130,6 +132,8 @@ git commit -m "feat: ログイン画面を追加"
 > | fix | 不具合を修正 | `fix: ログイン時に500エラーが発生する問題を修正` |
 > | refactor | 構造の整理・改善（動作変更なし） | `refactor: models.pyの構造を整理` |
 > | docs | ドキュメントを変更 | `docs: READMEにセットアップ手順を追記` |
+> | chore | 開発環境・設定の変更 | `chore: settings.pyにDEBUG設定を追加` |
+> | test | テストコードの追加・修正 | `test: Userモデルのテストを追加` |
 
 ---
 
@@ -145,8 +149,8 @@ git push origin feature/your-branch-name
 > 2回目以降は git push のみでOKです。
 
 ### 5. Pull request (PR) を作成
-GitHub上で、`feature/your-branch-name`→`main`への**Pull Request**を作成します。<br>
+GitHub上で、`feat/your-branch-name`→`main`への**Pull Request**を作成します。<br>
 PRタイトルはコミットメッセージと同様の形式で記述してください。
 > 💡 補足<br>
 > PR本文には「変更内容」「目的」「確認手順」などを簡潔に記載するとレビューがスムーズになります。<br>
-> 作業途中の場合は [WIP]（Work In Progress）をタイトルに付けてください。
+> 作業途中の場合は `[WIP]`（Work In Progress）をタイトルに付けてください。
