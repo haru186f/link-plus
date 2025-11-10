@@ -141,7 +141,7 @@ git commit -m "feat: ログイン画面を追加"
 作業が完了したら、ブランチをリモートへプッシュします。
 
 ```bash
-git push origin feature/your-branch-name
+git push origin feat/your-branch-name
 ```
 
 > 💡 補足<br>
