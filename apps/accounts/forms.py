@@ -75,7 +75,7 @@ class ProfileForm(forms.ModelForm):
         required=False,
         label='学年',
         widget=forms.Select(attrs={
-            "class": "form-control",
+            "class": "form-select",
             "placeholder": "学年を選択してください"
         })
     )
@@ -84,7 +84,7 @@ class ProfileForm(forms.ModelForm):
         required=False,
         label='クラス',
         widget=forms.Select(attrs={
-            "class": "form-control",
+            "class": "form-select",
             "placeholder": "クラスを選択してください"
         })
     )
@@ -93,7 +93,7 @@ class ProfileForm(forms.ModelForm):
         required=False,
         label='スクールバス',
         widget=forms.Select(attrs={
-            "class": "form-control",
+            "class": "form-select",
             "placeholder": "スクールバスを選択してください"
         })
     )

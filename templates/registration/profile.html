@@ -8,14 +8,61 @@
 {% endblock css %}
 
 {% block script %}
+<script src="{% static 'js/profile.js' %}" defer></script>
 {% endblock script %}
 
 {% block content %}
-<h2>プロフィール設定</h2>
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit" class="btn btn-success">保存してホームへ</button>
-</form>
+<div class="container mt-4">
+  <h2 class="mb-4">プロフィール設定</h2>
+
+  <form method="post" id="profileForm">
+    {% csrf_token %}
+
+    <div class="mb-3">
+      {{ form.college.label_tag }}
+      {{ form.college }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.department.label_tag }}
+      {{ form.department }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.course.label_tag }}
+      {{ form.course }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.grade.label_tag }}
+      {{ form.grade }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.class_number.label_tag }}
+      {{ form.class_number }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.bus.label_tag }}
+      {{ form.bus }}
+    </div>
+
+    <button type="submit" class="btn btn-success mt-3">保存してホームへ</button>
+  </form>
+</div>
+
+<script>
+  // URL属性をフォーム要素に付与
+  document.addEventListener("DOMContentLoaded", function() {
+    const college = document.getElementById("id_college");
+    const department = document.getElementById("id_department");
+
+    // data属性を追加（JSでURLを使うため）
+    college.setAttribute("data-departments-url", "{% url 'lecture:get_departments' %}");
+    department.setAttribute("data-courses-url", "{% url 'lecture:get_courses' %}");
+    department.setAttribute("data-grades-url", "{% url 'lecture:get_grades' %}");
+  });
+</script>
 {% endblock content %}
 <h2>プロフィール更新</h2>

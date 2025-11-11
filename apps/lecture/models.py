@@ -4,7 +4,6 @@ from django.db import models
 # カレッジ（例：ITカレッジ）
 class College(models.Model):
     name = models.CharField(max_length=100)
-    max_grade = models.PositiveSmallIntegerField(default=4)
 
     def __str__(self):
         return self.name
@@ -14,6 +13,7 @@ class College(models.Model):
 class Department(models.Model):
     name = models.CharField(max_length=100)
     college = models.ForeignKey(College, on_delete=models.CASCADE, related_name='departments')
+    max_grade = models.PositiveSmallIntegerField(default=4)
 
     def __str__(self):
         return self.name

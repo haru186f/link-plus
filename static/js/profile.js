@@ -1,8 +1,15 @@
 document.addEventListener("DOMContentLoaded", function() {
-  const collegeSelect = document.getElementById("college");
-  const departmentSelect = document.getElementById("department");
-  const courseSelect = document.getElementById("course");
-  const gradeSelect = document.getElementById("grade");
+  const collegeSelect = document.getElementById("id_college");
+  const departmentSelect = document.getElementById("id_department");
+  const courseSelect = document.getElementById("id_course");
+  const gradeSelect = document.getElementById("id_grade");
+  const classSelect = document.getElementById("id_class_number");
+
+  // 初期化
+  departmentSelect.innerHTML = '<option value="">---------</option>';
+  courseSelect.innerHTML = '<option value="">---------</option>';
+  gradeSelect.innerHTML = '<option value="">---------</option>';
+  classSelect.innerHTML = '<option value="">---------</option>';
 
   // 学部変更 → 学科更新
   collegeSelect.addEventListener("change", function() {
@@ -12,6 +19,7 @@ document.addEventListener("DOMContentLoaded", function() {
     departmentSelect.innerHTML = '<option value="">---------</option>';
     courseSelect.innerHTML = '<option value="">---------</option>';
     gradeSelect.innerHTML = '<option value="">---------</option>';
+    classSelect.innerHTML = '<option value="">---------</option>';
 
     if (collegeId) {
       fetch(`${url}?college_id=${collegeId}`)
@@ -36,6 +44,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     courseSelect.innerHTML = '<option value="">---------</option>';
     gradeSelect.innerHTML = '<option value="">---------</option>';
+    classSelect.innerHTML = '<option value="">---------</option>';
 
     if (departmentId) {
       // コース取得
@@ -63,6 +72,22 @@ document.addEventListener("DOMContentLoaded", function() {
           }
         })
         .catch(err => console.error("学年取得エラー:", err));
+    }
+  });
+
+  // 学年変更 → クラス更新
+  gradeSelect.addEventListener("change", function() {
+    const gradeValue = this.value;
+
+    classSelect.innerHTML = '<option value="">---------</option>';
+
+    if (gradeValue) {
+      for (let i = 1; i <= 4; i++) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = `${i}組`;
+        classSelect.appendChild(option);
+      }
     }
   });
 });

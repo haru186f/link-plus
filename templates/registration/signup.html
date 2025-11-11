@@ -19,37 +19,6 @@
   {{ form.email.label_tag }} {{ form.email }}<br>
   {{ form.password1.label_tag }} {{ form.password1 }}<br>
   {{ form.password2.label_tag }} {{ form.password2 }}<br>
-
-
-  <label for="college">カレッジ：</label>
-  <select id="college" name="college" data-departments-url="{% url 'lecture:get_departments' %}">
-    <option value="">---------</option>
-    {% for college in colleges %}
-      <option value="{{ college.id }}">{{ college.name }}</option>
-    {% endfor %}
-  </select>
-  <br>
-
-  <label for="department">学科：</label>
-  <select id="department" name="department"
-          data-courses-url="{% url 'lecture:get_courses' %}"
-          data-grades-url="{% url 'lecture:get_grades' %}">
-    <option value="">---------</option>
-  </select>
-  <br>
-
-  <label for="course">コース：</label>
-  <select id="course" name="course">
-    <option value="">---------</option>
-  </select>
-  <br>
-
-  <label for="grade">学年：</label>
-  <select id="grade" name="grade">
-    <option value="">---------</option>
-  </select>
-  <br>
-
   <button type="submit">登録</button>
 </form>
 
