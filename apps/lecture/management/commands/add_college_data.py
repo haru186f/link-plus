@@ -293,7 +293,7 @@ class Command(BaseCommand):
         ])
 
         # 鍼灸整（3年制）
-        dept_acu = Department.objects.create(name="鍼灸整（3年制）", college=sports_college)
+        dept_acu = Department.objects.create(name="鍼灸科（3年制）", college=sports_college)
         Course.objects.bulk_create([
             Course(name="スポーツ鍼灸コース", department=dept_acu),
             Course(name="美容鍼灸コース", department=dept_acu),

@@ -46,26 +46,15 @@ class CustomUserManager(UserManager):
 
 
 class CustomUser(AbstractUser):
-    """拡張ユーザーモデル"""
+    """カスタムユーザーモデル"""
 
     class Meta(AbstractUser.Meta):
         db_table = 'custom_user'
 
-    username = models.CharField(
-        _("username"),
-        max_length=150,
-        blank=True,
-        null=True,
-        help_text=_(
-            "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."
-        ),
-        validators=[AbstractUser.username_validator],
-        error_messages={
-            "unique": _("A user with that username already exists."),
-        },
-    )
+    username = None # usernameフィールドを無効化
 
     email = models.EmailField(_("email address"), unique=True)
+
     is_staff = models.BooleanField(
         _("staff status"),
         default=False,
@@ -82,17 +71,28 @@ class CustomUser(AbstractUser):
     is_teacher = models.BooleanField(_("teacher status"), default=False)
     date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
-    GRADE_CHOICES = [(i, f"{i}年") for i in range(1, 5)]
-    grade = models.IntegerField(_("grade"), choices=GRADE_CHOICES, blank=True, null=True)
-
-    college = models.ForeignKey(College, on_delete=models.SET_NULL, null=True, blank=True)
-    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
-    course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True)
-    bus = models.ForeignKey(Bus, on_delete=models.SET_NULL, null=True, blank=True)
-
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
     objects = CustomUserManager()
 
+    def __str__(self):
+        return self.email
 
+
+class Profile(models.Model):
+    """ユーザプロフィールモデル"""
+
+    GRADE_CHOICES = [(i, f"{i}年") for i in range(1, 5)]
+    CLASS_CHOICES = [(i, f"{i}組") for i in range(1, 5)]
+
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="profile")
+    college = models.ForeignKey(College, on_delete=models.SET_NULL, null=True, blank=True)
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
+    course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True)
+    bus = models.ForeignKey(Bus, on_delete=models.SET_NULL, null=True, blank=True)
+    grade = models.IntegerField(_("grade"), null=True, blank=True, choices=GRADE_CHOICES)
+    class_number = models.IntegerField(_("class"), null=True, blank=True, choices=CLASS_CHOICES)
+
+    def __str__(self):
+        return f"Profile of {self.user.email}"

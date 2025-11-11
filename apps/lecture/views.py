@@ -1,9 +1,5 @@
-from django.shortcuts import render
 from django.views import View
-from django.views.generic import CreateView, TemplateView
 from django.http import JsonResponse
-from django.shortcuts import redirect
-from django.urls import reverse_lazy
 from .models import Course, Department
 
 # Create your views here.
@@ -30,7 +26,7 @@ class GetGradesView(View):
         # 特定の学科で分岐（3年制、4年制度）
         THREE_YEAR_DEPARTMENTS = [
             # デザインカレッジ
-            'ゲームクリエイター科（3年制）'
+            'ゲームクリエイター科（3年制）',
             'デザイン科（3年制）',
             'CG映像科（3年制）',
 
