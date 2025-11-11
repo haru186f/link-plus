@@ -11,6 +11,7 @@ from .models import Profile
 User = get_user_model()
 
 
+User = get_user_model()
 class SignupView(CreateView):
     """ユーザ登録ビュー"""
     model = User
@@ -49,6 +50,7 @@ class ProfileView(UpdateView):
 class CustomLoginView(LoginView):
     """カスタムログインビュー"""
     template_name = 'registration/login.html'
+    success_url = reverse_lazy('login')
     authentication_form = CustomAuthenticationForm
 
     def get_success_url(self):
