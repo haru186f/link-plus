@@ -1,0 +1,16 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Link plus | {% block title %}{% endblock title %}</title>
+
+  {% block css %}{% endblock css %}
+  {% block script %}{% endblock script %}
+</head>
+<body>
+  {% block content %}{% endblock content %}
+</body>
+</html>
