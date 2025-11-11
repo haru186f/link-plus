@@ -41,6 +41,7 @@ class SignupForm(UserCreationForm):
         }
 
 
+
 class ProfileForm(forms.ModelForm):
     """プロフィール編集フォーム"""
     college = forms.ModelChoiceField(
@@ -110,7 +111,7 @@ class ProfileForm(forms.ModelForm):
             'bus',
         ]
         labels = {
-            'college': '学部',
+            'college': 'カレッジ',
             'department': '学科',
             'course': 'コース／専攻',
             'grade': '学年',
