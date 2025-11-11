@@ -133,7 +133,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ==========================================================
 
 CRONJOBS = [
-    ('*/10 * * * *', 'apps.news.tasks.fetch_and_save_emails','>> /tmp/email_fetch.log'),
+    ('*/10 * * * *', 'django.core.management.call_command', ['fetch_new_data'],{'output': '/tmp/email_fetch.log'}),
 ]
 
 # 例：

@@ -55,13 +55,23 @@
                                 <th class="title">タイトル</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr><th>10/24</th><td>ニュース1</td></tr>
-                            <tr><th>10/26</th><td>ニュース2</td></tr>
-                            <tr><th>10/28</th><td>ニュース3</td></tr>
-                            <tr><th>10/30</th><td>ニュース4</td></tr>
-                            <tr><th>10/31</th><td>ニュース5</td></tr>
-                        </tbody>
+                    <tbody>
+                            {# emailsリストをループ処理 #}
+                            {% for email in emails %}
+                            <tr>
+                                {# 発信日: received_atを '月/日' 形式で表示 #}
+                                <th>{{ email.received_at|date:"m/d" }}</th>
+                                
+                                {# タイトル: subjectを表示 #}
+                                <td>{{ email.subject }}</td>
+                            </tr>
+                            {% empty %}
+                            {# リストが空の場合にこのメッセージを表示 #}
+                            <tr>
+                                <td colspan="2">受信したメールはありません。</td>
+                            </tr>
+                            {% endfor %}
+                    </tbody>
                     </table>
                 </div>
                 <div class="dairy distanceright">
