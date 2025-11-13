@@ -6,7 +6,7 @@ from django.views.generic import TemplateView
 
 urlpatterns = [
     # ホームページ
-    path('', TemplateView.as_view(template_name='core/home.html'), name='home'),
+    path('', TemplateView.as_view(template_name='core/home.html', extra_context={'nobootstrap': True},), name='home'),
     path('lecture/', include('apps.lecture.urls')),
     path('news/', include('apps.news.urls')),
     path('bus/', include('apps.bus.urls')),

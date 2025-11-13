@@ -1,68 +1,70 @@
-{% extends "base.html" %}
+{% extends "registration/base.html" %}
 {% load static %}
+
 
 {% block title %}プロフィール設定{% endblock title %}
 
+
 {% block css %}
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
 {% endblock css %}
 
+
 {% block script %}
-<script src="{% static 'js/profile.js' %}" defer></script>
 {% endblock script %}
 
+
 {% block content %}
-<div class="container mt-4">
-  <h2 class="mb-4">プロフィール設定</h2>
+<h3 class="mb-3 text-center">プロフィール設定</h3>
 
-  <form method="post" id="profileForm">
-    {% csrf_token %}
+<form method="POST" id="profileForm">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
 
-    <div class="mb-3">
-      {{ form.college.label_tag }}
-      {{ form.college }}
-    </div>
+  <div class="mb-3">
+    <label for="{{ form.college.id_for_label }}" class="form-label">
+      {{ form.college.label }}
+    </label>
+    {{ form.college }}
+  </div>
 
-    <div class="mb-3">
-      {{ form.department.label_tag }}
-      {{ form.department }}
-    </div>
+  <div class="mb-3">
+    <label for="{{ form.department.id_for_label }}" class="form-label">
+      {{ form.department.label }}
+    </label>
+    {{ form.department }}
+  </div>
 
-    <div class="mb-3">
-      {{ form.course.label_tag }}
-      {{ form.course }}
-    </div>
+  <div class="mb-3">
+    <label for="{{ form.course.id_for_label }}" class="form-label">
+      {{ form.course.label }}
+    </label>
+    {{ form.course }}
+  </div>
 
-    <div class="mb-3">
-      {{ form.grade.label_tag }}
-      {{ form.grade }}
-    </div>
+  <div class="mb-3">
+    <label for="{{ form.grade.id_for_label }}" class="form-label">
+      {{ form.grade.label }}
+    </label>
+    {{ form.grade }}
+  </div>
 
-    <div class="mb-3">
-      {{ form.class_number.label_tag }}
-      {{ form.class_number }}
-    </div>
+  <div class="mb-3">
+    <label for="{{ form.class_number.id_for_label }}" class="form-label">
+      {{ form.class_number.label }}
+    </label>
+    {{ form.class_number }}
+  </div>
 
-    <div class="mb-3">
-      {{ form.bus.label_tag }}
-      {{ form.bus }}
-    </div>
+  <div class="mb-3">
+    <label for="{{ form.bus.id_for_label }}" class="form-label">
+      {{ form.bus.label }}
+    </label>
+    {{ form.bus }}
+  </div>
 
-    <button type="submit" class="btn btn-success mt-3">保存してホームへ</button>
-  </form>
-</div>
+  <button type="submit" class="btn btn-success btn-lg w-100 mt-3">
+    保存する
+  </button>
+</form>
 
-<script>
-  // URL属性をフォーム要素に付与
-  document.addEventListener("DOMContentLoaded", function() {
-    const college = document.getElementById("id_college");
-    const department = document.getElementById("id_department");
-
-    // data属性を追加（JSでURLを使うため）
-    college.setAttribute("data-departments-url", "{% url 'lecture:get_departments' %}");
-    department.setAttribute("data-courses-url", "{% url 'lecture:get_courses' %}");
-    department.setAttribute("data-grades-url", "{% url 'lecture:get_grades' %}");
-  });
-</script>
 {% endblock content %}
-<h2>プロフィール更新</h2>
