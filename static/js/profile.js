@@ -4,7 +4,8 @@ document.addEventListener("DOMContentLoaded", function() {
   const courseSelect = document.getElementById("id_course");
   const gradeSelect = document.getElementById("id_grade");
   const classSelect = document.getElementById("id_class_number");
-  const busSelect = document.getElementById("id_bus");
+  // const busSelect = document.getElementById("id_bus");
+
 
   // 🔹「値が空の場合のみ」初期化
   if (!departmentSelect.value) {
@@ -19,9 +20,9 @@ document.addEventListener("DOMContentLoaded", function() {
   if (!classSelect.value) {
     classSelect.innerHTML = '<option value="">---------</option>';
   }
-  if (!busSelect.value) {
-    busSelect.innerHTML = '<option value="">---------</option>';
-  }
+  // if (!busSelect.value) {
+  //   busSelect.innerHTML = '<option value="">---------</option>';
+  // }
 
   // 学部変更 → 学科更新
   collegeSelect.addEventListener("change", function() {

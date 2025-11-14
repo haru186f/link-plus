@@ -119,6 +119,14 @@ class ProfileForm(forms.ModelForm):
             'bus': 'スクールバス',
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # 🔹 先頭に "---------" を必ず入れる（最良の方法）
+        self.fields['grade'].choices = [('', '---------')] + list(self.fields['grade'].choices)
+        self.fields['class_number'].choices = [('', '---------')] + list(self.fields['class_number'].choices)
+
+
 
 class CustomAuthenticationForm(AuthenticationForm):
     """ログインフォーム"""
