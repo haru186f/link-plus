@@ -9,44 +9,87 @@
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
 {% endblock css %}
 {% block script %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+
+    // Django から受け取った schedule を JS 配列に変換
+    var schedules = [
+        {% for schedule in schedules %}
+        {
+            title: "{{ schedule.name }}",
+            dayOfWeek: {{ schedule.day_of_week }},
+            startTime: "{{ schedule.start_time }}",
+            endTime: "{{ schedule.end_time }}"
+        },
+        {% endfor %}
+    ];
+
+    // FullCalendar が渡す月の表示範囲内で曜日ベースの授業を日付に展開
+    function expandSchedules(startDate, endDate) {
+        let events = [];
+
+        schedules.forEach(sch => {
+            let date = new Date(startDate);
+
+            while (date <= endDate) {
+                if (date.getDay() === sch.dayOfWeek) {
+
+                    // yyyy-mm-dd 作成
+                    let yyyy = date.getFullYear();
+                    let mm = String(date.getMonth() + 1).padStart(2, "0");
+                    let dd = String(date.getDate()).padStart(2, "0");
+                    let base = `${yyyy}-${mm}-${dd}`;
+
+                    events.push({
+                        title: sch.title,
+                        start: `${base}T${sch.startTime}`,
+                        end: `${base}T${sch.endTime}`
+                    });
+                }
+                date.setDate(date.getDate() + 1);
+            }
+        });
+
+        return events;
+    }
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        timeZone: 'Asia/Tokyo',
+        locale: 'ja',
+
+        events: function(info, successCallback, failureCallback) {
+            const events = expandSchedules(info.start, info.end);
+            successCallback(events);
+        }
+    });
+
+    calendar.render();
+});
+</script>
 
 {% endblock script %}
 
 
 {% block content %}
-    <body>
-        <div id="monitor">
-            <header>
-                <div class="headerLeft head">
-                    <img src="{% static 'img/mark_tenki_hare.png' %}">
-                </div>
-                <div class="headerCenter head"><h1>LINK+</h1></div>
-                <div class="headerRight head">
-                    <h3><a href="{% url 'login' %}">ログイン</a></h3>
-                    <a href="{% url 'accounts:profile' %}"> <img src="{% static 'img/kkrn_icon_haguruma_10.png' %}"></a>
-                </div>
-            </header>
-            <div class="main-content">
-                <div class="calendar-container distanceright">
-                    <div class="calendar-header">
-                        <button>←</button>
-                        <span>2024年10月</span>
-                        <button>→</button>
-                    </div>
-                    <table class="calendar">
-                        <thead>
-                            <tr>
-                                <th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td></td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td></tr>
-                            <tr><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td></tr>
-                            <tr><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td></tr>
-                            <tr><td>21</td><td>22</td><td>23</td><td>24</td><td>25</td><td>26</td><td>27</td></tr>
-                            <tr><td>28</td><td>29</td><td>30</td><td>31</td><td></td><td></td><td></td></tr>
-                        </tbody>
-                    </table>
+<body>
+    <div id="monitor">
+        <header>
+            <div class="headerLeft head">
+                <img src="{% static 'img/mark_tenki_hare.png' %}">
+            </div>
+            <div class="headerCenter head"><h1>LINK+</h1></div>
+            <div class="headerRight head">
+                <h3><a href="{% url 'login' %}">ログイン</a></h3>
+                <a href="{% url 'accounts:profile' %}"> <img src="{% static 'img/kkrn_icon_haguruma_10.png' %}"></a>
+            </div>
+        </header>
+        <div class="main-content">
+            <div class="calendar-container distanceright">
+                    <div id="calendar"></div>
                 </div>
                 <div class="news distanceLeft">
                     <table>
@@ -76,19 +119,18 @@
                         <p></p>
                         <h3>八王子駅行き</h3>
                         <button><a href="#"><image src="{% static 'img/kkrn_icon_haguruma_10.png' %}"></a></button>
-                    </div>
-                    <h4><image src="{% static 'img/bus_nonstep_close.png' %}" class="bus-png"></image></h4>
-                    <div class="bus-times">
-                        <h5>到着まで</h5>
-                        <p>08:00</p>
+                        </div>
+                        <h4><image src="{% static 'img/bus_nonstep_close.png' %}" class="bus-png"></image></h4>
+                        <div class="bus-times">
+                            <h5>到着まで</h5>
+                            <p>08:00</p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <footer>
-        </footer>
-        <a href="{% url 'login' %}">ログイン</a>
-    </body>
+            <footer>
+            </footer>
+        </body>
 
 
-{% endblock content %}
+        {% endblock content %}

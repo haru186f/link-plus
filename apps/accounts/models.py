@@ -3,7 +3,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from apps.bus.models import Bus
+from apps.bus.models import BusStop
 from apps.lecture.models import College, Department, Course
 
 
@@ -90,7 +90,7 @@ class Profile(models.Model):
     college = models.ForeignKey(College, on_delete=models.SET_NULL, null=True, blank=True)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
     course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True)
-    bus = models.ForeignKey(Bus, on_delete=models.SET_NULL, null=True, blank=True)
+    bus_stop = models.ForeignKey(BusStop, on_delete=models.SET_NULL, null=True, blank=True)
     grade = models.IntegerField(_("grade"), null=True, blank=True, choices=GRADE_CHOICES)
     class_number = models.IntegerField(_("class"), null=True, blank=True, choices=CLASS_CHOICES)
 

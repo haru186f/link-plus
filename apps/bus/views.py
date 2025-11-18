@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from django.shortcuts import render
-from .models import Bus, BusSchedule
+from .models import BusStop, BusSchedule
 from datetime import datetime
 from pprint import pprint
 
@@ -20,7 +20,7 @@ def next_bus_times(request):
         diff = (target_dt - now_dt).total_seconds() / 60
         return round(diff) if diff >= 0 else None
 
-    for bus in Bus.objects.all():
+    for bus in BusStop.objects.all():
         # 出発（station_departure）
         next_departure = (
             BusSchedule.objects

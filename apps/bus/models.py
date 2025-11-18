@@ -2,7 +2,7 @@ from django.db import models
 
 
 # バス停（例：八王子みなみ野）
-class Bus(models.Model):
+class BusStop(models.Model):
     BUS_CHOICES = [('hachiouji', '八王子'), ('minamino', '八王子みなみ野')]
     name = models.CharField(max_length=20, choices=BUS_CHOICES, default='hachiouji')
     def __str__(self):
@@ -17,7 +17,7 @@ class BusSchedule(models.Model):
 
     is_saturday = models.BooleanField(default=False)                           # 平日 or 土曜日
 
-    bus = models.ForeignKey(Bus, on_delete=models.CASCADE)                     # 八王子 or 八王子みなみ野
+    bus_stop = models.ForeignKey(BusStop, on_delete=models.CASCADE)            # 八王子 or 八王子みなみ野
 
     def __str__(self):
         # 方向を自動判定
