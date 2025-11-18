@@ -44,7 +44,7 @@ class Command(BaseCommand):
             mail.select(folder)
 
             # --- メール検索 ---
-            status, data = mail.search(None, 'ALL') 
+            status, data = mail.search(None, 'FROM', 'link-hac@g.neec.ac.jp') 
             if status != 'OK':
                 raise Exception(f"メール検索に失敗しました。ステータス: {status}")
 

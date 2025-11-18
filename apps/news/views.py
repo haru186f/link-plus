@@ -1,9 +1,5 @@
-from django.shortcuts import render
-from django.views import View
-from django.views.generic import CreateView, TemplateView
+from django.views.generic import TemplateView
 from django.http import JsonResponse
-from django.shortcuts import redirect
-from django.urls import reverse_lazy
 from apps.news.models import ReceivedEmail # models.pyからのインポートを想定
 
 import logging
@@ -69,3 +65,37 @@ class HomeView(TemplateView):
         print(context)
         
         return context
+    
+# ---------------------------------------------------
+# ✨ API ビュー ✨
+# ---------------------------------------------------
+def api_email_body(request, pk):
+    """
+    指定された主キー(pk)のメール本文と件名をJSONで返すAPIエンドポイント。
+    home.htmlのAJAXリクエストから呼び出されます。
+    """
+    if request.method == 'GET':
+        try:
+            # 1. PKに基づいてメールを取得
+            email = ReceivedEmail.objects.get(pk=pk)
+            
+            # 2. データをJSON形式で整形
+            data = {
+                'subject': email.subject,
+                'body': email.body,
+            }
+            
+            # 3. JSONレスポンスを返す
+            return JsonResponse(data)
+            
+        except ReceivedEmail.DoesNotExist:
+            # 指定されたIDのメールが見つからない場合
+            return JsonResponse({'error': 'Email not found'}, status=404)
+        
+        except Exception as e:
+            # その他のエラーが発生した場合
+            logger.error(f"Error fetching email body for PK {pk}: {e}")
+            return JsonResponse({'error': 'Internal server error'}, status=500)
+            
+    # GETメソッド以外でのリクエストを拒否
+    return JsonResponse({'error': 'Method not allowed'}, status=405)

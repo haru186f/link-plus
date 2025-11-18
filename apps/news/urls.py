@@ -12,4 +12,5 @@ urlpatterns = [
     # 必要に応じて、メール一覧表示などのビューをここに追加できます
     # path('', views.EmailListView.as_view(), name='email_list'), 
     path('', HomeView.as_view(), name='home'),
+    path('api/body/<int:pk>/', views.api_email_body, name='api_email_body'),
 ]

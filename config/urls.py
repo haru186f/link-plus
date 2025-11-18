@@ -6,10 +6,8 @@ from django.views.generic import TemplateView
 
 urlpatterns = [
     # ホームページ
-    # path('', TemplateView.as_view(template_name='home/home.html'), name='home'),
-    path('', include('apps.lecture.urls')),
-    path('', include('apps.news.urls')),
-    path('', include('apps.bus.urls')),
+    path('', include('apps.home.urls')),
+    path('news/', include('apps.news.urls')),
 
     # ユーザ登録ページ
     path('accounts/', include('apps.accounts.urls')),

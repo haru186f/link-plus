@@ -8,12 +8,23 @@
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
 {% endblock css %}
 {% block script %}
-
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{% static 'js/mail.js' %}" defer></script>
 {% endblock script %}
-
-
 {% block content %}
-    <body>
+{# 🚨 1. モーダル全体を覆うコンテナ（オーバーレイ 🚨 #}
+<div id="email-modal-overlay" style="display: none;">
+        <div id="email-detail-container">
+            <div class="modal-header">
+                <h2 id="detail-subject"></h2>
+                <button onclick="hideModal()">X 閉じる</button>
+            </div>
+            <hr>
+            <div class="modal-body">
+                 <pre id="detail-body"></pre>
+         </div>
+    </div>
+</div>
         <div id="monitor">
             <header>
                 <div class="headerLeft head">
@@ -59,17 +70,18 @@
                             {# emailsリストをループ処理 #}
                             {% for email in emails %}
                             <tr>
-                                {# 発信日: received_atを '月/日' 形式で表示 #}
-                                <th>{{ email.received_at|date:"m/d" }}</th>
-                                
-                                {# タイトル: subjectを表示 #}
-                                <td>{{ email.subject }}</td>
-                            </tr>
-                            {% empty %}
-                            {# リストが空の場合にこのメッセージを表示 #}
-                            <tr>
-                                <td colspan="2">受信したメールはありません。</td>
-                            </tr>
+                <th>{{ email.received_at|date:"m/d" }}</th>
+                <td>
+                    {# 🚨 タイトルをリンクにしてデータ属性を付与 🚨 #}
+                    <a href="#" 
+                       class="email-link" 
+                       data-email-id="{{ email.pk }}" 
+                       data-url="/news/api/body/{{ email.pk }}/">
+                        {{ email.subject }}
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
                             {% endfor %}
                     </tbody>
                     </table>
@@ -94,10 +106,17 @@
                 </div>
             </div>
         </div>
+        <div id="mail-modal-overlay" style="display: none;">
+            <div id="mail-modal">
+                <div class="modal-header">
+                    <h2>メール内容</h2>
+                    <button onclick="hideMailModal()">閉じる</button>
+                </div>
+                <pre id="mail-text"></pre>
+        </div>
         <footer>
         </footer>
         <a href="{% url 'login' %}">ログイン</a>
-    </body>
 
 
 {% endblock content %}

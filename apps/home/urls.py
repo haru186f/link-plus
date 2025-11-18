@@ -1,10 +1,7 @@
-from apps.home.views import MasterHomeView 
-from django.urls import path, include
-# from apps.news.views import receive_email_webhook # Webhookはnewsアプリにそのまま残す
+from django.urls import path
+from apps.news.views import HomeView # 🚨 HomeViewはnewsアプリにあると仮定
 
 urlpatterns = [
-    # ルートパスは MasterHomeView に一本化！
-    path('', MasterHomeView.as_view(), name='home'),
-    
-    # ... (Webhookや他のURL定義が続く)
+    # サイトのルートパス('/')をHomeViewが担当する
+    path('', HomeView.as_view(), name='home'),
 ]
