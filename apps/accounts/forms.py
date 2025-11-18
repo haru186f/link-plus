@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 
 from apps.accounts.models import CustomUser, Profile
 from apps.lecture.models import College, Department, Course
-from apps.bus.models import Bus
+from apps.bus.models import BusStop
 
 
 class SignupForm(UserCreationForm):
@@ -89,8 +89,8 @@ class ProfileForm(forms.ModelForm):
             "placeholder": "クラスを選択してください"
         })
     )
-    bus = forms.ModelChoiceField(
-        queryset=Bus.objects.all(),
+    bus_stop = forms.ModelChoiceField(
+        queryset=BusStop.objects.all(),
         required=False,
         label='スクールバス',
         widget=forms.Select(attrs={
@@ -108,7 +108,7 @@ class ProfileForm(forms.ModelForm):
             'course',
             'grade',
             'class_number',
-            'bus',
+            'bus_stop',
         ]
         labels = {
             'college': 'カレッジ',
@@ -116,7 +116,7 @@ class ProfileForm(forms.ModelForm):
             'course': 'コース／専攻',
             'grade': '学年',
             'class_number': 'クラス',
-            'bus': 'スクールバス',
+            'bus_stop': 'スクールバス',
         }
 
     def __init__(self, *args, **kwargs):
