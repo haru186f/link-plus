@@ -14,9 +14,6 @@ from .models import BusStop, BusSchedule, College, Department, Course, ReceivedE
 class HomeView(TemplateView):
     template_name = 'core/home.html'
 
-class HomeView(TemplateView):
-    template_name = 'core/home.html'
-
     def calc_remaining(self, target_time):
         """現在時刻との差分(分)を返す。翌日も考慮。"""
         now = datetime.now()
