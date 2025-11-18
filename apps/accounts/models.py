@@ -3,8 +3,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from apps.bus.models import BusStop
-from apps.lecture.models import College, Department, Course
+from apps.core.models import BusStop, College, Department, Course
 
 
 class CustomUserManager(UserManager):

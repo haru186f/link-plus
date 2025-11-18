@@ -1,9 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 
-from apps.accounts.models import CustomUser, Profile
-from apps.lecture.models import College, Department, Course
-from apps.bus.models import BusStop
+from .models import CustomUser, Profile
+from apps.core.models import College, Department, Course, BusStop
 
 
 class SignupForm(UserCreationForm):

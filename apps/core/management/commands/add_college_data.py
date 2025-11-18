@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from apps.lecture.models import College, Department, Course
+from apps.core.models import College, Department, Course
 
 
 class Command(BaseCommand):

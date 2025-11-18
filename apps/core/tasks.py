@@ -4,14 +4,14 @@ from email.header import decode_header
 from datetime import datetime
 import pytz # タイムゾーン処理のため
 from django.conf import settings
-from apps.news.models import ReceivedEmail 
+from .models import ReceivedEmail
 
 def fetch_and_save_emails():
     # 接続情報 (settings.pyから取得)
     IMAP_HOST = settings.EMAIL_IMAP_HOST
     IMAP_USER = settings.EMAIL_IMAP_USER
     IMAP_PASS = settings.EMAIL_IMAP_PASS
-    
+
     # 既に保存されているUIDのリストを取得
     existing_uids = ReceivedEmail.objects.values_list('message_uid', flat=True)
 
@@ -33,15 +33,15 @@ def fetch_and_save_emails():
             return
 
         uids = messages[0].split()
-        
+
         # 3. 未保存のメールをループして処理
         for uid_byte in uids:
             uid = uid_byte.decode()
-            
+
             # **重複チェックのロジック (ポイント)**
             if uid in existing_uids:
                 continue # 既にDBにあるためスキップ
-                
+
             # UIDでメールデータをFETCH (RFC822: メール全体)
             status, msg_data = mail.uid('fetch', uid_byte, '(RFC822)')
             if status != 'OK':
@@ -55,10 +55,10 @@ def fetch_and_save_emails():
             subject, encoding = decode_header(msg['Subject'])[0]
             if encoding:
                 subject = subject.decode(encoding)
-            
+
             sender_info = email.utils.parseaddr(msg['From'])
             sender_address = sender_info[1] # 送信元のメールアドレス
-            
+
             # 受信日時の解析
             date_tuple = email.utils.parsedate_tz(msg['date'])
             if date_tuple:
@@ -74,7 +74,7 @@ def fetch_and_save_emails():
                 for part in msg.walk():
                     ctype = part.get_content_type()
                     cdisp = str(part.get("Content-Disposition"))
-                    
+
                     # テキストパート（インライン添付ファイルでないもの）を抽出
                     if ctype == 'text/plain' and 'attachment' not in cdisp:
                         try:
@@ -98,7 +98,7 @@ def fetch_and_save_emails():
                 received_at=received_at
             )
             print(f"メールUID {uid} をDBに保存しました。")
-            
+
     except Exception as e:
         print(f"メール処理中にエラーが発生しました: {e}")
     finally:

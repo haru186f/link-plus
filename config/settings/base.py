@@ -5,7 +5,6 @@
 
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 
 # ==========================================================
 # 基本パス設定
@@ -19,15 +18,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 INSTALLED_APPS = [
     # アプリケーション
-    'apps.home.apps.HomeConfig',            # ホーム
-    'apps.lecture.apps.LectureConfig',      # 講義
-    'apps.news.apps.NewsConfig',            # お知らせ
-    'apps.bus.apps.BusConfig',              # バス時刻
-    'apps.accounts.apps.AccountsConfig',    # 認証関係
+    'apps.core.apps.CoreConfig',            # 全てのアプリ
+    'apps.accounts.apps.AccountsConfig',    # 認証
 
     # デフォルト
     'django.contrib.admin',
-    'django.contrib.auth',                  # 認証システム（ログイン、ログアウト、パスワード変更、パスワード再設定）
+    'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -76,12 +72,6 @@ ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # ==========================================================
-# データベース設定（PostgreSQL 共通、ここで上書き）
-# ==========================================================
-
-DATABASES = {}
-
-# ==========================================================
 # 認証
 # ==========================================================
 
@@ -91,7 +81,7 @@ LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',      # Django標準（管理画面など）
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 # ==========================================================
@@ -132,10 +122,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ==========================================================
 
 CRONJOBS = [
-    ('*/10 * * * *', 'apps.news.tasks.fetch_and_save_emails','>> /tmp/email_fetch.log'),
+    # 10分ごとにメールを保存
+    ('*/10 * * * *', 'apps.core.tasks.fetch_and_save_emails','>> /tmp/email_fetch.log'),
 ]
 
-# 例：
+# CRONTABの書き方
+
 # 毎朝6時に天気APIを更新
 # ('0 6 * * *', 'apps.core.cron.fetch_weather'),
 
