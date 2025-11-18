@@ -8,4 +8,4 @@ django-debug-toolbar
 requests
 beautifulsoup4
 django-crontab
-djangorestframework
+pytz

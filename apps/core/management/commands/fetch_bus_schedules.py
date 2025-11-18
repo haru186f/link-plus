@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from datetime import datetime
 from django.core.management.base import BaseCommand
-from apps.bus.models import BusSchedule
+from apps.core.models import BusSchedule
 from apps.accounts.models import Bus
 
 

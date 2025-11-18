@@ -4,7 +4,7 @@ from django.views.generic import CreateView, UpdateView
 from django.contrib.auth.views import LoginView
 
 from .forms import SignupForm, CustomAuthenticationForm, ProfileForm
-from apps.lecture.models import College
+from apps.core.models import College
 from .models import Profile
 
 
