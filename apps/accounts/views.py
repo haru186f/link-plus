@@ -50,8 +50,8 @@ class ProfileView(UpdateView):
 class CustomLoginView(LoginView):
     """カスタムログインビュー"""
     template_name = 'registration/login.html'
-    success_url = reverse_lazy('login')
+    success_url = reverse_lazy("core:home")
     authentication_form = CustomAuthenticationForm
 
     def get_success_url(self):
-        return self.get_redirect_url() or reverse_lazy('home')
+        return self.get_redirect_url() or reverse_lazy('core:home')

@@ -6,6 +6,8 @@ from django.shortcuts import render
 
 from .models import BusStop, BusSchedule, College, Department, Course, ReceivedEmail
 
+import logging
+logger = logging.getLogger(__name__)
 
 # ==========================================================
 # ホームビュー（全てのデータを集約）
@@ -33,10 +35,10 @@ class HomeView(TemplateView):
         bus_data = {}
 
         # 全スケジュールを先に取得（効率化）
-        schedules = BusSchedule.objects.select_related('bus').order_by('station_departure', 'campus_departure')
+        schedules = BusSchedule.objects.select_related('bus_stop').order_by('station_departure', 'campus_departure')
 
         for bus in BusStop.objects.all():
-            bus_schedules = [s for s in schedules if s.bus_id == bus.id]
+            bus_schedules = [s for s in schedules if s.bus_stop_id == bus.id]
 
             # 次の「駅 → 学校」便
             next_departure = next(
@@ -79,8 +81,7 @@ class HomeView(TemplateView):
 
         # contextに全てのデータを集約
         context["bus_data"] = self.get_bus_data()
-        context["received_emails"] = ReceivedEmail.objects.order_by('-id')[:5]
-
+        context["received_emails"] = ReceivedEmail.objects.all().order_by('-received_at')[:5]
         return context
 
 
@@ -123,27 +124,59 @@ class GetGradesView(View):
 # ==========================================================
 
 def receive_email_webhook(request):
-    if request.method != 'POST':
-        return JsonResponse({'status': 'method not allowed'}, status=405)
+    if request.method == 'POST':
+        # 外部からのリクエストデータから情報を取得（例：Webhookペイロード）
+        email_data = request.POST
 
-    # JSON も form も対応
-    try:
-        import json
-        payload = json.loads(request.body)
-    except:
-        payload = request.POST
+        try:
+            # 💡 ここでデータ保存ロジックを実行しています 💡
+            ReceivedEmail.objects.create(
+                # request.POSTから抽出した値を使ってDBに保存
+                subject=email_data.get('subject', 'No Subject'),
+                sender=email_data.get('sender', 'noreply@webhook.com'),
+                body=email_data.get('text_body', 'Empty Body')
+            )
+            return JsonResponse({'status': 'success'}, status=200)
 
-    subject = payload.get('subject', 'No Subject')
-    sender = payload.get('sender', 'noreply@webhook.com')
-    body = payload.get('text_body', 'Empty Body')
+        except Exception as e:
+            # データベースエラーなどが発生した場合の応答
+            print(f"Error saving email: {e}")
+            return JsonResponse({'status': 'error', 'message': 'Internal Server Error'}, status=500)
 
-    try:
-        ReceivedEmail.objects.create(
-            subject=subject,
-            sender=sender,
-            body=body
-        )
-        return JsonResponse({'status': 'success'}, status=200)
-    except Exception as e:
-        print(f"Error saving email: {e}")
-        return JsonResponse({'status': 'error', 'message': 'Internal Server Error'}, status=500)
+    # POSTメソッド以外でアクセスされた場合の応答
+    return JsonResponse({'status': 'method not allowed'}, status=405)
+
+
+# ---------------------------------------------------
+# ✨ API ビュー ✨
+# ---------------------------------------------------
+def api_email_body(request, pk):
+    """
+    指定された主キー(pk)のメール本文と件名をJSONで返すAPIエンドポイント。
+    home.htmlのAJAXリクエストから呼び出されます。
+    """
+    if request.method == 'GET':
+        try:
+            # 1. PKに基づいてメールを取得
+            email = ReceivedEmail.objects.get(pk=pk)
+
+            # 2. データをJSON形式で整形
+            data = {
+                'subject': email.subject,
+                'body': email.body,
+            }
+
+            # 3. JSONレスポンスを返す
+            return JsonResponse(data)
+
+        except ReceivedEmail.DoesNotExist:
+            # 指定されたIDのメールが見つからない場合
+            return JsonResponse({'error': 'Email not found'}, status=404)
+
+        except Exception as e:
+            # その他のエラーが発生した場合
+            logger.error(f"Error fetching email body for PK {pk}: {e}")
+            return JsonResponse({'error': 'Internal server error'}, status=500)
+
+    # GETメソッド以外でのリクエストを拒否
+    return JsonResponse({'error': 'Method not allowed'}, status=405)

@@ -18,6 +18,7 @@ class BusStop(models.Model):
 # バスの時刻表
 class BusSchedule(models.Model):
     campus_departure = models.TimeField(blank=True, null=True)                 # キャンパス発の時刻（登校）
+    campus_arrival = models.TimeField(blank=True, null=True)                   # キャンパス着の時刻
     station_departure = models.TimeField(blank=True, null=True)                # 駅発の時刻（下校）
     note = models.CharField(max_length=100, blank=True, null=True)             # 備考
     is_saturday = models.BooleanField(default=False)                           # 平日か土曜日

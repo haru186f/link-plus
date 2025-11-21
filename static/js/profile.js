@@ -4,8 +4,6 @@ document.addEventListener("DOMContentLoaded", function() {
   const courseSelect = document.getElementById("id_course");
   const gradeSelect = document.getElementById("id_grade");
   const classSelect = document.getElementById("id_class_number");
-  // const busSelect = document.getElementById("id_bus");
-
 
   // 🔹「値が空の場合のみ」初期化
   if (!departmentSelect.value) {
@@ -20,14 +18,11 @@ document.addEventListener("DOMContentLoaded", function() {
   if (!classSelect.value) {
     classSelect.innerHTML = '<option value="">---------</option>';
   }
-  // if (!busSelect.value) {
-  //   busSelect.innerHTML = '<option value="">---------</option>';
-  // }
 
   // 学部変更 → 学科更新
   collegeSelect.addEventListener("change", function() {
     const collegeId = this.value;
-    const url = this.dataset.departmentsUrl;
+    const url = this.dataset.departmentsUrl;  // data-departments-url
 
     departmentSelect.innerHTML = '<option value="">---------</option>';
     courseSelect.innerHTML = '<option value="">---------</option>';
@@ -52,14 +47,15 @@ document.addEventListener("DOMContentLoaded", function() {
   // 学科変更 → コース・学年更新
   departmentSelect.addEventListener("change", function() {
     const departmentId = this.value;
-    const coursesUrl = this.dataset.coursesUrl;
-    const gradesUrl = this.dataset.gradesUrl;
+    const coursesUrl = this.dataset.coursesUrl;  // data-courses-url
+    const gradesUrl = this.dataset.gradesUrl;    // data-grades-url
 
     courseSelect.innerHTML = '<option value="">---------</option>';
     gradeSelect.innerHTML = '<option value="">---------</option>';
     classSelect.innerHTML = '<option value="">---------</option>';
 
     if (departmentId) {
+
       // コース取得
       fetch(`${coursesUrl}?department_id=${departmentId}`)
         .then(response => response.json())

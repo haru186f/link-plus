@@ -123,7 +123,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CRONJOBS = [
     # 10分ごとにメールを保存
-    ('*/10 * * * *', 'apps.core.tasks.fetch_and_save_emails','>> /tmp/email_fetch.log'),
+    ('*/10 * * * *', 'django.core.management.call_command', ['fetch_new_data'],{'output': '/tmp/email_fetch.log'}),
 ]
 
 # CRONTABの書き方
