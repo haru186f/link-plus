@@ -1,6 +1,6 @@
 // 閉じるボタンの関数 (メール用)
 function hideModal() {
-    $('#email-modal-overlay').fadeOut(200);
+    $('#mail-modal-overlay').fadeOut(200);
 }
 
 
@@ -15,9 +15,9 @@ $(document).ready(function() {
             type: 'GET',
             dataType: 'json',
             success: function(data) {
-                $('#detail-subject').text(data.subject);
-                $('#detail-body').text(data.body);
-                $('#email-modal-overlay').fadeIn(200);
+                $('#mail-subject').text(data.subject);
+                $('#mail-text').text(data.body);
+                $('#mail-modal-overlay').fadeIn(200);
         },
             error: function(xhr, status, error) {
                 console.error("AJAX Error:", status, error);

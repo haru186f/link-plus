@@ -22,7 +22,7 @@ class HomeView(TemplateView):
 
         # contextにデータを集約
         context["bus_schedules"] = BusSchedule.objects.all()
-        context["news"] = ReceivedEmail.objects.all().order_by('-received_at')
+        context["received_mails"] = ReceivedEmail.objects.all().order_by('-received_at')[:5]
         context["lecture_schedules"] = LectureSchedule.objects.all()
 
         return context
