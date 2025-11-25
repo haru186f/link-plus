@@ -9,9 +9,6 @@ from .models import Profile
 
 
 User = get_user_model()
-
-
-User = get_user_model()
 class SignupView(CreateView):
     """ユーザ登録ビュー"""
     model = User
@@ -33,7 +30,7 @@ class ProfileView(UpdateView):
     model = Profile
     form_class = ProfileForm
     template_name = 'registration/profile.html'
-    success_url = reverse_lazy('home')  # ホーム画面に遷移
+    success_url = reverse_lazy('core:home')  # ホーム画面に遷移
 
     def get_object(self):
         """現在のユーザのプロフィールを取得（なければ作成）"""
@@ -50,7 +47,7 @@ class ProfileView(UpdateView):
 class CustomLoginView(LoginView):
     """カスタムログインビュー"""
     template_name = 'registration/login.html'
-    success_url = reverse_lazy("core:home")
+    success_url = reverse_lazy('accounts:login')
     authentication_form = CustomAuthenticationForm
 
     def get_success_url(self):

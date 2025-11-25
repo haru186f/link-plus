@@ -3,8 +3,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from datetime import datetime
 from django.core.management.base import BaseCommand
-from apps.core.models import BusSchedule
-from apps.accounts.models import Bus
+from apps.core.models import BusStop, BusSchedule
 
 
 class Command(BaseCommand):
@@ -13,15 +12,15 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write("🧹 既存のバスデータを削除中...")
         BusSchedule.objects.all().delete()
-        Bus.objects.all().delete()
+        BusStop.objects.all().delete()
         self.stdout.write(self.style.WARNING("🗑️ Bus および BusSchedule データを削除しました。"))
 
         # バス情報の基本登録（バスが存在しないと後続処理が失敗するため）
         buses = [
-            Bus(name="八王子みなみ野"),
-            Bus(name="八王子"),
+            BusStop(name="八王子みなみ野"),
+            BusStop(name="八王子"),
         ]
-        Bus.objects.bulk_create(buses)
+        BusStop.objects.bulk_create(buses)
         self.stdout.write("🚌 Bus データを再登録しました。")
 
         self.stdout.write("🚍 バス時刻表を取得中...")
@@ -151,7 +150,7 @@ class Command(BaseCommand):
 
     def save_to_db(self, rows, bus_name, is_saturday=False):
         """スクレイピング結果をBusScheduleに保存"""
-        bus = Bus.objects.get(name=bus_name)
+        bus = BusStop.objects.get(name=bus_name)
 
         for row in rows:
             # テーブル構造に合わせて調整
@@ -161,7 +160,7 @@ class Command(BaseCommand):
             note = row[-1] if len(row) >= 4 else None
 
             BusSchedule.objects.create(
-                bus=bus,
+                bus_stop=bus,
                 station_departure=station_departure,
                 campus_arrival=campus_arrival,
                 campus_departure=campus_departure,

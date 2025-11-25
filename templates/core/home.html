@@ -1,24 +1,18 @@
-{% extends "core/base.html" %}
+{% extends "base.html" %}
 {% load static %}
-
 
 
 {% block title %}ホーム{% endblock title %}
 
 
-
 {% block css %}
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css">
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
-
 {% endblock css %}
 
 
-
 {% block script %}
-
-    {# Mail #}
+    {# news #}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{% static 'js/mail.js' %}" defer></script>
 
@@ -27,120 +21,157 @@
     <script>
     document.addEventListener('DOMContentLoaded', function() {
 
-        // 月表示カレンダー ---
-        var calendarEl = document.getElementById('calendar');
+        // ============================
+        // 📅 月表示カレンダー
+        // ============================
+        const calendarEl = document.getElementById('calendar');
 
-        var calendar = new FullCalendar.Calendar(calendarEl, {
+        const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
-            timeZone: 'Asia/Tokyo',
             locale: 'ja',
+            timeZone: 'Asia/Tokyo',
+            height: 'auto',
+            weekends: false,
+            businessHours: true,
+            expandRows: true,
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: '',
+            },
         });
 
         calendar.render();
 
-        // --- カレンダーの初期化 ---
-        var calendarEl2 = document.getElementById('calendar-list');
 
-        // --- リストカレンダー ---
-        var calendar2 = new FullCalendar.Calendar(calendarEl2, {
-            initialView: 'listWeek',
-            timeZone: 'Asia/Tokyo',
+        // ============================
+        // 📋 時間割
+        // ============================
+        const calendarEl2 = document.getElementById('calendar-list');
+
+        const calendar2 = new FullCalendar.Calendar(calendarEl2, {
+            initialView: 'listDay',
             locale: 'ja',
+            timeZone: 'Asia/Tokyo',
+            height: 'auto',
+            weekends: false,
+            businessHours: true,
+            expandRows: true,
+
+            noEventsContent: '本日の講義はありません',
+            // Django API から講義スケジュールを取得
+            events: {
+                url: '/api/lecture-events/',
+                method: 'GET',
+                failure: function() {
+                    alert('講義予定を読み込めませんでした。');
+                }
+            },
+
+            // イベントクリック → 詳細表示（後で拡張しやすい）
+            eventClick: function(info) {
+                alert(info.event.title + "\n" + info.event.extendedProps.room);
+            }
         });
 
         calendar2.render();
-
     });
     </script>
-
 {% endblock script %}
 
 
+{% block header %}
+    {% include "_header.html" %}
+{% endblock header %}
+
 
 {% block content %}
-{# 🚨 1. モーダル全体を覆うコンテナ（オーバーレイ 🚨 #}
-<div id="email-modal-overlay" style="display: none;">
-        <div id="email-detail-container">
-            <div class="modal-header">
-                <h2 id="detail-subject"></h2>
-                <button onclick="hideModal()">X 閉じる</button>
-            </div>
-            <hr>
-            <div class="modal-body">
-                 <pre id="detail-body"></pre>
-         </div>
-    </div>
-</div>
-        <div id="monitor">
-            <header>
-                <div class="headerLeft head">
-                    <img src="{% static 'img/mark_tenki_hare.png' %}">
-                </div>
-                <div class="headerCenter head"><h1>LINK+</h1></div>
-                <div class="headerRight head">
-                    <h3><a href="{% url 'login' %}">ログイン</a></h3>
-                    <img src="{% static 'img/kkrn_icon_haguruma_10.png' %}">
-                </div>
-            </header>
-            <div class="main-content">
-                <div class="calendar-container distanceright">
-                    <div id="calendar"></div>
-                </div>
-                <div class="news distanceLeft">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th class="sync">発信日</th>
-                                <th class="title">タイトル</th>
-                            </tr>
-                        </thead>
-                    <tbody>
-                            {# emailsリストをループ処理 #}
-                            {% for email in received_emails %}
-                            <tr>
-                <th>{{ email.received_at|date:"m/d" }}</th>
-                <td>
-                    {# 🚨 タイトルをリンクにしてデータ属性を付与 🚨 #}
-                    <a href="#"
-                       class="email-link"
-                       data-email-id="{{ email.pk }}"
-                       data-url="/news/api/body/{{ email.pk }}/">
-                        {{ email.subject }}
-                    </a>
-                </td>
-            </tr>
-            {% empty %}
-                            {% endfor %}
-                    </tbody>
-                    </table>
-                </div>
-                <div class="dairy distanceright">
-                    <div id="calendar-list"></div>
 
+<main>
+    {# Mail Modal #}
+    <div id="email-modal-overlay" style="display: none;">
+            <div id="email-detail-container">
+                <div class="modal-header">
+                    <h2 id="detail-subject"></h2>
+                    <button onclick="hideModal()">X 閉じる</button>
                 </div>
-                <div class="bus distanceLeft">
-                    <div class="bus-info">
-                        <p></p>
-                        <h3>八王子駅行き</h3>
-                        <button><a href="#"><image src="{% static 'img/kkrn_icon_haguruma_10.png' %}"></a></button>
-                    </div>
-                    <h4><image src="{% static 'img/bus_nonstep_close.png' %}" class="bus-png"></image></h4>
-                    <div class="bus-times">
-                        <h5>到着まで</h5>
-                        <p>08:00</p>
-                    </div>
+                <hr>
+                <div class="modal-body">
+                    <pre id="detail-body"></pre>
+            </div>
+        </div>
+    </div>
+
+    <div id="monitor">
+        <header>
+            <div class="headerLeft head">
+                <img src="{% static 'img/mark_tenki_hare.png' %}">
+            </div>
+            <div class="headerCenter head"><h1>LINK+</h1></div>
+            <div class="headerRight head">
+                <h3><a href="{% url 'accounts:login' %}">ログイン</a></h3>
+                <a href="{% url 'accounts:profile' %}"><img src="{% static 'img/kkrn_icon_haguruma_10.png' %}"></a>
+            </div>
+        </header>
+        <div class="main-content">
+            <div class="calendar-container distanceright">
+                <div id="calendar"></div>
+            </div>
+            <div class="news distanceLeft">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="sync">発信日</th>
+                            <th class="title">タイトル</th>
+                        </tr>
+                    </thead>
+                <tbody>
+                        {# emailsリストをループ処理 #}
+                        {% for email in received_emails %}
+                        <tr>
+            <th>{{ email.received_at|date:"m/d" }}</th>
+            <td>
+                {# 🚨 タイトルをリンクにしてデータ属性を付与 🚨 #}
+                <a href="#"
+                class="email-link"
+                data-email-id="{{ email.pk }}"
+                data-url="/news/api/body/{{ email.pk }}/">
+                    {{ email.subject }}
+                </a>
+            </td>
+        </tr>
+        {% empty %}
+                        {% endfor %}
+                </tbody>
+                </table>
+            </div>
+            <div class="dairy distanceright">
+                <div id="calendar-list"></div>
+
+            </div>
+            <div class="bus distanceLeft">
+                <div class="bus-info">
+                    <p></p>
+                    <h3>八王子駅行き</h3>
+                    <button><a href="#"><image src="{% static 'img/kkrn_icon_haguruma_10.png' %}"></a></button>
+                </div>
+                <h4><image src="{% static 'img/bus_nonstep_close.png' %}" class="bus-png"></image></h4>
+                <div class="bus-times">
+                    <h5>到着まで</h5>
+                    <p>08:00</p>
                 </div>
             </div>
         </div>
-        <div id="mail-modal-overlay" style="display: none;">
-            <div id="mail-modal">
-                <div class="modal-header">
-                    <h2>メール内容</h2>
-                    <button onclick="hideMailModal()">閉じる</button>
-                </div>
-                <pre id="mail-text"></pre>
-        </div>
-        <footer>
-        </footer>
-        <a href="{% url 'login' %}">ログイン</a>
+    </div>
+
+    <div id="mail-modal-overlay" style="display: none;">
+        <div id="mail-modal">
+            <div class="modal-header">
+                <h2>メール内容</h2>
+                <button onclick="hideMailModal()">閉じる</button>
+            </div>
+            <pre id="mail-text"></pre>
+    </div>
+
+</main>
 {% endblock content %}
