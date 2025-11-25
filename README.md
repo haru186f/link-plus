@@ -119,10 +119,8 @@ git switch -c feat/your-branch-name
 > |-------------|------|
 > | 新機能 | `feat/add-login-page` |
 > | バグ修正 | `fix/user-login-error` |
-> | リファクタリング | `refactor/update-model-structure` |
+> | 構造改善 | `refactor/update-model-structure` |
 > | ドキュメント修正 | `docs/update-readme` |
-> | 環境構築・設定変更 | `chore/setup-development-settings` |
-> | テスト追加・修正 | `test/add-login-tests` |
 
 ---
 
@@ -139,10 +137,8 @@ git commit -m "feat: ログイン画面を追加"
 > |-------------|------|------|
 > | feat | 新しい機能を追加 | `feat: ユーザープロフィール編集機能を追加` |
 > | fix | 不具合を修正 | `fix: ログイン時に500エラーが発生する問題を修正` |
-> | refactor | 構造の整理・改善（動作変更なし） | `refactor: models.pyの構造を整理` |
+> | refactor | 構造を改善（動作変更なし） | `refactor: models.pyの構造を整理` |
 > | docs | ドキュメントを変更 | `docs: READMEにセットアップ手順を追記` |
-> | chore | 開発環境・設定の変更 | `chore: settings.pyにDEBUG設定を追加` |
-> | test | テストコードの追加・修正 | `test: Userモデルのテストを追加` |
 
 ---
 
