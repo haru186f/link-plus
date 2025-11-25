@@ -51,19 +51,21 @@ cd link-plus
 ### 2. 仮想環境を作成して有効化
 ```bash
 python -m venv venv
-source venv/bin/activate  # Windows の場合はvenv\Scripts\activate
+source venv/bin/activate
+# Windows の場合： venv\Scripts\activate
 ```
 
-### 3. 依存パッケージをインストール
+### 3. パッケージをインストール
 ```bash
 pip install -r requirements.txt
 ```
 
 ### 4. 環境変数ファイルを作成
 ```bash
-cp .env.example .env.development    # Windows の場合は copy .env.example .env.development
+cp .env.example .env.development
+# Windows の場合： copy .env.example .env.development
 ```
-> 🔑 注意
+> 🔑 注意<br>
 > `.env.example`はテンプレートです。<br>
 > 各自`.env.development`を作成し、`SECRET_KEY`を生成してください。<br>
 > 生成コマンド:
@@ -76,7 +78,12 @@ cp .env.example .env.development    # Windows の場合は copy .env.example .en
 python manage.py migrate
 ```
 
-### 6. 開発サーバーを起動
+### 6. 初期データを投入（カスタムコマンド一括実行）
+```bash
+python manage.py run_all_custom_commands
+```
+
+### 7. 開発サーバーを起動
 ```bash
 python manage.py runserver
 ```
@@ -98,6 +105,8 @@ git pull origin main
 > 💡 注意<br>
 > 他の開発者の変更を取り込まないまま作業を続けると、**コンフリクト**の原因になります。<br>
 > 作業中でも、**定期的に `main` を pull して最新の状態を保つ**ようにしましょう。
+
+---
 
 ### 2. 新しいブランチを作成
 新しい作業を始めるときは、必ず`main`から新しいブランチを作成してください。<br>
@@ -147,6 +156,8 @@ git push origin feat/your-branch-name
 > 💡 補足<br>
 > 初回のみブランチ名を明示します。<br>
 > 2回目以降は git push のみでOKです。
+
+---
 
 ### 5. Pull request (PR) を作成
 GitHub上で、`feat/your-branch-name`→`main`への**Pull Request**を作成します。<br>
