@@ -4,7 +4,7 @@ from django.views.generic import TemplateView
 from datetime import datetime, timedelta
 from django.shortcuts import render
 
-from .models import BusStop, BusSchedule, College, Department, Course, ReceivedEmail
+from .models import BusStop, BusSchedule, College, Department, Course, ReceivedEmail, LectureSchedule
 
 import logging
 logger = logging.getLogger(__name__)
@@ -16,89 +16,31 @@ logger = logging.getLogger(__name__)
 class HomeView(TemplateView):
     template_name = 'core/home.html'
 
-    def calc_remaining(self, target_time):
-        """現在時刻との差分(分)を返す。翌日も考慮。"""
-        now = datetime.now()
-        target = datetime.combine(now.date(), target_time)
-
-        # 翌日対応
-        if target < now:
-            target += timedelta(days=1)
-
-        diff = (target - now).total_seconds() / 60
-        return round(diff)
-
-    def get_bus_data(self):
-        """バス情報を整形して返す"""
-
-        now = datetime.now().time()
-        bus_data = {}
-
-        # 全スケジュールを先に取得（効率化）
-        schedules = BusSchedule.objects.select_related('bus_stop').order_by('station_departure', 'campus_departure')
-
-        for bus in BusStop.objects.all():
-            bus_schedules = [s for s in schedules if s.bus_stop_id == bus.id]
-
-            # 次の「駅 → 学校」便
-            next_departure = next(
-                (s for s in bus_schedules if s.station_departure and s.station_departure > now),
-                None
-            )
-
-            # 次の「学校 → 駅」便
-            next_return = next(
-                (s for s in bus_schedules if s.campus_departure and s.campus_departure > now),
-                None
-            )
-
-            # departure
-            if next_departure:
-                minutes = self.calc_remaining(next_departure.station_departure)
-                dep_display = f"残り {minutes} 分"
-            else:
-                note = next((s.note for s in bus_schedules if s.station_departure is None and s.note), "-")
-                dep_display = note
-
-            # return
-            if next_return:
-                minutes = self.calc_remaining(next_return.campus_departure)
-                ret_display = f"残り {minutes} 分"
-            else:
-                note = next((s.note for s in bus_schedules if s.campus_departure is None and s.note), "-")
-                ret_display = note
-
-            bus_data[bus.name] = {
-                "departure": dep_display,
-                "return": ret_display,
-            }
-
-        return bus_data
-
     def get_context_data(self, **kwargs):
         """データをcontextに集約してホームページに送信する"""
         context = super().get_context_data(**kwargs)
 
-        # contextに全てのデータを集約
-        context["bus_data"] = self.get_bus_data()
-        context["received_emails"] = ReceivedEmail.objects.all().order_by('-received_at')[:5]
+        # contextにデータを集約
+        context["bus_schedules"] = BusSchedule.objects.all()
+        context["news"] = ReceivedEmail.objects.all().order_by('-received_at')
+        context["lecture_schedules"] = LectureSchedule.objects.all()
+
         return context
 
 
 # ==========================================================
-# API エンドポイント
+# エンドポイント
 # ==========================================================
 
 class GetDepartmentsView(View):
-    """学部に属する学科名を返す"""
+    """選択された学部に応じて学科リストを返す"""
     def get(self, request, *args, **kwargs):
         college_id = request.GET.get('college_id')
         departments = Department.objects.filter(college_id=college_id).values('id', 'name')
         return JsonResponse(list(departments), safe=False)
 
-
 class GetCoursesView(View):
-    """学科に属するコース名を返す"""
+    """選択された学科に応じてコースリストを返す"""
     def get(self, request, *args, **kwargs):
         department_id = request.GET.get('department_id')
         courses = Course.objects.filter(department_id=department_id).values('id', 'name')
@@ -106,13 +48,46 @@ class GetCoursesView(View):
 
 
 class GetGradesView(View):
-    """学科ごとの修業年限を返す（モデルの 'years' を参照）"""
+    """学科ごとに年制を返す（2年制 / 3年制 / 4年制）"""
     def get(self, request, *args, **kwargs):
         department_id = request.GET.get('department_id')
 
+        # 特定の学科で分岐（3年制、4年制度）
+        THREE_YEAR_DEPARTMENTS = [
+            # デザインカレッジ
+            'ゲームクリエイター科（3年制）',
+            'デザイン科（3年制）',
+            'CG映像科（3年制）',
+
+            # スポーツ・医療カレッジ
+            'スポーツトレーナー科（3年制）',
+            'スポーツ健康学科（3年制）',
+            '鍼灸科（3年制）',
+            '柔道整復科（3年制）',
+        ]
+        FOUR_YEAR_DEPARTMENTS = [
+            # クリエイターズカレッジ
+            'マンガ・アニメーション科（4年制）',
+
+            # デザインカレッジ
+            'ゲームクリエイター科（4年制）',
+
+            # ITカレッジ
+            'ITスペシャリスト科（4年制）',
+
+            # テクノロジーカレッジ
+            '建築学科（4年制）',
+            '一級自動車整備科（4年制）',
+            ]
+
         try:
             department = Department.objects.get(id=department_id)
-            max_grade = department.years  # ★ 改善ポイント（モデル依存）
+            if department.name in FOUR_YEAR_DEPARTMENTS:
+                max_grade = 4
+            elif department.name in THREE_YEAR_DEPARTMENTS:
+                max_grade = 3
+            else:
+                max_grade = 2
         except Department.DoesNotExist:
             max_grade = 2
 
@@ -180,3 +155,33 @@ def api_email_body(request, pk):
 
     # GETメソッド以外でのリクエストを拒否
     return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+# ---------------------------------------------------
+# ✨ LectureSchedule API（FullCalendar用） ✨
+# ---------------------------------------------------
+def lecture_events(request):
+    """講義スケジュールをFullCalendar形式で返すAPI"""
+    events = []
+
+    weekday_map = ["mon", "tue", "wed", "thu", "fri"]
+
+    for lec in LectureSchedule.objects.select_related("room", "course"):
+        # FullCalendar の daysOfWeek（0=日〜 6=土）
+        if lec.day_of_week in weekday_map:
+            fc_day = weekday_map.index(lec.day_of_week) + 1  # 月=1 → FC
+
+        events.append({
+            "title": lec.name,
+            "daysOfWeek": [fc_day],   # 毎週表示に必要
+            "startTime": lec.start_time.strftime("%H:%M"),
+            "endTime": lec.end_time.strftime("%H:%M"),
+            "extendedProps": {
+                "room": lec.room.name,
+                "course": lec.course.name,
+                "period": f"{lec.start_period}〜{lec.end_period}限",
+                "is_canceled": lec.is_canceled
+            }
+        })
+
+    return JsonResponse(events, safe=False)

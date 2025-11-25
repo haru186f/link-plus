@@ -86,6 +86,78 @@ class Course(models.Model):
         return self.name
 
 
+# 教室
+class Room(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
+# 時間割
+class SchoolPeriod(models.Model):
+    period = models.IntegerField()      # 時限
+    start_time = models.TimeField()     # 開始時刻
+    end_time = models.TimeField()       # 終了時刻
+
+    class Meta:
+        ordering = ['period']
+
+    def __str__(self):
+        return f"{self.period}限（{self.start_time}-{self.end_time}）"
+
+
+# 講義スケジュール
+class LectureSchedule(models.Model):
+
+    DAY_OF_WEEK_CHOICES = [
+        ("mon", "月"),
+        ("tue", "火"),
+        ("wed", "水"),
+        ("thu", "木"),
+        ("fri", "金"),
+    ]
+
+    name = models.CharField(max_length=100)     # 講義名
+    start_period = models.IntegerField()        # 開始時限
+    end_period = models.IntegerField()          # 終了時限
+    day_of_week = models.CharField(             # 曜日
+        max_length=10,
+        choices=DAY_OF_WEEK_CHOICES
+    )
+    is_canceled = models.BooleanField(default=False)
+
+    # 外部キー
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name='lecture_schedules'
+    )
+
+    room = models.ForeignKey(
+        Room,
+        on_delete=models.CASCADE,
+        related_name='lecture_schedules'
+    )
+
+    @property
+    def day_label(self):
+        """choices の label(日本語) を返す"""
+        return dict(self.DAY_OF_WEEK_CHOICES).get(self.day_of_week, "")
+
+    def __str__(self):
+        return f"{self.name}（{self.day_label}曜日・{self.start_period}〜{self.end_period}限）"
+
+    @property
+    def start_time(self):
+        return SchoolPeriod.objects.get(period=self.start_period).start_time
+
+    @property
+    def end_time(self):
+        return SchoolPeriod.objects.get(period=self.end_period).end_time
+
+
+
 # ==========================================================
 # お知らせモデル
 # ==========================================================
