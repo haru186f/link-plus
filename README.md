@@ -42,25 +42,25 @@ CREATE DATABASE linkplus;
 
 # 🛠️ セットアップ手順
 
-### 1. リポジトリをクローン
+## 1. リポジトリをクローン
 ```bash
 git clone https://github.com/haru186f/link-plus.git
 cd link-plus
 ```
 
-### 2. 仮想環境を作成して有効化
+## 2. 仮想環境を作成して有効化
 ```bash
 python -m venv venv
 source venv/bin/activate
 # Windows の場合： venv\Scripts\activate
 ```
 
-### 3. パッケージをインストール
+## 3. パッケージをインストール
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. 環境変数ファイルを作成
+## 4. 環境変数ファイルを作成
 ```bash
 cp .env.example .env.development
 # Windows の場合： copy .env.example .env.development
@@ -73,17 +73,17 @@ cp .env.example .env.development
 > python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 > ```
 
-### 5. データベースマイグレーションを実行
+## 5. データベースマイグレーションを実行
 ```bash
 python manage.py migrate
 ```
 
-### 6. 初期データを投入（カスタムコマンド一括実行）
+## 6. 初期データを投入（カスタムコマンド一括実行）
 ```bash
 python manage.py run_all_custom_commands
 ```
 
-### 7. 開発サーバーを起動
+## 7. 開発サーバーを起動
 ```bash
 python manage.py runserver
 ```
@@ -94,7 +94,7 @@ python manage.py runserver
 
 # 💻 チーム開発の進め方
 
-### 1. 最新の`main`を取得
+## 1. 最新の`main`を取得
 作業を始める前に、常に最新の main ブランチを取得してください。
 
 ```bash
@@ -108,7 +108,7 @@ git pull origin main
 
 ---
 
-### 2. 新しいブランチを作成
+## 2. 新しいブランチを作成
 新しい作業を始めるときは、必ず`main`から新しいブランチを作成してください。<br>
 ブランチ名は「何をするブランチか」が明確に分かるように命名しましょう。
 ```bash
@@ -124,7 +124,7 @@ git switch -c feat/your-branch-name
 
 ---
 
-### 3. 開発・コミット
+## 3. 開発・コミット
 作業中の変更は、**小さく・こまめにコミット**することを意識してください。<br>
 「1コミット＝1目的」を基本とし、複数の修正をまとめすぎないようにしましょう。
 
@@ -142,7 +142,7 @@ git commit -m "feat: ログイン画面を追加"
 
 ---
 
-### 4. リモートへプッシュ
+## 4. リモートへプッシュ
 作業が完了したら、ブランチをリモートへプッシュします。
 
 ```bash
@@ -155,7 +155,7 @@ git push origin feat/your-branch-name
 
 ---
 
-### 5. Pull request (PR) を作成
+## 5. Pull request (PR) を作成
 GitHub上で、`feat/your-branch-name`→`main`への**Pull Request**を作成します。<br>
 PRタイトルはコミットメッセージと同様の形式で記述してください。
 > 💡 補足<br>
