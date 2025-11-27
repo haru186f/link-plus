@@ -17,12 +17,17 @@
 
 <h3 class="mb-3 text-center">ログインフォーム</h3>
 
-<form method="POST" action="{% url 'accounts:login' %}">
-    {# Error #}
-    {% csrf_token %}
-    {{ form.non_field_errors }}
+<form method="POST" action="{% url 'accounts:login' %}">{% csrf_token %}
+    {# --- Error messages --- #}
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">
+            {% for error in form.non_field_errors %}
+                {{ error }}
+            {% endfor %}
+        </div>
+    {% endif %}
 
-    {# Mail address #}
+    {# --- Mail address --- #}
     <div class="mb-3">
         <label for="{{ form.username.id_for_label }}" class="form-label">
             {{ form.username.label }}
@@ -30,7 +35,7 @@
         {{ form.username }}
     </div>
 
-    {# Password #}
+    {# --- Password --- #}
     <div class="mb-3">
         <label for="{{ form.password.id_for_label }}" class="form-label">
             {{ form.password.label }}
@@ -38,7 +43,7 @@
         {{ form.password }}
     </div>
 
-    {# Submit button #}
+    {# --- Submit button --- #}
     <button type="submit" class="btn btn-primary btn-lg w-100">
         ログイン
     </button>

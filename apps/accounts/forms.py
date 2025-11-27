@@ -125,6 +125,27 @@ class ProfileForm(forms.ModelForm):
         self.fields['grade'].choices = [('', '---------')] + list(self.fields['grade'].choices)
         self.fields['class_number'].choices = [('', '---------')] + list(self.fields['class_number'].choices)
 
+    def clean(self):
+        cleaned_data = super().clean()
+
+        invalid_value = '---------'
+
+        # ProfileForm が持っている実際のフィールド名をチェック
+        check_fields = [
+            'college',
+            'department',
+            'course',
+            'grade',
+            'class_number',
+            'bus_stop',
+        ]
+
+        for field in check_fields:
+            if cleaned_data.get(field) in [None, invalid_value]:
+                self.add_error(field, "選択されていません。値を選択してください。")
+
+        return cleaned_data
+
 
 
 class CustomAuthenticationForm(AuthenticationForm):
