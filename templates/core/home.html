@@ -7,6 +7,7 @@
 
 {% block css %}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
 {% endblock css %}
 
@@ -124,23 +125,23 @@
                             <th class="title">タイトル</th>
                         </tr>
                     </thead>
-                <tbody>
+                    <tbody>
                         {# emailsリストをループ処理 #}
                         {% for email in received_mails %}
                         <tr>
-            <th>{{ email.received_at|date:"m/d" }}</th>
-            <td>
-                {# 🚨 タイトルをリンクにしてデータ属性を付与 🚨 #}
-                <a href="{% url 'core:api_email_body' email.pk %}"
-                    class="email-link"
-                    data-url="{% url 'core:api_email_body' email.pk %}">
-                    {{ email.subject }}
-                </a>
-            </td>
-        </tr>
-        {% empty %}
+                            <th>{{ email.received_at|date:"m/d" }}</th>
+                            <td>
+                                {# 🚨 タイトルをリンクにしてデータ属性を付与 🚨 #}
+                                <a href="{% url 'core:api_email_body' email.pk %}"
+                                class="email-link"
+                                data-url="{% url 'core:api_email_body' email.pk %}">
+                                {{ email.subject }}
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
                         {% endfor %}
-                </tbody>
+                    </tbody>
                 </table>
             </div>
             <div class="dairy distanceright">
@@ -155,8 +156,7 @@
                 </div>
                 <h4><image src="{% static 'images/bus_nonstep_close.png' %}" class="bus-png"></image></h4>
                 <div class="bus-times">
-                    <h5>到着まで</h5>
-                    <p>08:00</p>
+                    <h5>到着まで  <span>08:00</span></h5>
                 </div>
             </div>
         </div>

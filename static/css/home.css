@@ -1,28 +1,30 @@
 @charset "UTF-8";
 
 body {
-    /* font-family: sans-serif; */
-    margin: 0;
+    font-family: sans-serif;
+    width:98vw;
+    height:98vh;
     padding: 0;
     background-color: #f4f4f4; /* 背景色 */
 }
 
 #monitor {
-    margin: -40px;
+    margin: 0;
     padding: 0 50px;
-    width: calc(100% + 80px);
-    min-height: 80vh;
-    padding: 0 50px;
-    box-sizing: border-box;
+    width:100%;
+    height:100%;
 }
 
 .main-content {
-    display:flex;
-    flex-wrap:wrap;
-    align-content:flex-start;
-    padding: 10px;
-    margin: 20px 0;
-    box-sizing: border-box;
+    display:grid;
+    /* 1列目: 68%, 2列目: 28% */
+    grid-template-columns: 68% 28%;
+    /* 行の定義: 1行目(calendar/news)をコンテンツの高さ(auto)に、
+       2行目(dairy/bus)をコンテンツの高さ(auto)にする */
+    grid-template-rows: auto auto; 
+    /* row-gap(行間)とcolumn-gap(列間)を設定 */
+    gap: 20px 4%; /* 上下20px、左右4%の間隔（元の margin と width に合わせるため） */
+    margin: 20px;
 }
 .distanceright {
     margin-right:1rem;
@@ -64,7 +66,6 @@ header {
 }
 
 .calendar-container {
-    width:68%;
     border: 1px solid #333; /* スケッチの太枠 */
 }
 
@@ -97,7 +98,6 @@ header {
 }
 /*------news------*/
 .news {
-    width:28%;
     border: 1px solid #333;
 }
 .news table{
@@ -105,6 +105,10 @@ header {
     height:100%;
     border: 1px solid #333;
 }
+.sync,.title {
+    text-align:center;
+}
+
 .sync {
     width:20%;
 }
@@ -122,8 +126,6 @@ td {
     display:flex;
     flex-wrap:nowrap;
     justify-content:flex-start;
-    width:68%;
-    height:40%;
     border: 1px solid #333;
     margin-top:20px;
 }
@@ -136,37 +138,128 @@ td {
     text-align:center;
 }
 /*------bus------*/
+.bus-container {
+    /* bus要素同士の間隔を確保 */
+    width:100%;
+}
 .bus {
-    width:28%;
-    height: auto;
+    /* width:100%; は grid-template-columns で指定済みなので削除 */
+    /* height:100%; を削除し、コンテンツの高さに合わせる */
+    /* margin-top:20px; は gap で対応できるため削除 */
     border: 1px solid #333;
-    margin-top:20px;
+    align-self:start;
+    max-width:100%;
+    max-height:200px;
 }
 .bus-info {
     display:flex;
     justify-content:center;
-    height:10%;
+    align-items:center;
+    height:3rem;
 }
 .bus-info h3 {
+    width:80%;
     text-align:center;
     justify-content:space-between;
     margin-right:2rem;
 }
+.bus button  {
+    width:auto;
+    height:100%;
+    margin-right:10px;
+}
+.bus-info a {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    width:auto;
+    height:100%;
+}
 .bus-info img {
-    width:100%;
+    width:auto;
     height:100%;
 }
 .bus-png {
-    width:20%;
+    width:70%;
+    height:auto;
     margin-right:2rem;
     margin-left:2rem;
 }
 .bus h4 {
     text-align:center;
 }
-.bus-time p{
-    text-align:center;
+.bus-times {
+    width:auto;
+    display:flex;
+    justify-content:center;
+    align-items:center;
 }
+.bus-times h5  {
+    padding-right:10px;
+}
+footer {
+    padding-bottom:50px;
+}
+
+/* ========================================================= */
+/* 🚨 モーダルCSSの追加 🚨 */
+/* ========================================================= */
+#mail-modal-overlay {
+    position: fixed; /* 画面全体を覆う */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* 半透明の黒背景 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* 最前面に表示 */
+}
+
+#mail-modal {
+    background-color: #ffffff; /* モーダル本体の背景 */
+    width: 80%;
+    max-width: 700px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.modal-header button {
+    cursor: pointer;
+    background: none;
+    border: 1px solid #ccc;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+.modal-body pre {
+    white-space: pre-wrap; /* 本文の改行を保持しつつ、幅に合わせて折り返す */
+    margin: 0;
+    padding: 10px 0;
+    max-height: 60vh; /* 高さ制限とスクロール */
+    overflow-y: auto;
+}
+
+
+#detail-body,
+#mail-text {
+    white-space: pre-wrap;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 60vh;
+}
+
 
 /* ========================================================= */
 /* 🚨 モーダルCSSの追加 🚨 */
