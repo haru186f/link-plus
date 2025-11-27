@@ -16,7 +16,7 @@ main {
   display: flex;
   align-items: center;     /* 上下中央 */
   justify-content: center; /* 左右中央 */
-  height: 92dvh;           /* ← 余白を少しだけ減らす最適値 */
+  height: 90dvh;           /* ← 余白を少しだけ減らす最適値 */
   padding: 0;
   background: linear-gradient(135deg, #f3f6f9 0%, #eaf4ff 50%, #f0ebff 100%);
 }
