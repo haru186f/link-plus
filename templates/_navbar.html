@@ -2,9 +2,8 @@
   <div class="container px-4 px-lg-5 py-2">
 
     {# --- ブランドロゴ --- #}
-
     <a class="navbar-brand" href="{% url 'core:home' %}">
-      LinkPlus
+      <i class="bi bi-link-45deg"></i>LinkPlus
     </a>
 
     {# --- モバイル用ハンバーガーメニュー --- #}
@@ -20,71 +19,95 @@
     {# --- ナビゲーションメニュー --- #}
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
+      {# --- 左側：メインメニュー --- #}
       <ul class="navbar-nav me-auto mb-2 mb-md-0 ms-md-4">
 
-          {% if request.user.is_authenticated %}
+        {% if request.user.is_authenticated %}
 
-            {% comment %}
-            ========================================
-                教師ユーザー（追加の専用メニュー）
-            =========================================
-            {% endcomment %}
+          {% comment %}
+          ========================================
+              ログイン済みユーザー（共通）
+          =========================================
+          {% endcomment %}
 
-            {% if request.user.is_teacher %}
+          {# ログアウト #}
+          <li class="nav-item m-1">
+            <form method="post" action="{% url 'logout' %}" class="d-inline">{% csrf_token %}
+              <button class="btn btn-outline-light" type="submit">
+                ログアウト
+              </button>
+            </form>
+          </li>
 
-              {# 時間管理（教師専用） #}
-              <li class="nav-item">
-                  <a class="nav-link text-nowrap" href="#">時間割管理</a>
-              </li>
+          {# プロフィール設定 #}
+          <li class="nav-item m-1">
+            <a class="btn btn-outline-light" href="{% url 'accounts:profile' %}">
+              <i class="bi bi-person me-1"></i>プロフィール
+            </a>
+          </li>
 
-              {# お知らせ投稿（教師専用） #}
-              <li class="nav-item">
-                  <a class="nav-link text-nowrap" href="#">お知らせ投稿</a>
-              </li>
+          {% comment %}
+          ========================================
+              教師ユーザー（追加の専用メニュー）
+          =========================================
+          {% endcomment %}
 
-            {% endif %}
+          {% if request.user.is_teacher %}
 
-            {% comment %}
-            ========================================
-                ログイン済みユーザー（共通）
-            =========================================
-            {% endcomment %}
+            {# 時間管理（教師専用） #}
+            <li class="nav-item m-1">
+              <a class="btn btn-outline-light" href="#">
+                <i class="bi bi-calendar-week me-1"></i>時間割管理
+              </a>
+            </li>
 
-              {# プロフィール設定 #}
-              <li class="nav-item">
-                  <a class="nav-link text-nowrap" href="{% url 'accounts:profile' %}">プロフィール</a>
-              </li>
-
-              {# ログアウト #}
-              <li class="nav-item">
-                <form method="post" action="{% url 'logout' %}" class="d-inline">
-                  {% csrf_token %}
-                  <button class="btn nav-link border-0 bg-transparent text-nowrap" type="submit">
-                    ログアウト
-                  </button>
-                </form>
-              </li>
-
-          {% else %}
-
-            {% comment %}
-            ========================================
-                未ログインユーザー
-            =========================================
-            {% endcomment %}
-
-              {# ログイン #}
-              <li class="nav-item">
-                  <a class="nav-link text-nowrap" href="{% url 'accounts:login' %}">ログイン</a>
-              </li>
-
-              {# 新規登録 #}
-              <li class="nav-item">
-                  <a class="nav-link text-nowrap" href="{% url 'accounts:signup' %}">新規登録</a>
-              </li>
+            {# お知らせ投稿（教師専用） #}
+            <li class="nav-item m-1">
+              <a class="btn btn-outline-light" href="#">
+                <i class="bi bi-megaphone me-1"></i>お知らせ投稿
+              </a>
+            </li>
 
           {% endif %}
-        </ul>
+
+        {% else %}
+
+        {% comment %}
+        ========================================
+        未ログインユーザー
+        =========================================
+        {% endcomment %}
+
+        {# ログイン #}
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'accounts:login' %}">ログイン</a>
+        </li>
+
+        {# 新規登録 #}
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'accounts:signup' %}">新規登録</a>
+        </li>
+
+        {% endif %}
+      </ul>
+
+      {# --- 右側：ユーザー情報 --- #}
+      {% if request.user.is_authenticated %}
+      <ul class="navbar-nav ms-auto d-flex align-items-center">
+
+        <li class="nav-item ms-3">
+          <span class="d-flex align-items-center"
+                style="color: rgba(255,255,255,0.8);
+                      font-size: 0.95rem;
+                      font-weight: 300;
+                      letter-spacing: 0.2px;">
+            <i class="bi bi-person-circle me-2 fs-5"></i>
+            ようこそ、{{ request.user.email }} さん
+          </span>
+        </li>
+
+      </ul>
+      {% endif %}
     </div>
   </div>
 </nav>

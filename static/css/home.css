@@ -1,9 +1,9 @@
 @charset "UTF-8";
 
 body {
-    font-family: sans-serif;
-    width:98vw;
-    height:98vh;
+    /* font-family: sans-serif; */
+    /* width:98vw;
+    height:98vh; */
     padding: 0;
     background-color: #f4f4f4; /* 背景色 */
 }
@@ -21,7 +21,7 @@ body {
     grid-template-columns: 68% 28%;
     /* 行の定義: 1行目(calendar/news)をコンテンツの高さ(auto)に、
        2行目(dairy/bus)をコンテンツの高さ(auto)にする */
-    grid-template-rows: auto auto; 
+    grid-template-rows: auto auto;
     /* row-gap(行間)とcolumn-gap(列間)を設定 */
     gap: 20px 4%; /* 上下20px、左右4%の間隔（元の margin と width に合わせるため） */
     margin: 20px;

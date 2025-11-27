@@ -49,7 +49,6 @@ class ProfileForm(forms.ModelForm):
         label='カレッジ',
         widget=forms.Select(attrs={
             "class": "form-select",
-            "placeholder": "カレッジを選択してください"
         })
     )
     department = forms.ModelChoiceField(
@@ -58,7 +57,6 @@ class ProfileForm(forms.ModelForm):
         label='学科',
         widget=forms.Select(attrs={
             "class": "form-select",
-            "placeholder": "学科を選択してください"
         })
     )
     course = forms.ModelChoiceField(
@@ -67,7 +65,6 @@ class ProfileForm(forms.ModelForm):
         label='コース／専攻',
         widget=forms.Select(attrs={
             "class": "form-select",
-            "placeholder": "コース／専攻を選択してください"
         })
     )
     grade = forms.ChoiceField(
@@ -76,7 +73,6 @@ class ProfileForm(forms.ModelForm):
         label='学年',
         widget=forms.Select(attrs={
             "class": "form-select",
-            "placeholder": "学年を選択してください"
         })
     )
     class_number = forms.ChoiceField(
@@ -85,7 +81,6 @@ class ProfileForm(forms.ModelForm):
         label='クラス',
         widget=forms.Select(attrs={
             "class": "form-select",
-            "placeholder": "クラスを選択してください"
         })
     )
     bus_stop = forms.ModelChoiceField(
@@ -94,7 +89,6 @@ class ProfileForm(forms.ModelForm):
         label='バス',
         widget=forms.Select(attrs={
             "class": "form-select",
-            "placeholder": "スクールバスを選択してください"
         })
     )
 
@@ -121,12 +115,16 @@ class ProfileForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # ChoiceField の先頭にブランクを追加
+        # ChoiceField に「---------」を追加
         for field in ['grade', 'class_number']:
             self.fields[field].choices = [('', '---------')] + list(self.fields[field].choices)
 
-        # 全部必須扱いにする
-        for field in ['college', 'department', 'course', 'grade', 'class_number', 'bus_stop']:
+        # ModelChoiceField の空ラベルを統一
+        for field in ['college', 'department', 'course', 'bus_stop']:
+            self.fields[field].empty_label = '---------'
+
+        # 全て必須化
+        for field in self.fields:
             self.fields[field].required = True
 
 

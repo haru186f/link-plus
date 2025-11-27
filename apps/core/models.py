@@ -30,22 +30,22 @@ class BusSchedule(models.Model):
         related_name="bus_schedules"
         )
 
-    def __str__(self):
-        # 時刻と方向の決定
-        if self.station_departure:
-            direction = "登校"
-            time = self.station_departure
-        elif self.campus_departure:
-            direction = "下校"
-            time = self.campus_departure
-        else:
-            direction = "未設定"
-            time = None
+def __str__(self):
+    # 時刻と方向の決定
+    if self.station_departure:
+        direction = "登校"
+        time = self.station_departure
+    elif self.campus_departure:
+        direction = "下校"
+        time = self.campus_departure
+    else:
+        direction = "未設定"
+        time = None
 
-        # 時刻の文字列化
-        time_str = time.strftime("%H:%M") if time else "----"
+    # 時刻の文字列化
+    time_str = time.strftime("%H:%M") if time else "----"
 
-        return f"{self.bus_stop}（{'土曜' if self.is_saturday else '平日'}・{direction}）: {time_str}"
+    return f"{self.bus_stop}（{'土曜' if self.is_saturday else '平日'}・{direction}）: {time_str}"
 
 
 
@@ -63,8 +63,8 @@ class College(models.Model):
 
 # 学科
 class Department(models.Model):
-    name = models.CharField(max_length=100)     # 学科名
-    max_grade = models.IntegerField(default=4)  # 最大学年（デフォルトは４年）
+    name = models.CharField(max_length=100)             # 学科名
+    max_grade = models.PositiveIntegerField(default=4)  # 最大学年（デフォルトは４年）
 
     # 外部キー
     college = models.ForeignKey(    # カレッジ
@@ -102,7 +102,7 @@ class Room(models.Model):
 
 # 時間割
 class SchoolPeriod(models.Model):
-    period = models.IntegerField()      # 時限
+    period = models.PositiveIntegerField()      # 時限
     start_time = models.TimeField()     # 開始時刻
     end_time = models.TimeField()       # 終了時刻
 
@@ -124,10 +124,10 @@ class LectureSchedule(models.Model):
         ("fri", "金"),
     ]
 
-    name = models.CharField(max_length=100)     # 講義名
-    start_period = models.IntegerField()        # 開始時限
-    end_period = models.IntegerField()          # 終了時限
-    day_of_week = models.CharField(             # 曜日
+    name = models.CharField(max_length=100)             # 講義名
+    start_period = models.PositiveIntegerField()        # 開始時限
+    end_period = models.PositiveIntegerField()          # 終了時限
+    day_of_week = models.CharField(                     # 曜日
         max_length=10,
         choices=DAY_OF_WEEK_CHOICES
     )

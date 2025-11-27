@@ -108,14 +108,14 @@ class Profile(models.Model):
     GRADE_CHOICES = [(i, f"{i}年") for i in range(1, 5)]
     CLASS_CHOICES = [(i, f"{i}組") for i in range(1, 5)]
 
-    grade = models.PositiveSmallIntegerField(            # 学年
+    grade = models.PositiveIntegerField(            # 学年
         _("grade"),
         null=True,
         blank=True,
         choices=GRADE_CHOICES
     )
 
-    class_number = models.PositiveSmallIntegerField(     # クラス
+    class_number = models.PositiveIntegerField(     # クラス
         _("class"),
         null=True,
         blank=True,
