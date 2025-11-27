@@ -1,14 +1,16 @@
-from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import PermissionsMixin
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+
 from apps.core.models import BusStop, College, Department, Course
 
 
-class CustomUserManager(UserManager):
+class CustomUserManager(BaseUserManager):
     """Define a model for User model with no username field."""
-
     use_in_migrations = True
 
     def _create_user(self, email, password, **extra_fields):
@@ -44,22 +46,32 @@ class CustomUserManager(UserManager):
         return self._create_user(email, password, **extra_fields)
 
 
-class CustomUser(AbstractUser):
+class CustomUser(AbstractBaseUser, PermissionsMixin):
     """カスタムユーザーモデル"""
 
-    class Meta(AbstractUser.Meta):
-        db_table = 'custom_user'
+    class Meta:
+        db_table = "custom_user"
+        verbose_name = "ユーザー"
+        verbose_name_plural = "ユーザー"
 
-    username = None # usernameフィールドを無効化
+    username = None                     # usernameフィールドを無効化
+    first_name = None                   # first_nameフィールドを無効化
+    last_name = None                    # last_nameフィールドを無効化
 
-    email = models.EmailField(_("email address"), unique=True)
+    email = models.EmailField(          # メールアドレス（ログインに必須）
+        _("email address"),
+        unique=True
+    )
 
-    is_staff = models.BooleanField(
+    is_staff = models.BooleanField(     # 管理サイトにログイン可能か（default=False）
         _("staff status"),
         default=False,
-        help_text=_("Designates whether the user can log into this admin site."),
+        help_text=_(
+            "Designates whether the user can log into this admin site."
+        ),
     )
-    is_active = models.BooleanField(
+
+    is_active = models.BooleanField(    # 有効なユーザーアカウントか（default=True）
         _("active"),
         default=True,
         help_text=_(
@@ -67,13 +79,24 @@ class CustomUser(AbstractUser):
             "Unselect this instead of deleting accounts."
         ),
     )
-    is_teacher = models.BooleanField(_("teacher status"), default=False)
-    date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    is_teacher = models.BooleanField(   # 教師専用機能を利用可能か（default=False）
+        _("teacher status"),
+        default=False,
+        help_text=_(
+            "Designates whether the user can access teacher-only features."
+        ),
+    )
 
-    objects = CustomUserManager()
+    date_joined = models.DateTimeField( # 作成日
+        _("date joined"),
+        default=timezone.now
+    )
+
+    objects = CustomUserManager()       # カスタムユーザマネージャーを指定
+
+    USERNAME_FIELD = "email"            # usernameフィールドをemailで上書き
+    REQUIRED_FIELDS = []                # 空にすると、メールアドレス＆パスワードのみでsuperuserを作成できる
 
     def __str__(self):
         return self.email
@@ -85,13 +108,59 @@ class Profile(models.Model):
     GRADE_CHOICES = [(i, f"{i}年") for i in range(1, 5)]
     CLASS_CHOICES = [(i, f"{i}組") for i in range(1, 5)]
 
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="profile")
-    college = models.ForeignKey(College, on_delete=models.SET_NULL, null=True, blank=True)
-    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
-    course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True)
-    bus_stop = models.ForeignKey(BusStop, on_delete=models.SET_NULL, null=True, blank=True)
-    grade = models.IntegerField(_("grade"), null=True, blank=True, choices=GRADE_CHOICES)
-    class_number = models.IntegerField(_("class"), null=True, blank=True, choices=CLASS_CHOICES)
+    grade = models.PositiveSmallIntegerField(            # 学年
+        _("grade"),
+        null=True,
+        blank=True,
+        choices=GRADE_CHOICES
+    )
+
+    class_number = models.PositiveSmallIntegerField(     # クラス
+        _("class"),
+        null=True,
+        blank=True,
+        choices=CLASS_CHOICES
+    )
+
+    # 外部キー
+    user = models.OneToOneField(            # ユーザー
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name="profile",
+    )
+
+    college = models.ForeignKey(            # カレッジ
+        College,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="profiles",
+    )
+
+    department = models.ForeignKey(         # 学科
+        Department,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="profiles",
+    )
+
+    course = models.ForeignKey(             # コース
+        Course,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="profiles",
+    )
+
+    bus_stop = models.ForeignKey(           # バス
+        BusStop,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="profiles",
+    )
 
     def __str__(self):
-        return f"Profile of {self.user.email}"
+        return f"Profile of {self.user.email if self.user else 'Unknown'}"
+

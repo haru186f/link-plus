@@ -26,7 +26,7 @@ class SignupForm(UserCreationForm):
         label="パスワード（確認用）",
         widget=forms.PasswordInput(attrs={
             "class": "form-control",
-            "placeholder": "もう一度パスワードを入力してくださいい"
+            "placeholder": "もう一度パスワードを入力してください"
         }),
     )
 
@@ -121,30 +121,13 @@ class ProfileForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # 🔹 先頭に "---------" を必ず入れる（最良の方法）
-        self.fields['grade'].choices = [('', '---------')] + list(self.fields['grade'].choices)
-        self.fields['class_number'].choices = [('', '---------')] + list(self.fields['class_number'].choices)
+        # ChoiceField の先頭にブランクを追加
+        for field in ['grade', 'class_number']:
+            self.fields[field].choices = [('', '---------')] + list(self.fields[field].choices)
 
-    def clean(self):
-        cleaned_data = super().clean()
-
-        invalid_value = '---------'
-
-        # ProfileForm が持っている実際のフィールド名をチェック
-        check_fields = [
-            'college',
-            'department',
-            'course',
-            'grade',
-            'class_number',
-            'bus_stop',
-        ]
-
-        for field in check_fields:
-            if cleaned_data.get(field) in [None, invalid_value]:
-                self.add_error(field, "選択されていません。値を選択してください。")
-
-        return cleaned_data
+        # 全部必須扱いにする
+        for field in ['college', 'department', 'course', 'grade', 'class_number', 'bus_stop']:
+            self.fields[field].required = True
 
 
 

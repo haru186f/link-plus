@@ -31,16 +31,22 @@ class BusSchedule(models.Model):
         )
 
     def __str__(self):
+        # 時刻と方向の決定
         if self.station_departure:
             direction = "登校"
             time = self.station_departure
         elif self.campus_departure:
             direction = "下校"
             time = self.campus_departure
+        else:
+            direction = "未設定"
+            time = None
 
-        time_str = time.strftime("%H:%M")
+        # 時刻の文字列化
+        time_str = time.strftime("%H:%M") if time else "----"
 
         return f"{self.bus_stop}（{'土曜' if self.is_saturday else '平日'}・{direction}）: {time_str}"
+
 
 
 # ==========================================================
