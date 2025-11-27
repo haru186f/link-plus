@@ -2,6 +2,7 @@ from django.contrib.auth import login, get_user_model
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView
 from django.contrib.auth.views import LoginView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .forms import SignupForm, CustomAuthenticationForm, ProfileForm
 from apps.core.models import College
@@ -18,19 +19,20 @@ class SignupView(CreateView):
 
     def form_valid(self, form):
         """ユーザ登録後に自動ログインを行う"""
-        response = super().form_valid(form)  # まずユーザを保存し、self.object に代入
-        user = self.object  # Django が保存した User インスタンス
-        login(self.request, user)  # 登録後に自動ログイン
-        Profile.objects.get_or_create(user=user)  # プロフィールを作成（重複防止）
+        response = super().form_valid(form)         # まずユーザを保存し、self.object に代入
+        user = self.object                          # Django が保存した User インスタンス
+        login(self.request, user)                   # 登録後に自動ログイン
+        Profile.objects.get_or_create(user=user)    # プロフィールを作成（重複防止）
         return response
 
 
-class ProfileView(UpdateView):
+class ProfileView(LoginRequiredMixin, UpdateView):
     """ユーザプロフィール更新ビュー"""
     model = Profile
     form_class = ProfileForm
     template_name = 'registration/profile.html'
-    success_url = reverse_lazy('core:home')  # ホーム画面に遷移
+    success_url = reverse_lazy('core:home')         # ホーム画面へ
+    login_url = reverse_lazy('accounts:login')      # 未ログインのときログインページへ飛ばす
 
     def get_object(self):
         """現在のユーザのプロフィールを取得（なければ作成）"""
@@ -47,7 +49,7 @@ class ProfileView(UpdateView):
 class CustomLoginView(LoginView):
     """カスタムログインビュー"""
     template_name = 'registration/login.html'
-    success_url = reverse_lazy('accounts:login')
+    success_url = reverse_lazy('core:home')
     authentication_form = CustomAuthenticationForm
 
     def get_success_url(self):

@@ -1,1 +1,90 @@
-<nav></nav>
+<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+  <div class="container px-4 px-lg-5 py-2">
+
+    {# --- ブランドロゴ --- #}
+
+    <a class="navbar-brand" href="{% url 'core:home' %}">
+      LinkPlus
+    </a>
+
+    {# --- モバイル用ハンバーガーメニュー --- #}
+    <button class="navbar-toggler" type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent"
+            aria-expanded="false"
+            aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    {# --- ナビゲーションメニュー --- #}
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+      <ul class="navbar-nav me-auto mb-2 mb-md-0 ms-md-4">
+
+          {% if request.user.is_authenticated %}
+
+            {% comment %}
+            ========================================
+                教師ユーザー（追加の専用メニュー）
+            =========================================
+            {% endcomment %}
+
+            {% if request.user.is_teacher %}
+
+              {# 時間管理（教師専用） #}
+              <li class="nav-item">
+                  <a class="nav-link text-nowrap" href="#">時間割管理</a>
+              </li>
+
+              {# お知らせ投稿（教師専用） #}
+              <li class="nav-item">
+                  <a class="nav-link text-nowrap" href="#">お知らせ投稿</a>
+              </li>
+
+            {% endif %}
+
+            {% comment %}
+            ========================================
+                ログイン済みユーザー（共通）
+            =========================================
+            {% endcomment %}
+
+              {# プロフィール設定 #}
+              <li class="nav-item">
+                  <a class="nav-link text-nowrap" href="{% url 'accounts:profile' %}">プロフィール</a>
+              </li>
+
+              {# ログアウト #}
+              <li class="nav-item">
+                <form method="post" action="{% url 'logout' %}" class="d-inline">
+                  {% csrf_token %}
+                  <button class="btn nav-link border-0 bg-transparent text-nowrap" type="submit">
+                    ログアウト
+                  </button>
+                </form>
+              </li>
+
+          {% else %}
+
+            {% comment %}
+            ========================================
+                未ログインユーザー
+            =========================================
+            {% endcomment %}
+
+              {# ログイン #}
+              <li class="nav-item">
+                  <a class="nav-link text-nowrap" href="{% url 'accounts:login' %}">ログイン</a>
+              </li>
+
+              {# 新規登録 #}
+              <li class="nav-item">
+                  <a class="nav-link text-nowrap" href="{% url 'accounts:signup' %}">新規登録</a>
+              </li>
+
+          {% endif %}
+        </ul>
+    </div>
+  </div>
+</nav>

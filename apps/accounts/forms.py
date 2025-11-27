@@ -91,7 +91,7 @@ class ProfileForm(forms.ModelForm):
     bus_stop = forms.ModelChoiceField(
         queryset=BusStop.objects.all(),
         required=False,
-        label='スクールバス',
+        label='バス',
         widget=forms.Select(attrs={
             "class": "form-select",
             "placeholder": "スクールバスを選択してください"
@@ -115,7 +115,7 @@ class ProfileForm(forms.ModelForm):
             'course': 'コース／専攻',
             'grade': '学年',
             'class_number': 'クラス',
-            'bus_stop': 'スクールバス',
+            'bus_stop': 'バス',
         }
 
     def __init__(self, *args, **kwargs):

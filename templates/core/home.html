@@ -87,6 +87,7 @@
 
 {% block content %}
 
+<div style="height: 80px;"></div>
 <main>
     {# Mail Modal #}
     <div id="mail-modal-overlay" style="display: none;">
@@ -99,6 +100,7 @@
         </div>
     </div>
     <div id="monitor">
+        {% comment %}
         <header>
             <div class="headerLeft head">
                 <img src="{% static 'img/mark_tenki_hare.png' %}">
@@ -106,9 +108,10 @@
             <div class="headerCenter head"><h1>LINK+</h1></div>
             <div class="headerRight head">
                 <h3><a href="{% url 'accounts:login' %}">ログイン</a></h3>
-                <a href="{% url 'accounts:profile' %}"><img src="{% static 'img/kkrn_icon_haguruma_10.png' %}"></a>
+                <a href="{% url 'accounts:profile' %}"><img src="{% static 'images/kkrn_icon_haguruma_10.png' %}"></a>
             </div>
         </header>
+        {% endcomment %}
         <div class="main-content">
             <div class="calendar-container distanceright">
                 <div id="calendar"></div>
@@ -148,9 +151,9 @@
                 <div class="bus-info">
                     <p></p>
                     <h3>八王子駅行き</h3>
-                    <button><a href="#"><image src="{% static 'img/kkrn_icon_haguruma_10.png' %}"></a></button>
+                    <button><a href="#"><image src="{% static 'images/kkrn_icon_haguruma_10.png' %}"></a></button>
                 </div>
-                <h4><image src="{% static 'img/bus_nonstep_close.png' %}" class="bus-png"></image></h4>
+                <h4><image src="{% static 'images/bus_nonstep_close.png' %}" class="bus-png"></image></h4>
                 <div class="bus-times">
                     <h5>到着まで</h5>
                     <p>08:00</p>
