@@ -11,10 +11,11 @@ document.addEventListener('DOMContentLoaded', function() {
     timeZone: 'Asia/Tokyo',
     height: 'auto',
     weekends: false,
-    businessHours: true,
     expandRows: true,
     headerToolbar: false,
     stickyHeaderDates: false,
+    fixedWeekCount: true,
+    height: 500,
   });
 
   calendar.render();

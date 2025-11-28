@@ -1,9 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-
 {% block title %}ホーム{% endblock title %}
-
 
 {% block css %}
   {# Calendar #}
@@ -13,29 +11,23 @@
   <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
   {# My CSS #}
   <link rel="stylesheet" href="{% static 'css/home.css' %}">
-
 {% endblock css %}
 
-
 {% block script %}
-    {# news #}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="{% static 'js/mail.js' %}" defer></script>
-    {# FullCalendar #}
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-    <script src="{% static 'js/calendar.js' %}" defer></script>
+  {# news #}
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="{% static 'js/mail.js' %}" defer></script>
+  {# FullCalendar #}
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+  <script src="{% static 'js/calendar.js' %}" defer></script>
 {% endblock script %}
 
-
 {% block header %}
-    {% include "_header.html" %}
+  {% include "_header.html" %}
 {% endblock header %}
 
-
 {% block content %}
-
 <div style="height: 80px;"></div>
-
 
 {# --- News modal --- #}
 <div id="mail-modal-overlay" style="display: none;">
@@ -48,13 +40,13 @@
   </div>
 </div>
 
-
 <div class="container">
+  <div class="row g-4 h-100">
 
-  <div class="row g-4">
+    {# ----- 左列：カレンダーと時間割（２項目） ----- #}
+    <div class="col-lg-8 d-flex flex-column gap-4">
 
-    {# --- 1行目の左側：Calendar --- #}
-    <div class="col-lg-8">
+      {# 1. カレンダー（上側） #}
       <div class="card shadow-sm rounded-4 border-0 h-100">
         <div class="card-header bg-light fw-semibold border-0 py-3 d-flex align-items-center">
           <i class="bi bi-calendar2-week me-2 fs-5 text-secondary"></i>
@@ -62,22 +54,42 @@
           <div id="calendar-header-buttons" class="d-flex align-items-center ms-auto"></div>
         </div>
         <div class="card-body">
-          <h3 id="calendar-title" class="m-0 fw-semibold"></h3>
+          <div class="px-1 py-2">
+            <h3 id="calendar-title" class="m-0 fw-semibold"></h3>
+          </div>
           <div id="calendar"></div>
         </div>
       </div>
+
+      {# 2. 時間割（下側） #}
+      <div class="card shadow-sm rounded-4 border-0 h-100">
+        <div class="card-header bg-light fw-semibold border-0 py-3 d-flex align-items-center">
+          <i class="bi bi-calendar-week me-1"></i>
+          <span class="fs-6">時間割</span>
+          <div id="timetable-header-buttons" class="d-flex align-items-center ms-auto"></div>
+        </div>
+        <div class="card-body">
+          <div class="px-1 py-2">
+            <h3 id="timetable-title" class="m-0 fw-semibold"></h3>
+          </div>
+          <div id="calendar-list"></div>
+        </div>
+      </div>
+
     </div>
 
 
-    {# --- 1行目の右側：News --- #}
-    <div class="col-lg-4">
-      <div class="card shadow-sm rounded-4 border-0 h-100">
+
+    {# ----- 右列：お知らせ・マップ・バス（３項目） ----- #}
+    <div class="col-lg-4 d-flex flex-column gap-4">
+
+      {# 1. お知らせ（上側） #}
+      <div class="card shadow-sm rounded-4 border-0 h-100 flex-grow-5">
         <div class="card-header bg-light fw-semibold border-0 py-3 d-flex align-items-center">
           <i class="bi bi-megaphone me-2 fs-5 text-secondary"></i>
           <span class="fs-6">お知らせ</span>
           <button class="btn btn-sm btn-outline-secondary ms-auto">一覧</button>
         </div>
-
         <div class="card-body p-0">
           <table class="table table-sm mb-0 table-hover align-middle">
             <thead class="table-light">
@@ -86,52 +98,43 @@
                 <th class="title">タイトル</th>
               </tr>
             </thead>
-              <tbody>
-                {# emailsリストをループ処理 #}
-                {% for email in received_mails %}
-                <tr>
-                  <th>{{ email.received_at|date:"m/d" }}</th>
-                  <td>
-                    {# 🚨 タイトルをリンクにしてデータ属性を付与 🚨 #}
-                    <a href="{% url 'core:api_email_body' email.pk %}"
-                    class="email-link"
+            <tbody>
+              {% for email in received_mails %}
+              <tr>
+                <th>{{ email.received_at|date:"m/d" }}</th>
+                <td>
+                  <a href="{% url 'core:api_email_body' email.pk %}" class="email-link"
                     data-url="{% url 'core:api_email_body' email.pk %}">
                     {{ email.subject }}
-                    </a>
-                  </td>
-                </tr>
-                {% empty %}
-                {% endfor %}
-              </tbody>
+                  </a>
+                </td>
+              </tr>
+              {% empty %}
+              {% endfor %}
+            </tbody>
           </table>
         </div>
-
       </div>
-    </div>
 
-
-    {# --- 2行目の左側：Timetable --- #}
-    <div class="col-lg-8">
-      <div class="card shadow-sm rounded-4 border-0 h-100">
+      {# 2. マップ（中央） #}
+      <div class="card shadow-sm rounded-4 border-0 h-100 flex-grow-3">
         <div class="card-header bg-light fw-semibold border-0 py-3 d-flex align-items-center">
-          <i class="bi bi-calendar-week me-1"></i>時間割
+          <i class="bi bi-geo-alt"></i>マップ
         </div>
-        <div class="card-body">
-          <div id="calendar-list"></div>
+        <div class="card-body p-3 d-flex justify-content-center align-items-center">
+          <img src="{% static 'images/campus_map.png' %}"
+              alt="キャンパスマップ"
+              style="width: 100%; height: 100%; object-fit: contain; filter: blur(1px);">
         </div>
       </div>
-    </div>
 
-
-    {# --- 2行目の右側：Bus --- #}
-    <div class="col-lg-4">
-      <div class="card shadow-sm rounded-4 border-0 h-100">
+      {# 3. バス（下側） #}
+      <div class="card shadow-sm rounded-4 border-0 h-100 flex-grow-2">
         <div class="card-header bg-light fw-semibold border-0 py-3 d-flex align-items-center">
           <i class="bi bi-bus-front"></i>バス時刻表
         </div>
         <div class="card-body">
           <div class="bus">
-
             <div class="bus-info">
               <h3>八王子駅行き</h3>
               <button>
@@ -140,24 +143,20 @@
                 </a>
               </button>
             </div>
-
             <h4>
               <img src="{% static 'images/bus_nonstep_close.png' %}" class="bus-png">
             </h4>
-
             <div class="bus-times">
-              <h5>到着まで  <span>08:00</span></h5>
+              <h5>到着まで <span>08:00</span></h5>
             </div>
-
           </div>
         </div>
       </div>
+
     </div>
-
-
-
 
   </div>
 </div>
+
 <div style="height: 80px;"></div>
 {% endblock content %}
