@@ -108,8 +108,13 @@
 {% block content %}
 
 <div style="height: 80px;"></div>
-<main>
-    {# Mail Modal #}
+
+
+    {% comment %}
+    ======================================
+        メールモーダル
+    ======================================
+    {% endcomment %}
     <div id="mail-modal-overlay" style="display: none;">
         <div id="mail-modal">
             <div class="modal-header">
@@ -119,19 +124,9 @@
             <pre id="mail-text"></pre>
         </div>
     </div>
+
+
     <div id="monitor">
-        {% comment %}
-        <header>
-            <div class="headerLeft head">
-                <img src="{% static 'img/mark_tenki_hare.png' %}">
-            </div>
-            <div class="headerCenter head"><h1>LINK+</h1></div>
-            <div class="headerRight head">
-                <h3><a href="{% url 'accounts:login' %}">ログイン</a></h3>
-                <a href="{% url 'accounts:profile' %}"><img src="{% static 'images/kkrn_icon_haguruma_10.png' %}"></a>
-            </div>
-        </header>
-        {% endcomment %}
         <div class="main-content">
             <div class="calendar-container distanceright">
                 <div id="calendar"></div>
@@ -166,6 +161,11 @@
             <div class="dairy distanceright">
                 <div id="calendar-list"></div>
 
+        {% comment %}
+        ========================================
+            バス
+        =========================================
+        {% endcomment %}
             </div>
             <div class="bus distanceLeft">
                 <div class="bus-info">
@@ -181,5 +181,6 @@
         </div>
     </div>
 
-</main>
+
+<div style="height: 80px;"></div>
 {% endblock content %}
