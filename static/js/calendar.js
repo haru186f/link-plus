@@ -56,7 +56,8 @@ document.addEventListener('DOMContentLoaded', function() {
     locale: 'ja',
     timeZone: 'Asia/Tokyo',
     height: 'auto',
-    weekends: false,
+    weekends: true,
+    headerToolbar: false,
     businessHours: true,
     expandRows: true,
 
@@ -76,4 +77,27 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   calendar2.render();
+
+    // ---- 時間割のボタン ----
+  const ttButtons = document.getElementById('timetable-header-buttons');
+  ttButtons.innerHTML = `
+    <button class="btn btn-outline-secondary btn-sm me-1" id="tt-prev">
+      <i class="bi bi-chevron-left"></i>
+    </button>
+
+    <button class="btn btn-outline-secondary btn-sm me-1" id="tt-next">
+      <i class="bi bi-chevron-right"></i>
+    </button>
+
+    <button class="btn btn-outline-primary btn-sm" id="tt-today">今日</button>
+  `;
+
+  document.getElementById('tt-prev').onclick  = () => { calendar2.prev(); updateTtTitle(); };
+  document.getElementById('tt-next').onclick  = () => { calendar2.next(); updateTtTitle(); };
+  document.getElementById('tt-today').onclick = () => { calendar2.today(); updateTtTitle(); };
+
+  function updateTtTitle() {
+    document.getElementById('timetable-title').textContent = calendar2.view.title;
+  }
+  updateTtTitle();
 });
