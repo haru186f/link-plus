@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     businessHours: true,
     expandRows: true,
     headerToolbar: false,
+    stickyHeaderDates: false,
   });
 
   calendar.render();
