@@ -6,7 +6,6 @@
 {% block css %}
   {# Calendar #}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css">
-
   {# Reset CSS #}
   <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
   {# My CSS #}
@@ -22,6 +21,8 @@
   <script src="{% static 'js/calendar.js' %}" defer></script>
   {# Bus #}
   <script src="{% static 'js/bus.js' %}" defer></script>
+  {# Map #}
+  <script src="{% static 'js/map.js' %}" defer></script>
 {% endblock script %}
 
 {% block header %}
@@ -43,9 +44,17 @@
 </div>
 
 {# ----- Map modal ----- #}
-{# ここにマップを押すと表示されるモーダルを書いてね #}
-
-
+<div id="map-modal-overlay" style="display:none;">
+  <div id="map-modal">
+    <div class="modal-header">
+      <h2>キャンパスマップ</h2>
+      <button onclick="hideMapModal()">閉じる</button>
+    </div>
+    <div class="modal-body">
+      <img id="map-modal-img" src="" alt="マップ" style="width:100%; height:auto;">
+    </div>
+  </div>
+</div>
 
 {# ----- Main content ----- #}
 <div class="container">
@@ -108,8 +117,9 @@
             </thead>
             <tbody>
               {% for email in received_mails %}
-                <tr href="{% url 'core:api_email_body' email.pk %}" class="email-link"
-                    data-url="{% url 'core:api_email_body' email.pk %}">
+                <tr href="{% url 'core:api_email_body' email.pk %}" class="email-link "
+                    data-url="{% url 'core:api_email_body' email.pk %}"
+                    style="cursor:pointer;">
                   <td style="text-align:center;">{{ email.received_at|date:"m/d" }}</td>
                   <td style="text-align:left;">{{ email.subject }}</td>
                 </tr>
@@ -151,11 +161,14 @@
           <i class="bi bi-geo-alt me-2 fs-5 text-secondary"></i>
           <span class="fs-5">マップ</span>
         </div>
-        <div class="card-body p-3 d-flex justify-content-center align-items-center">
+        <div class="card-body p-0 d-flex justify-content-center align-items-center map-hover">
           <img src="{% static 'images/campus_map.png' %}"
-              alt="キャンパスマップ"
-              style="width: 100%; height: 100%; object-fit: contain; filter: blur(1px);">
+                id="map-image"
+                alt="キャンパスマップ"
+                style="width: 100%; height: 100%; object-fit: cover; filter: blur(1px); border-radius: 0 0 16px 16px; cursor:pointer;"
+            >
         </div>
+        <div class="map-blur-layer"></div>
       </div>
 
 

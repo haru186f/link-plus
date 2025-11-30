@@ -1,5 +1,12 @@
-// 閉じるボタンの関数 (メール用)
-function hideModal() {
+// モーダル表示
+function showMailModal(subject, body) {
+    $('#mail-subject').text(subject);
+    $('#mail-text').text(body);
+    $('#mail-modal-overlay').fadeIn(200);
+}
+
+// モーダル非表示
+function hideMailModal() {
     $('#mail-modal-overlay').fadeOut(200);
 }
 
@@ -15,25 +22,12 @@ $(document).ready(function() {
             type: 'GET',
             dataType: 'json',
             success: function(data) {
-                $('#mail-subject').text(data.subject);
-                $('#mail-text').text(data.body);
-                $('#mail-modal-overlay').fadeIn(200);
-        },
+                showMailModal(data.subject, data.body);
+            },
             error: function(xhr, status, error) {
                 console.error("AJAX Error:", status, error);
-                 alert('メール本文の取得に失敗しました。');
-             }
+                alert('メール本文の取得に失敗しました。');
+            }
         });
-     });
+    });
 });
-/* ============================================
-   📌 メールモーダル（既存の機能）
-============================================ */
-function showMailModal(text) {
-    $("#mail-text").text(text);
-    $("#mail-modal-overlay").fadeIn(200);
-}
-
-function hideMailModal() {
-    $("#mail-modal-overlay").fadeOut(200);
-}
