@@ -85,8 +85,8 @@ class Command(BaseCommand):
         # ==============================
         college, _ = College.objects.get_or_create(name="ITカレッジ")
         department, _ = Department.objects.get_or_create(
-            name="情報工学科",
-            defaults={"college": college, "max_grade": 4}
+            name="情報処理科",
+            defaults={"college": college, "max_grade": 2}
         )
 
         # ==============================

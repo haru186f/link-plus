@@ -102,22 +102,18 @@
           <table class="table table-sm mb-0 table-hover align-middle">
             <thead class="table-light">
               <tr>
-                <th style="width:80px;">発信日</th>
-                <th class="title">タイトル</th>
+                <th style="width:80px; text-align:center;">発信日</th>
+                <th style="text-align:left;">タイトル</th>
               </tr>
             </thead>
             <tbody>
               {% for email in received_mails %}
-              <tr>
-                <th>{{ email.received_at|date:"m/d" }}</th>
-                <td>
-                  <a href="{% url 'core:api_email_body' email.pk %}" class="email-link"
+                <tr href="{% url 'core:api_email_body' email.pk %}" class="email-link"
                     data-url="{% url 'core:api_email_body' email.pk %}">
-                    {{ email.subject }}
-                  </a>
-                </td>
-              </tr>
-              {% empty %}
+                  <td style="text-align:center;">{{ email.received_at|date:"m/d" }}</td>
+                  <td style="text-align:left;">{{ email.subject }}</td>
+                </tr>
+                {% empty %}
               {% endfor %}
             </tbody>
           </table>
