@@ -288,8 +288,8 @@ footer {
 
 #map-modal {
     background: #fff;
-    width: 70%;
-    max-width: 750px;
+    width: 55%;
+    max-width: 640px;
     padding: 20px;
     border-radius: 8px;
 }

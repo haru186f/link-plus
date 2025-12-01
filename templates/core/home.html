@@ -37,7 +37,7 @@
   <div id="mail-modal">
     <div class="modal-header">
       <h5 id="mail-subject">内容</h5>
-      <button onclick="hideMailModal()" style="white-space: nowrap;">閉じる</button>
+      {% comment %} <button onclick="hideMailModal()" style="white-space: nowrap;">閉じる</button> {% endcomment %}
     </div>
     <pre id="mail-text"></pre>
   </div>
@@ -47,8 +47,8 @@
 <div id="map-modal-overlay" style="display:none;">
   <div id="map-modal">
     <div class="modal-header">
-      <h2>キャンパスマップ</h2>
-      <button onclick="hideMapModal()">閉じる</button>
+      <h3>キャンパスマップ</h3>
+      {% comment %} <button onclick="hideMapModal()">閉じる</button> {% endcomment %}
     </div>
     <div class="modal-body">
       <img id="map-modal-img" src="" alt="マップ" style="width:100%; height:auto;">
@@ -140,7 +140,7 @@
         <div class="card-body">
           <div class="bus">
             <div class="bus-info">
-              <h3 id="goTo">八王子駅行き</h3>
+              <h3 id="goTo">八王子行き</h3>
               <button>
                 <img src="{% static 'images/settings.png' %}" class="bus-png" id="busBT">
               </button>

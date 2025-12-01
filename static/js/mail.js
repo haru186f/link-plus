@@ -46,4 +46,10 @@ $(".email-link").on("click", function () {
 
         $("#mail-modal-overlay").show();
     });
+        // モーダル背景クリック → 閉じる
+    $("#mail-modal-overlay").on("click", function (e) {
+        if (e.target.id === "mail-modal-overlay") {
+            hideMailModal();
+        }
+    });
 });
