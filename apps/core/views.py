@@ -1,6 +1,6 @@
 from django.views import View
 from django.http import JsonResponse
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, ListView
 from datetime import datetime, timedelta
 from django.shortcuts import render
 
@@ -26,6 +26,17 @@ class HomeView(TemplateView):
         context["lecture_schedules"] = LectureSchedule.objects.all()
 
         return context
+
+class NewsListView(ListView):
+    model = ReceivedEmail
+    template_name = 'core/news.html'
+    context_object_name = 'all_emails'
+    ordering = ['-received_at']  # 新しい順
+
+    extra_context = {
+        'page_title': 'すべての受信メール'
+    }
+
 
 
 # ==========================================================
@@ -94,10 +105,6 @@ class GetGradesView(View):
         return JsonResponse({'max_grade': max_grade})
 
 
-# ==========================================================
-# Webhook: 受信メール保存
-# ==========================================================
-
 def receive_email_webhook(request):
     if request.method == 'POST':
         # 外部からのリクエストデータから情報を取得（例：Webhookペイロード）
@@ -122,9 +129,6 @@ def receive_email_webhook(request):
     return JsonResponse({'status': 'method not allowed'}, status=405)
 
 
-# ---------------------------------------------------
-# ✨ API ビュー ✨
-# ---------------------------------------------------
 def api_email_body(request, pk):
     """
     指定された主キー(pk)のメール本文と件名をJSONで返すAPIエンドポイント。
@@ -156,27 +160,27 @@ def api_email_body(request, pk):
     # GETメソッド以外でのリクエストを拒否
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-# ---------------------------------------------------
-# ✨ メール一覧表示 ✨
-# ---------------------------------------------------
-def mail_list_view(request):
-    """
-    すべての受信メールを表示するためのビュー。
-    """
-    # データベースからすべてのメールオブジェクトを取得します
-    # 通常は新しい順に並べ替えます
-    all_emails = ReceivedEmail.objects.all().order_by('-received_at')
+# # ---------------------------------------------------
+# #     メール一覧表示
+# # ---------------------------------------------------
+# def mail_list_view(request):
+#     """
+#     すべての受信メールを表示するためのビュー。
+#     """
+#     # データベースからすべてのメールオブジェクトを取得します
+#     # 通常は新しい順に並べ替えます
+#     all_emails = ReceivedEmail.objects.all().order_by('-received_at')
 
-    context = {
-        'all_emails': all_emails,
-        'page_title': 'すべての受信メール'
-    }
+#     context = {
+#         'all_emails': all_emails,
+#         'page_title': 'すべての受信メール'
+#     }
 
-    # mail_list.html' という新しいテンプレートをレンダリングします
-    return render(request, 'core/mail_list.html', context)
+#     # mail_list.html' という新しいテンプレートをレンダリングします
+#     return render(request, 'core/mail_list.html', context)
 
 # ---------------------------------------------------
-# ✨ LectureSchedule API（FullCalendar用） ✨
+#   LectureSchedule API
 # ---------------------------------------------------
 def lecture_events(request):
     """講義スケジュールをFullCalendar形式で返すAPI"""

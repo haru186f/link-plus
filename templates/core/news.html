@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}お知らせ{% endblock title %}
+
+{% block css %}
+  {# Reset CSS #}
+  <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  {# My CSS #}
+  <link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock css %}
+
+{% block script %}
+    {# news #}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{% static 'js/mail.js' %}" defer></script>
+{% endblock script %}
+
+{% block content %}
+
+{# ----- News modal ----- #}
+<div id="mail-modal-overlay" style="display: none;">
+  <div id="mail-modal">
+    <div class="modal-header">
+      <h5 id="mail-subject">内容</h5>
+    </div>
+    <pre id="mail-text"></pre>
+  </div>
+</div>
+
+{# ----- News content ----- #}
+<div class="container">
+  <h2 class="mb-4">お知らせ一覧</h2>
+{% for email in all_emails %}
+<div class="card email-item border-0 mb-2"
+     data-url="{% url 'core:api_email_body' email.pk %}">
+
+  <div class="card-body d-flex align-items-center py-3 px-3">
+
+    <!-- 日付 -->
+    <div class="d-flex flex-column text-muted small text-nowrap me-3">
+      <span class="fw-semibold">{{ email.received_at|date:"Y/m/d" }}</span>
+      <span>{{ email.received_at|date:"H:i" }}</span>
+    </div>
+
+    <!-- 内容 -->
+    <div class="flex-grow-1 d-flex flex-column">
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="badge rounded-pill bg-primary px-2 py-1 small">News</span>
+      </div>
+      <div class="fw-semibold email-link email-subject"
+            data-url="{% url 'core:api_email_body' email.pk %}"
+            style="cursor: pointer; transition: color 0.15s ease;"
+            onmouseover="this.style.color='var(--bs-primary)';"
+            onmouseout="this.style.color='';">
+        {{ email.subject }}
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endfor %}
+</div>
+{% endblock content %}
