@@ -75,7 +75,9 @@
         <div class="card-header bg-light fw-semibold border-0 py-3 d-flex align-items-center">
           <i class="bi bi-megaphone me-2 fs-5 text-secondary"></i>
           <span class="fs-6">お知らせ</span>
-          <button class="btn btn-sm btn-outline-secondary ms-auto">一覧</button>
+          <a href="{% url 'core:mail_list' %}"　class="ms-auto d-block">
+            <button class="btn btn-sm btn-outline-secondary">一覧</button>
+          </a>
         </div>
 
         <div class="card-body p-0">
@@ -96,7 +98,8 @@
                     <a href="{% url 'core:api_email_body' email.pk %}"
                     class="email-link"
                     data-url="{% url 'core:api_email_body' email.pk %}">
-                    {{ email.subject }}
+                    {# タイトルの最大表示数 #}
+                    {{ email.subject|truncatechars:25 }}  
                     </a>
                   </td>
                 </tr>

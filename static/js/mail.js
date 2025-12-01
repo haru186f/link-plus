@@ -16,7 +16,8 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(data) {
                 $('#mail-subject').text(data.subject);
-                $('#mail-text').text(data.body);
+                var formattedBody = data.body.replace(/\r?\n/g, '<br>');    //改行
+                $('#mail-text').html(formattedBody);    //整形済みHTML文字列の格納
                 $('#mail-modal-overlay').fadeIn(200);
         },
             error: function(xhr, status, error) {
