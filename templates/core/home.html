@@ -1,186 +1,183 @@
 {% extends "base.html" %}
 {% load static %}
 
-
 {% block title %}ホーム{% endblock title %}
 
-
 {% block css %}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
-    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+  {# Calendar #}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css">
+  {# Reset CSS #}
+  <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  {# My CSS #}
+  <link rel="stylesheet" href="{% static 'css/home.css' %}">
 {% endblock css %}
 
-
 {% block script %}
-    {# news #}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="{% static 'js/mail.js' %}" defer></script>
-
-    {# FullCalendar #}
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-
-        // ============================
-        // 📅 月表示カレンダー
-        // ============================
-        const calendarEl = document.getElementById('calendar');
-
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            locale: 'ja',
-            timeZone: 'Asia/Tokyo',
-            height: 'auto',
-            weekends: false,
-            businessHours: true,
-            expandRows: true,
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: '',
-            },
-        });
-
-        calendar.render();
-
-
-        // ============================
-        // 📋 時間割
-        // ============================
-        const calendarEl2 = document.getElementById('calendar-list');
-
-        const calendar2 = new FullCalendar.Calendar(calendarEl2, {
-            initialView: 'listDay',
-            locale: 'ja',
-            timeZone: 'Asia/Tokyo',
-            height: 'auto',
-            weekends: false,
-            businessHours: true,
-            expandRows: true,
-
-            noEventsContent: '本日の講義はありません',
-            // Django API から講義スケジュールを取得
-            events: {
-                url: '/api/lecture-events/',
-                method: 'GET',
-                failure: function() {
-                    alert('講義予定を読み込めませんでした。');
-                }
-            },
-
-            // イベントクリック → 詳細表示（後で拡張しやすい）
-            eventClick: function(info) {
-                alert(info.event.title + "\n" + info.event.extendedProps.room);
-            }
-        });
-
-        calendar2.render();
-    });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-        var flag=0;
-        const documentButton=document.querySelector('#busBT');
-        const busButton =() => {
-            if (flag===0) {
-                document.querySelector('#goTo').textContent='八王子駅行き';
-                document.querySelector('.bus-times span').innerText='08:00';
-                flag=1;
-            } else {
-                document.querySelector('#goTo').textContent='キャンパス行き';
-                document.querySelector('.bus-times span').innerText='15:00';
-                flag=0;
-            }
-        };
-        documentButton.addEventListener('click',busButton);
-        console.log(documentButton.value);
-        });
-    </script>
+  {# News #}
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="{% static 'js/mail.js' %}" defer></script>
+  {# Lecture #}
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+  <script src="{% static 'js/calendar.js' %}" defer></script>
+  {# Bus #}
+  <script src="{% static 'js/bus.js' %}" defer></script>
+  {# Map #}
+  <script src="{% static 'js/map.js' %}" defer></script>
 {% endblock script %}
 
-
 {% block header %}
-    {% include "_header.html" %}
+  {% include "_header.html" %}
 {% endblock header %}
 
-
 {% block content %}
-
 <div style="height: 80px;"></div>
 
+{# ----- News modal ----- #}
+<div id="mail-modal-overlay" style="display: none;">
+  <div id="mail-modal">
+    <div class="modal-header">
+      <h5 id="mail-subject">内容</h5>
+      {% comment %} <button onclick="hideMailModal()" style="white-space: nowrap;">閉じる</button> {% endcomment %}
+    </div>
+    <pre id="mail-text"></pre>
+  </div>
+</div>
 
-    {% comment %}
-    ======================================
-        メールモーダル
-    ======================================
-    {% endcomment %}
-    <div id="mail-modal-overlay" style="display: none;">
-        <div id="mail-modal">
-            <div class="modal-header">
-                <h2>メール内容</h2>
-                <button onclick="hideMailModal()">閉じる</button>
-            </div>
-            <pre id="mail-text"></pre>
+{# ----- Map modal ----- #}
+<div id="map-modal-overlay" style="display:none;">
+  <div id="map-modal">
+    <div class="modal-header">
+      <h3>キャンパスマップ</h3>
+      {% comment %} <button onclick="hideMapModal()">閉じる</button> {% endcomment %}
+    </div>
+    <div class="modal-body">
+      <img id="map-modal-img" src="" alt="マップ" style="width:100%; height:auto;">
+    </div>
+  </div>
+</div>
+
+{# ----- Main content ----- #}
+<div class="container">
+  <div class="row g-4 h-100">
+
+    {# ----- 左列：カレンダーと時間割（２項目）----- #}
+    <div class="col-lg-8 d-flex flex-column gap-4">
+
+      {# 1. カレンダー（上側） #}
+      <div class="card shadow-sm rounded-4 border-0 h-100">
+        <div class="card-header bg-light fw-semibold border-0 py-3 d-flex align-items-center">
+          <i class="bi bi-calendar-date me-2 fs-5 text-secondary"></i>
+          <span class="fs-5">カレンダー</span>
+          <div id="calendar-header-buttons" class="d-flex align-items-center ms-auto"></div>
         </div>
+        <div class="card-body">
+          <div class="px-1 py-2">
+            <h3 id="calendar-title" class="m-0 fw-semibold"></h3>
+          </div>
+          <div id="calendar"></div>
+        </div>
+      </div>
+
+      {# 2. 時間割（下側） #}
+      <div class="card shadow-sm rounded-4 border-0 h-100">
+        <div class="card-header bg-light fw-semibold border-0 py-3 d-flex align-items-center">
+          <i class="bi bi-calendar-week me-2 fs-5 text-secondary"></i>
+          <span class="fs-5">時間割</span>
+          <div id="timetable-header-buttons" class="d-flex align-items-center ms-auto"></div>
+        </div>
+        <div class="card-body">
+          <div class="px-1 py-2">
+            <h3 id="timetable-title" class="m-0 fw-semibold"></h3>
+          </div>
+          <div id="calendar-list"></div>
+        </div>
+      </div>
+
     </div>
 
 
-    <div id="monitor">
-        <div class="main-content">
-            <div class="calendar-container distanceright">
-                <div id="calendar"></div>
-            </div>
-            <div class="news distanceLeft">
-                <table>
-                    <thead>
-                        <tr>
-                            <th class="sync">発信日</th>
-                            <th class="title">タイトル</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {# emailsリストをループ処理 #}
-                        {% for email in received_mails %}
-                        <tr>
-                            <th>{{ email.received_at|date:"m/d" }}</th>
-                            <td>
-                                {# 🚨 タイトルをリンクにしてデータ属性を付与 🚨 #}
-                                <a href="{% url 'core:api_email_body' email.pk %}"
-                                class="email-link"
-                                data-url="{% url 'core:api_email_body' email.pk %}">
-                                {{ email.subject }}
-                                </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="dairy distanceright">
-                <div id="calendar-list"></div>
 
-        {% comment %}
-        ========================================
-            バス
-        =========================================
-        {% endcomment %}
-            </div>
-            <div class="bus distanceLeft">
-                <div class="bus-info">
-                    <p></p>
-                    <h3 id="goTo">八王子駅行き</h3>
-                    <button><image src="{% static 'images/kkrn_icon_haguruma_10.png' %}"  id="busBT"></button>
-                </div>
-                <h4><image src="{% static 'images/bus_nonstep_close.png' %}" class="bus-png"></image></h4>
-                <div class="bus-times">
-                    <h5>到着まで  <span>08:00</span></h5>
-                </div>
-            </div>
+    {# ----- 右列：お知らせ・バス・マップ（３項目） ----- #}
+    <div class="col-lg-4 d-flex flex-column gap-4">
+
+      {# 1. お知らせ（上側） #}
+      <div class="card shadow-sm rounded-4 border-0 h-100 flex-grow-5">
+        <div class="card-header bg-light fw-semibold border-0 py-3 d-flex align-items-center">
+          <i class="bi bi-megaphone me-2 fs-5 text-secondary"></i>
+          <span class="fs-5">お知らせ</span>
+          <a href="{% url 'core:mail_list' %}"　class="ms-auto d-block">
+            <button class="btn btn-sm btn-outline-secondary">一覧</button>
+          </a>
         </div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0 table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th style="width:80px; text-align:center;">発信日</th>
+                <th style="text-align:left;">タイトル</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for email in received_mails %}
+                <tr href="{% url 'core:api_email_body' email.pk %}" class="email-link "
+                    data-url="{% url 'core:api_email_body' email.pk %}"
+                    style="cursor:pointer;">
+                  <td style="text-align:center;">{{ email.received_at|date:"m/d" }}</td>
+                  <td style="text-align:left;">{{ email.subject|truncatechars:46 }}</td>
+                </tr>
+                {% empty %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {# 2. バス（中央） #}
+      <div class="card shadow-sm rounded-4 border-0 h-100 flex-grow-2">
+        <div class="card-header bg-light fw-semibold border-0 py-3 d-flex align-items-center">
+          <i class="bi bi-bus-front me-2 fs-5 text-secondary"></i>
+          <span class="fs-5">バス時刻</span>
+          <button class="btn btn-sm btn-outline-secondary ms-auto">一覧</button>
+        </div>
+        <div class="card-body">
+          <div class="bus">
+            <div class="bus-info">
+              <h3 id="goTo">八王子行き</h3>
+              <button>
+                <img src="{% static 'images/settings.png' %}" class="bus-png" id="busBT">
+              </button>
+            </div>
+            <h4>
+              <img src="{% static 'images/bus.png' %}" class="bus-png" id="bus">
+            </h4>
+            <div class="bus-times">
+              <h5>到着まで <span>08:00</span></h5>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# 3. マップ（下側） #}
+      <div class="card shadow-sm rounded-4 border-0 h-100 flex-grow-3">
+        <div class="card-header bg-light fw-semibold border-0 py-3 d-flex align-items-center">
+          <i class="bi bi-geo-alt me-2 fs-5 text-secondary"></i>
+          <span class="fs-5">マップ</span>
+        </div>
+        <div class="card-body p-0 d-flex justify-content-center align-items-center map-hover">
+          <img src="{% static 'images/campus_map.png' %}"
+                id="map-image"
+                alt="キャンパスマップ"
+                style="width: 100%; height: 100%; object-fit: cover; filter: blur(1px); border-radius: 0 0 16px 16px; cursor:pointer;"
+            >
+        </div>
+        <div class="map-blur-layer"></div>
+      </div>
+
+
     </div>
 
+  </div>
+</div>
 
 <div style="height: 80px;"></div>
 {% endblock content %}

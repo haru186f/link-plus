@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 # ==========================================================
 
 class HomeView(TemplateView):
-    template_name = 'core/home_tmp.html'
+    template_name = 'core/home.html'
 
     def get_context_data(self, **kwargs):
         """データをcontextに集約してホームページに送信する"""

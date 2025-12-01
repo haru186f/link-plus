@@ -1,19 +1,27 @@
 @charset "UTF-8";
 
+/* html {
+    transform: scale(0.9);
+    transform-origin: left top;
+    height: calc(100% / 0.9);
+    width: calc(100% / 0.9);
+} */
+
 body {
     /* font-family: sans-serif; */
-    /* width:98vw;
-    height:98vh; */
+    margin: 0;
     padding: 0;
+    height: 100%;
     background-color: #f4f4f4; /* 背景色 */
 }
 
-#monitor {
+
+/* #monitor {
     margin: 0;
     padding: 0 50px;
     width:100%;
     height:100%;
-}
+} */
 
 .main-content {
     display:grid;
@@ -32,6 +40,7 @@ body {
 .distanceleft {
     margin-left:1rem;
 }
+
 /*メインコンテンツ*/
 header {
     display:flex;
@@ -203,7 +212,7 @@ footer {
 }
 
 /* ========================================================= */
-/* 🚨 モーダルCSSの追加 🚨 */
+/*      メールモーダル
 /* ========================================================= */
 #mail-modal-overlay {
     position: fixed; /* 画面全体を覆う */
@@ -220,8 +229,8 @@ footer {
 
 #mail-modal {
     background-color: #ffffff; /* モーダル本体の背景 */
-    width: 80%;
-    max-width: 700px;
+    width: 70%;
+    max-width: 750px;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
@@ -252,7 +261,6 @@ footer {
     overflow-y: auto;
 }
 
-
 #detail-body,
 #mail-text {
     white-space: pre-wrap;
@@ -263,62 +271,32 @@ footer {
 
 
 /* ========================================================= */
-/* 🚨 モーダルCSSの追加 🚨 */
+/*      マップモーダル
 /* ========================================================= */
-#mail-modal-overlay {
-    position: fixed; /* 画面全体を覆う */
+#map-modal-overlay {
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); /* 半透明の黒背景 */
+    background-color: rgba(0,0,0,0.7);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 9999; /* 最前面に表示 */
+    z-index: 9999;
 }
 
-#mail-modal {
-    background-color: #ffffff; /* モーダル本体の背景 */
-    width: 80%;
-    max-width: 700px;
+#map-modal {
+    background: #fff;
+    width: 55%;
+    max-width: 640px;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 10px;
-    margin-bottom: 10px;
-}
-
-.modal-header button {
-    cursor: pointer;
-    background: none;
-    border: 1px solid #ccc;
-    padding: 5px 10px;
-    border-radius: 4px;
-}
-
-.modal-body pre {
-    white-space: pre-wrap; /* 本文の改行を保持しつつ、幅に合わせて折り返す */
-    margin: 0;
-    padding: 10px 0;
-    max-height: 60vh; /* 高さ制限とスクロール */
-    overflow-y: auto;
 }
 
 
-#detail-body,
-#mail-text {
-    white-space: pre-wrap;
-    overflow-y: auto;
-    overflow-x: hidden;
-    max-height: 60vh;
+#map-modal img {
+    width: 100%;
+    height: auto;
 }
-
 

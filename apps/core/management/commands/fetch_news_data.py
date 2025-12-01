@@ -1,6 +1,7 @@
 import imaplib
 import email
 from email.header import decode_header
+from email.utils import parsedate_to_datetime
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from apps.core.models import ReceivedEmail
@@ -17,7 +18,6 @@ class Command(BaseCommand):
         parser.add_argument('--folder', type=str, default='INBOX', help='取得対象フォルダ（デフォルトINBOX）')
 
     def handle(self, *args, **options):
-        # 🚨 IMAP接続に必要な設定を settings.py から取得
         host = getattr(settings, 'EMAIL_IMAP_HOST', None)
         port = getattr(settings, 'EMAIL_IMAP_PORT', 993)
         user = getattr(settings, 'EMAIL_IMAP_USER', None)
@@ -25,7 +25,6 @@ class Command(BaseCommand):
         limit = options['limit']
         folder = options['folder']
 
-        # 設定確認
         if not all([host, user, password]):
             self.stderr.write(self.style.ERROR("❌ IMAP設定が不完全です。settings.py の EMAIL_IMAP_* を確認してください。"))
             return
@@ -36,14 +35,12 @@ class Command(BaseCommand):
         saved_count = 0
 
         try:
-            # --- IMAP接続とログイン ---
             self.stdout.write("接続中...")
             mail = imaplib.IMAP4_SSL(host, port)
             mail.login(user, password)
             self.stdout.write(self.style.SUCCESS("✅ ログイン成功"))
             mail.select(folder)
 
-            # --- メール検索 ---
             status, data = mail.search(None, 'FROM', 'link-hac@g.neec.ac.jp')
             if status != 'OK':
                 raise Exception(f"メール検索に失敗しました。ステータス: {status}")
@@ -53,14 +50,10 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING("⚠️ メールがありません。"))
                 return
 
-            # 最新N件に絞り込み
+            # 最新 N 件
             mail_ids = mail_ids[-limit:]
 
-            # --- メール解析と保存 ---
             for mail_id in mail_ids:
-                # 既存のメールIDチェックを省略しているため、重複保存される可能性がありますが、
-                # まずは表示確認を優先し、このまま進めます。
-
                 status, msg_data = mail.fetch(mail_id, '(RFC822)')
                 if status != 'OK':
                     logger.warning(f"メール {mail_id} の取得に失敗しました。")
@@ -69,12 +62,22 @@ class Command(BaseCommand):
                 raw_email = msg_data[0][1]
                 msg = email.message_from_bytes(raw_email)
 
-                # 件名、送信者、本文の抽出ロジック（前回の成功コードと同じ）
+                # --- 件名 ---
                 subject, encoding = decode_header(msg["Subject"])[0]
                 if isinstance(subject, bytes):
                     subject = subject.decode(encoding or "utf-8", errors="ignore")
+
+                # --- 送信者 ---
                 sender = msg.get("From", "Unknown Sender")
 
+                # --- 受信日時 (Date ヘッダー) ---
+                date_header = msg.get("Date")
+                try:
+                    received_at = parsedate_to_datetime(date_header) if date_header else None
+                except Exception:
+                    received_at = None
+
+                # --- 本文 ---
                 body = ""
                 if msg.is_multipart():
                     for part in msg.walk():
@@ -87,12 +90,12 @@ class Command(BaseCommand):
                 else:
                     body = msg.get_payload(decode=True).decode("utf-8", errors="ignore")
 
-                # DBに保存
+                # --- DB 保存 ---
                 ReceivedEmail.objects.create(
                     subject=subject or "(No Subject)",
                     sender=sender,
                     body=body or "(Empty Body)",
-                    # received_at はモデルで auto_now_add=True のため省略
+                    received_at=received_at,  # ← ⭐ ここが追加部分
                 )
                 saved_count += 1
 

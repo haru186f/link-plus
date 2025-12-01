@@ -179,7 +179,10 @@ class ReceivedEmail(models.Model):
         null=True,
         blank=True
         )
-    received_at = models.DateTimeField(auto_now_add=True)   # 受信日時
+    received_at = models.DateTimeField(              # 受信日時
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         return self.subject
