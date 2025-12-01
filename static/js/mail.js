@@ -1,7 +1,15 @@
+// --- ⚙️ モーダル操作関数 ---
+
 // モーダル表示
 function showMailModal(subject, body) {
+    // 件名を設定
     $('#mail-subject').text(subject);
-    $('#mail-text').text(body);
+    
+    // 本文の改行を <br> に変換し、HTMLとして設定
+    const formattedBody = body.replace(/\r?\n/g, '<br>');
+    $('#mail-text').html(formattedBody);
+
+    // モーダルをフェードイン表示
     $('#mail-modal-overlay').fadeIn(200);
 }
 
@@ -11,45 +19,35 @@ function hideMailModal() {
 }
 
 
-// メールを開く
-$(document).ready(function() {
-    $('.email-link').on('click', function(e) {
-        e.preventDefault();
-        var emailUrl = $(this).data('url');
+// --- 🔗 イベントハンドラ ---
 
-        $.ajax({
-            url: emailUrl,
-            type: 'GET',
-            dataType: 'json',
-            success: function(data) {
+$(document).ready(function() {
+    
+    // 📧 メールリンクのクリックイベント
+    $('.email-link').on('click', function(e) {
+        e.preventDefault(); // リンクのデフォルト動作を停止
+        const emailUrl = $(this).data('url');
+
+        // $.getを使ってメール本文を取得
+        $.get(emailUrl)
+            .done(function(data) {
+                // 取得成功時、モーダルを表示
                 showMailModal(data.subject, data.body);
-            },
-            error: function(xhr, status, error) {
+            })
+            .fail(function(xhr, status, error) {
+                // 取得失敗時
                 console.error("AJAX Error:", status, error);
                 alert('メール本文の取得に失敗しました。');
-            }
-        });
+            });
     });
-});
 
-
-$(".email-link").on("click", function () {
-    const url = $(this).data("url");
-
-    $.get(url, function (data) {
-        // モーダルタイトルに件名
-        $("#mail-modal-title").text(data.subject);
-
-        // 本文中にも件名を入れる
-        const fullText = `件名：${data.subject}\n\n${data.body}`;
-        $("#mail-text").text(fullText);
-
-        $("#mail-modal-overlay").show();
-    });
-        // モーダル背景クリック → 閉じる
+    // 🖱️ モーダル背景クリックで閉じるイベント
     $("#mail-modal-overlay").on("click", function (e) {
+        // クリックされた要素がオーバーレイ自体（背景）であるか確認
         if (e.target.id === "mail-modal-overlay") {
             hideMailModal();
         }
     });
+
+    // ※ 閉じるボタン（×ボタンなど）がある場合は、別途そのクリックイベントで hideMailModal() を呼び出してください。
 });
