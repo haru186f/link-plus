@@ -1,19 +1,27 @@
 @charset "UTF-8";
 
+/* html {
+    transform: scale(0.9);
+    transform-origin: left top;
+    height: calc(100% / 0.9);
+    width: calc(100% / 0.9);
+} */
+
 body {
     /* font-family: sans-serif; */
-    /* width:98vw;
-    height:98vh; */
+    margin: 0;
     padding: 0;
+    height: 100%;
     background-color: #f4f4f4; /* 背景色 */
 }
 
-#monitor {
+
+/* #monitor {
     margin: 0;
     padding: 0 50px;
     width:100%;
     height:100%;
-}
+} */
 
 .main-content {
     display:grid;
@@ -32,6 +40,7 @@ body {
 .distanceleft {
     margin-left:1rem;
 }
+
 /*メインコンテンツ*/
 header {
     display:flex;

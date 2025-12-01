@@ -31,3 +31,19 @@ $(document).ready(function() {
         });
     });
 });
+
+
+$(".email-link").on("click", function () {
+    const url = $(this).data("url");
+
+    $.get(url, function (data) {
+        // モーダルタイトルに件名
+        $("#mail-modal-title").text(data.subject);
+
+        // 本文中にも件名を入れる
+        const fullText = `件名：${data.subject}\n\n${data.body}`;
+        $("#mail-text").text(fullText);
+
+        $("#mail-modal-overlay").show();
+    });
+});
