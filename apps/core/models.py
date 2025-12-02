@@ -17,35 +17,37 @@ class BusStop(models.Model):
 
 # バスの時刻表
 class BusSchedule(models.Model):
-    campus_departure = models.TimeField(blank=True, null=True)                 # キャンパス発の時刻（登校）
-    campus_arrival = models.TimeField(blank=True, null=True)                   # キャンパス着の時刻
-    station_departure = models.TimeField(blank=True, null=True)                # 駅発の時刻（下校）
-    note = models.CharField(max_length=100, blank=True, null=True)             # 備考
-    is_saturday = models.BooleanField(default=False)                           # 平日か土曜日
+    campus_departure = models.TimeField(blank=True, null=True)     # キャンパス発（下校）
+    campus_arrival = models.TimeField(blank=True, null=True)       # キャンパス着
+    station_departure = models.TimeField(blank=True, null=True)    # 駅発（登校）
+    note = models.CharField(max_length=100, blank=True, null=True)
+    is_saturday = models.BooleanField(default=False)
 
-    # 外部キー
-    bus_stop = models.ForeignKey(       # バス停（八王子か八王子みなみ野）
+    bus_stop = models.ForeignKey(
         BusStop,
         on_delete=models.CASCADE,
         related_name="bus_schedules"
-        )
+    )
 
-def __str__(self):
-    # 時刻と方向の決定
-    if self.station_departure:
-        direction = "登校"
-        time = self.station_departure
-    elif self.campus_departure:
-        direction = "下校"
-        time = self.campus_departure
-    else:
-        direction = "未設定"
-        time = None
+    def __str__(self):
+        # 時刻と方向の決定
+        if self.station_departure:
+            direction = "登校（駅 → キャンパス）"
+            time = self.station_departure
+        elif self.campus_departure:
+            direction = "下校（キャンパス → 駅）"
+            time = self.campus_departure
+        else:
+            direction = "未設定"
+            time = None
 
-    # 時刻の文字列化
-    time_str = time.strftime("%H:%M") if time else "----"
+        # 時刻の文字列化
+        time_str = time.strftime("%H:%M") if time else "----"
 
-    return f"{self.bus_stop}（{'土曜' if self.is_saturday else '平日'}・{direction}）: {time_str}"
+        day_type = "土曜" if self.is_saturday else "平日"
+
+        return f"{self.bus_stop}・{day_type}・{direction}：{time_str}"
+
 
 
 

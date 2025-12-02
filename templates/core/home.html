@@ -43,6 +43,8 @@
   </div>
 </div>
 
+
+
 {# ----- Map modal ----- #}
 <div id="map-modal-overlay" style="display:none;">
   <div id="map-modal">
@@ -84,7 +86,55 @@
 </div>
 
 {# ----- Main content ----- #}
+
+
 <div class="container">
+
+
+  {# ----- Debug用 ----- #}
+  <div class="debug-box" style="padding: 10px; background: #f8f9fa; border-radius: 8px;">
+
+    <div id="debugAccordion">
+
+      <button class="btn btn-secondary btn-sm"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#debugUser"
+              aria-expanded="false"
+              aria-controls="debugUser">
+        ▼ User Info
+      </button>
+
+      {# User Info #}
+      <div class="collapse"
+          id="debugUser"
+          data-bs-parent="#debugAccordion">
+        <p><b>user.email = </b> {{ user.email }}</p>
+        <p><b>user.is_teacher = </b> {{ user.is_teacher }}</p>
+        <p><b>user.date_joined = </b> {{ user.date_joined }}</p>
+        <p><b>user.profile.college = </b> {{ user.profile.college }}</p>
+        <p><b>user.profile.department = </b> {{ user.profile.department }}</p>
+        <p><b>user.profile.course = </b> {{ user.profile.course }}</p>
+        <p><b>user.profile.grade = </b> {{ user.profile.grade }}</p>
+        <p><b>user.profile.class_number = </b> {{ user.profile.class_number }}</p>
+        <p><b>user.profile.bus_stop = </b> {{ user.profile.bus_stop }}</p>
+        <div class="bus-times" style="display:block; border:1px solid red; padding:10px;">
+          <span id="bus-hachiouji-to-campus">TEST1</span><br>
+          <span id="bus-hachiouji-to-station">TEST2</span><br>
+          <span id="bus-minamino-to-campus">TEST3</span><br>
+          <span id="bus-minamino-to-station">TEST4</span><br>
+        </div>
+      <p id="clock" style="font-size: 1.1rem; font-weight: bold; color: #2563eb;">
+          現在時刻：読み込み中…
+      </p>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  {# ----- Main content ----- #}
   <div class="row g-4 h-100">
 
     {# ----- 左列：カレンダーと時間割（２項目）----- #}
@@ -138,6 +188,9 @@
                     id="showBusListButton">
                     一覧
             </button>
+          <a href="{% url 'core:news_list' %}" class="ms-auto">
+            <button class="btn btn-sm btn-outline-secondary">一覧</button>
+          </a>
         </div>
         <div class="card-body p-0">
           <table class="table table-sm mb-0 table-hover align-middle">
