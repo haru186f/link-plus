@@ -43,6 +43,8 @@
   </div>
 </div>
 
+
+
 {# ----- Map modal ----- #}
 <div id="map-modal-overlay" style="display:none;">
   <div id="map-modal">
@@ -56,8 +58,69 @@
   </div>
 </div>
 
-{# ----- Main content ----- #}
+
+
 <div class="container">
+
+
+{# ----- Debug用 ----- #}
+<div class="debug-box" style="padding: 10px; background: #f8f9fa; border-radius: 8px;">
+
+  <div id="debugAccordion">
+
+    {# Button Group #}
+    <div class="btn-group mb-3" role="group">
+      <button class="btn btn-secondary btn-sm"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#debugUser"
+              aria-expanded="false"
+              aria-controls="debugUser">
+        ▼ User Info
+      </button>
+
+      <button class="btn btn-secondary btn-sm"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#debugProfile"
+              aria-expanded="false"
+              aria-controls="debugProfile">
+        ▼ Profile Info
+      </button>
+    </div>
+
+    {# User Info #}
+    <div class="collapse"
+        id="debugUser"
+        data-bs-parent="#debugAccordion">
+      <p><b>User:</b> {{ user }}</p>
+      <p><b>Email:</b> {{ user.email }}</p>
+      <p><b>is_staff:</b> {{ user.is_staff }}</p>
+      <p><b>is_superuser:</b> {{ user.is_superuser }}</p>
+      <p><b>is_active:</b> {{ user.is_active }}</p>
+      <p><b>is_teacher:</b> {{ user.is_teacher }}</p>
+      <p><b>date_joined:</b> {{ user.date_joined }}</p>
+    </div>
+
+    {# Profile Info #}
+    <div class="collapse"
+        id="debugProfile"
+        data-bs-parent="#debugAccordion">
+      <p><b>Profile:</b> {{ user.profile }}</p>
+      <p><b>College:</b> {{ user.profile.college }}</p>
+      <p><b>Department:</b> {{ user.profile.department }}</p>
+      <p><b>Course:</b> {{ user.profile.course }}</p>
+      <p><b>Grade:</b> {{ user.profile.grade }}</p>
+      <p><b>Class:</b> {{ user.profile.class_number }}</p>
+      <p><b>BusStop:</b> {{ user.profile.bus_stop }}</p>
+    </div>
+
+  </div>  {# debugAccordion #}
+
+</div>
+
+
+  {# ----- Main content ----- #}
   <div class="row g-4 h-100">
 
     {# ----- 左列：カレンダーと時間割（２項目）----- #}
@@ -142,7 +205,6 @@
         <div class="card-body">
           <div class="bus">
             <div class="bus-info">
-              <h3 id="goTo">キャンパス行き</h3>
               <button>
                 <img src="{% static 'images/settings.png' %}" class="bus-png" id="busBT">
               </button>
