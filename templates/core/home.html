@@ -90,6 +90,15 @@
         <p><b>user.profile.grade = </b> {{ user.profile.grade }}</p>
         <p><b>user.profile.class_number = </b> {{ user.profile.class_number }}</p>
         <p><b>user.profile.bus_stop = </b> {{ user.profile.bus_stop }}</p>
+        <div class="bus-times" style="display:block; border:1px solid red; padding:10px;">
+          <span id="bus-hachiouji-to-campus">TEST1</span><br>
+          <span id="bus-hachiouji-to-station">TEST2</span><br>
+          <span id="bus-minamino-to-campus">TEST3</span><br>
+          <span id="bus-minamino-to-station">TEST4</span><br>
+        </div>
+      <p id="clock" style="font-size: 1.1rem; font-weight: bold; color: #2563eb;">
+          現在時刻：読み込み中…
+      </p>
       </div>
 
     </div>
@@ -189,9 +198,6 @@
             <h4>
               <img src="{% static 'images/bus.png' %}" class="bus-png" id="bus">
             </h4>
-            <div class="bus-times">
-              <h5>到着まで <span>15:00</span></h5>
-            </div>
           </div>
         </div>
       </div>

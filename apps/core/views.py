@@ -2,9 +2,9 @@ from django.views import View
 from django.http import JsonResponse
 from django.views.generic import TemplateView, ListView
 from datetime import datetime, timedelta
-from django.shortcuts import render
+import datetime
 
-from .models import BusStop, BusSchedule, College, Department, Course, ReceivedEmail, LectureSchedule
+from apps.core.models import College, Department, Course, BusSchedule, BusStop, ReceivedEmail, LectureSchedule
 
 import logging
 logger = logging.getLogger(__name__)
@@ -160,28 +160,68 @@ def api_email_body(request, pk):
     # GETメソッド以外でのリクエストを拒否
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-# # ---------------------------------------------------
-# #     メール一覧表示
-# # ---------------------------------------------------
-# def mail_list_view(request):
-#     """
-#     すべての受信メールを表示するためのビュー。
-#     """
-#     # データベースからすべてのメールオブジェクトを取得します
-#     # 通常は新しい順に並べ替えます
-#     all_emails = ReceivedEmail.objects.all().order_by('-received_at')
 
-#     context = {
-#         'all_emails': all_emails,
-#         'page_title': 'すべての受信メール'
-#     }
+class GetNextBusInfo(View):
+    """次のバス情報をJSONで返すAPI"""
 
-#     # mail_list.html' という新しいテンプレートをレンダリングします
-#     return render(request, 'core/mail_list.html', context)
+    def calc_remaining_minutes(self, target_time):
+        now = datetime.datetime.now()
+        target = datetime.datetime.combine(now.date(), target_time)
+        if target < now:
+            target += datetime.timedelta(days=1)
+        return round((target - now).total_seconds() / 60)
 
-# ---------------------------------------------------
-#   LectureSchedule API
-# ---------------------------------------------------
+    def get(self, request, *args, **kwargs):
+        current_time = datetime.datetime.now().time()
+        next_bus_info = {}
+
+        schedules = BusSchedule.objects.select_related('bus_stop').order_by(
+            'station_departure',
+            'campus_departure'
+        )
+
+        for bus_stop in BusStop.objects.all():
+            stop_schedules = [s for s in schedules if s.bus_stop == bus_stop]
+
+            next_departure = next(
+                (s for s in stop_schedules
+                if s.station_departure and s.station_departure > current_time),
+                None
+            )
+
+            next_return = next(
+                (s for s in stop_schedules
+                if s.campus_departure and s.campus_departure > current_time),
+                None
+            )
+
+            if next_departure:
+                dep_display = self.calc_remaining_minutes(next_departure.station_departure)
+            else:
+                dep_display = next(
+                    (s.note for s in stop_schedules
+                    if not s.station_departure and s.note),
+                    "-"
+                )
+
+            if next_return:
+                ret_display = self.calc_remaining_minutes(next_return.campus_departure)
+            else:
+                ret_display = next(
+                    (s.note for s in stop_schedules
+                    if not s.campus_departure and s.note),
+                    "-"
+                )
+
+            # 🌟 ここを改善：コード + ラベルを返す
+            next_bus_info[bus_stop.name] = {
+                "label": bus_stop.get_name_display(),  # ← 日本語 # type: ignore
+                "departure_to_campus": dep_display,
+                "return_to_station": ret_display,
+            }
+
+        return JsonResponse(next_bus_info)
+
 def lecture_events(request):
     """講義スケジュールをFullCalendar形式で返すAPI"""
     events = []
@@ -195,7 +235,7 @@ def lecture_events(request):
 
         events.append({
             "title": lec.name,
-            "daysOfWeek": [fc_day],   # 毎週表示に必要
+            "daysOfWeek": [fc_day],   # 毎週表示に必要 # type: ignore
             "startTime": lec.start_time.strftime("%H:%M"),
             "endTime": lec.end_time.strftime("%H:%M"),
             "extendedProps": {
