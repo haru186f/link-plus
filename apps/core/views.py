@@ -2,10 +2,13 @@ from django.views import View
 from django.http import JsonResponse
 from django.views.generic import TemplateView, ListView
 from datetime import datetime, timedelta
+from django.shortcuts import render
+from django.core import serializers
 import datetime
 
 from apps.core.models import College, Department, Course, BusSchedule, BusStop, ReceivedEmail, LectureSchedule
 
+import json
 import logging
 logger = logging.getLogger(__name__)
 
@@ -36,6 +39,24 @@ class NewsListView(ListView):
     extra_context = {
         'page_title': 'すべての受信メール'
     }
+
+def get_data_for_modal(request):
+    """
+    データベースからデータを取得し、JSONで返すビュー
+    """
+    if request.method == 'GET':
+        # データベースから全データを取得
+        queryset = BusSchedule.objects.all()
+        
+        # データをJSON形式にシリアライズ
+        # fields=['field1', 'field2', ...] で必要なフィールドのみ指定可能
+        data = serializers.serialize('json', queryset)
+        
+        # JsonResponseでクライアントに返す
+        return JsonResponse(json.loads(data), safe=False)
+    
+    # GETリクエスト以外の場合は許可しない
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
 
@@ -160,7 +181,28 @@ def api_email_body(request, pk):
     # GETメソッド以外でのリクエストを拒否
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
+# # ---------------------------------------------------
+# #     メール一覧表示
+# # ---------------------------------------------------
+# def mail_list_view(request):
+#     """
+#     すべての受信メールを表示するためのビュー。
+#     """
+#     # データベースからすべてのメールオブジェクトを取得します
+#     # 通常は新しい順に並べ替えます
+#     all_emails = ReceivedEmail.objects.all().order_by('-received_at')
 
+#     context = {
+#         'all_emails': all_emails,
+#         'page_title': 'すべての受信メール'
+#     }
+
+#     # mail_list.html' という新しいテンプレートをレンダリングします
+#     return render(request, 'core/mail_list.html', context)
+
+# ---------------------------------------------------
+#   LectureSchedule API
+# ---------------------------------------------------
 class GetNextBusInfo(View):
     """次のバス情報をJSONで返すAPI"""
 
