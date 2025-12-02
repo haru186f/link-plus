@@ -19,4 +19,5 @@ urlpatterns = [
     path('webhook/', receive_email_webhook, name='email_webhook'),
     path('api/body/<int:pk>/', api_email_body, name='api_email_body'),
     path('api/lecture-events/', lecture_events, name='lecture_events'),
+    path('api/bus-schedules/', views.get_data_for_modal, name='get_modal_data'),
 ]

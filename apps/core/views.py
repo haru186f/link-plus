@@ -3,9 +3,11 @@ from django.http import JsonResponse
 from django.views.generic import TemplateView, ListView
 from datetime import datetime, timedelta
 from django.shortcuts import render
+from django.core import serializers
 
 from .models import BusStop, BusSchedule, College, Department, Course, ReceivedEmail, LectureSchedule
 
+import json
 import logging
 logger = logging.getLogger(__name__)
 
@@ -36,6 +38,24 @@ class NewsListView(ListView):
     extra_context = {
         'page_title': 'すべての受信メール'
     }
+
+def get_data_for_modal(request):
+    """
+    データベースからデータを取得し、JSONで返すビュー
+    """
+    if request.method == 'GET':
+        # データベースから全データを取得
+        queryset = BusSchedule.objects.all()
+        
+        # データをJSON形式にシリアライズ
+        # fields=['field1', 'field2', ...] で必要なフィールドのみ指定可能
+        data = serializers.serialize('json', queryset)
+        
+        # JsonResponseでクライアントに返す
+        return JsonResponse(json.loads(data), safe=False)
+    
+    # GETリクエスト以外の場合は許可しない
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
 

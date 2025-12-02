@@ -56,6 +56,33 @@
   </div>
 </div>
 
+{# ----- bus modal ----- #}
+<div class="modal fade" id="dataModal" tabindex="-1" aria-labelledby="dataModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="dataModalLabel">データベースのリスト</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>バス停</th>
+              <th>曜日</th>
+              <th>駅発 (登校)</th>
+              <th>キャンパス発 (下校)</th>
+              <th>備考</th>
+              </tr>
+          </thead>
+          <tbody id="modalTableBody">
+            </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
 {# ----- Main content ----- #}
 <div class="container">
   <div class="row g-4 h-100">
@@ -105,9 +132,12 @@
         <div class="card-header bg-light fw-semibold border-0 py-3 d-flex align-items-center">
           <i class="bi bi-megaphone me-2 fs-5 text-secondary"></i>
           <span class="fs-5">お知らせ</span>
-          <a href="{% url 'core:news_list' %}" class="ms-auto">
-            <button class="btn btn-sm btn-outline-secondary">一覧</button>
-          </a>
+            <button class="btn btn-sm btn-outline-secondary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#busListModal"
+                    id="showBusListButton">
+                    一覧
+            </button>
         </div>
         <div class="card-body p-0">
           <table class="table table-sm mb-0 table-hover align-middle">
@@ -137,7 +167,10 @@
         <div class="card-header bg-light fw-semibold border-0 py-3 d-flex align-items-center">
           <i class="bi bi-bus-front me-2 fs-5 text-secondary"></i>
           <span class="fs-5">バス時刻</span>
-          <button class="btn btn-sm btn-outline-secondary ms-auto">一覧</button>
+          <button type="button"
+                  class="btn btn-sm btn-outline-secondary ms-auto"
+                  id="openModalBtn">一覧
+          </button>
         </div>
         <div class="card-body">
           <div class="bus">
@@ -168,7 +201,7 @@
                 id="map-image"
                 alt="キャンパスマップ"
                 style="width: 100%; height: 100%; object-fit: cover; filter: blur(1px); border-radius: 0 0 16px 16px; cursor:pointer;"
-            >
+          >
         </div>
         <div class="map-blur-layer"></div>
       </div>
