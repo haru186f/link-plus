@@ -23,6 +23,20 @@
   <script src="{% static 'js/bus.js' %}" defer></script>
   {# Map #}
   <script src="{% static 'js/map.js' %}" defer></script>
+  {# Bus list #}
+  <script>
+    // サーバー側で値が埋め込まれる（例: '八王子'）
+    const SELECTED_BUS_STOP_NAME = '{{ request.user.profile.bus_stop|default:"八王子" }}';
+    // 💡 この変換ロジックも、埋め込まれた値を使って即座に実行される必要があります。
+    let USER_BUS_STOP_ID;
+    if (SELECTED_BUS_STOP_NAME === '八王子') {
+        USER_BUS_STOP_ID = 2;
+    } else if (SELECTED_BUS_STOP_NAME === '八王子みなみ野') {
+        USER_BUS_STOP_ID = 1;
+    } else {
+        USER_BUS_STOP_ID = 2; 
+    }
+  </script>
 {% endblock script %}
 
 {% block header %}
@@ -72,6 +86,7 @@
             <tr>
               <th>バス停</th>
               <th>曜日</th>
+              <th>キャンパス発 (登校)</th>
               <th>駅発 (登校)</th>
               <th>キャンパス発 (下校)</th>
               <th>備考</th>
@@ -181,13 +196,7 @@
       <div class="card shadow-sm rounded-4 border-0 h-100 flex-grow-5">
         <div class="card-header bg-light fw-semibold border-0 py-3 d-flex align-items-center">
           <i class="bi bi-megaphone me-2 fs-5 text-secondary"></i>
-          <span class="fs-5">お知らせ</span>
-            <button class="btn btn-sm btn-outline-secondary"
-                    data-bs-toggle="modal"
-                    data-bs-target="#busListModal"
-                    id="showBusListButton">
-                    一覧
-            </button>
+          <span class="fs-5">お知らせ</span
           <a href="{% url 'core:news_list' %}" class="ms-auto">
             <button class="btn btn-sm btn-outline-secondary">一覧</button>
           </a>
