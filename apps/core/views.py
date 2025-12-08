@@ -600,6 +600,8 @@ class DebugBusSchedule(View):
         return JsonResponse(data, safe=False)
 
 # ==========================================================
+
+
 #   FullCalendarAPI
 # ==========================================================
 def lecture_events(request):
@@ -642,6 +644,7 @@ def lecture_events(request):
             # タイトルを「開始時間：講義名」のような形式にする
             if isinstance(lec.start_period.start_time, str):
                 start_time_short = lec.start_period.start_time[:5]
+                    
             else:
                 start_time_short = lec.start_period.start_time.strftime('%H:%M')
 
