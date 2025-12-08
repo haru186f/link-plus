@@ -102,15 +102,18 @@ syncEveryMinute(() => {
     updateDisplay();
 });
 
+// ===============================
+// バス時刻表の一覧
+// ===============================
 $(document).ready(function() {
     // 💡 BusStopモデルのPKと名前のマッピングを定義
-    // ここは、BusStopに登録されているデータに合わせて修正してください。
-    // 例: 八王子 (PK=1), 八王子みなみ野 (PK=2) の場合
     const BUS_STOP_MAP = {
-        1: '八王子',
-        2: '八王子みなみ野'
-        // 実際のPKと名前のペアを記述
+        1: '八王子みなみ野',
+        2: '八王子'
     };
+
+    // htmlからIDを取得
+    const HACHIOJI_ID = USER_BUS_STOP_ID;
 
     // 時刻文字列を "HH:MM" 形式に整形するヘルパー関数
     const formatTime = (timeStr) => timeStr ? timeStr.substring(0, 5) : '----';
@@ -128,18 +131,21 @@ $(document).ready(function() {
                 // 2. 取得したデータを行ごとに処理し、テーブルに追加
                 response.forEach(function(item) {
                     const fields = item.fields;
-                    
+                    // 八王子か八王子みなみ野を判定
+                    if (fields.bus_stop === HACHIOJI_ID){
                     // バス停IDを名前に変換
-                    const busStopName = BUS_STOP_MAP[fields.bus_stop] || '不明'; 
+                        const busStopName = BUS_STOP_MAP[fields.bus_stop] || '不明'; 
 
-                    const row = `<tr>
+                        const row = `<tr>
                                    <td>${busStopName}</td> 
                                    <td>${fields.is_saturday ? '土曜' : '平日'}</td>
                                    <td>${formatTime(fields.station_departure)}</td>
+                                   <td>${formatTime(fields.campus_arrival)}</td>
                                    <td>${formatTime(fields.campus_departure)}</td>
                                    <td>${fields.note || ''}</td>
                                  </tr>`;
-                    $tableBody.append(row);
+                        $tableBody.append(row);
+                    }
                 });
 
                 // 3. モーダルを表示
@@ -152,6 +158,7 @@ $(document).ready(function() {
         });
     });
 });
+
 // ===============================
 // 現在時刻
 // ===============================
