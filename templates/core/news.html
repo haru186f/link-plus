@@ -30,7 +30,10 @@
 
 {# ----- News content ----- #}
 <div class="container">
-  <h2 class="mb-4">お知らせ一覧</h2>
+  <div class="d-flex align-items-center mb-3 pt-1">
+    <h2 class="m-0 lh-1">お知らせ一覧</h2>
+    <a href="{% url 'core:home' %}" class="btn btn-outline-secondary ms-auto">ホームに戻る</a>
+  </div>
 {% for email in all_emails %}
 <div class="card email-item border-0 mb-2"
      data-url="{% url 'core:api_email_body' email.pk %}">

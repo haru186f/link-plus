@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import HomeView
 from .views import GetDepartmentsView, GetCoursesView, GetGradesView, NewsListView
-from .views import receive_email_webhook, api_email_body, lecture_events, GetNextBusInfo
+from .views import receive_email_webhook, api_email_body, lecture_events, GetNextBusInfo, DebugBusSchedule
 from . import views
 
 app_name = 'core'
@@ -20,5 +20,6 @@ urlpatterns = [
     path('api/body/<int:pk>/', api_email_body, name='api_email_body'),
     path('api/lecture-events/', lecture_events, name='lecture_events'),
     path('api/bus-schedules/', views.get_data_for_modal, name='get_modal_data'),
-    path("api/bus/next/", GetNextBusInfo.as_view(), name="api_next_bus")
+    path("api/bus/next/", GetNextBusInfo.as_view(), name="api_next_bus"),
+    path("api/debug-bus/", DebugBusSchedule.as_view(), name="debug_bus"),
 ]

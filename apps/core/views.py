@@ -204,18 +204,29 @@ def api_email_body(request, pk):
 #   LectureSchedule API
 # ---------------------------------------------------
 class GetNextBusInfo(View):
-    """次のバス情報をJSONで返すAPI"""
-
-    def calc_remaining_minutes(self, target_time):
-        now = datetime.datetime.now()
-        target = datetime.datetime.combine(now.date(), target_time)
-        if target < now:
-            target += datetime.timedelta(days=1)
-        return round((target - now).total_seconds() / 60)
+    """次のバス情報をJSONで返すAPI（完全版）"""
 
     def get(self, request, *args, **kwargs):
-        current_time = datetime.datetime.now().time()
-        next_bus_info = {}
+
+        def calc_remaining_minutes(target_time):
+            """次の出発時刻までの残り分数。
+            ・0分 → 表示する
+            ・-1分以下 → スキップして None を返す
+            """
+            now = datetime.datetime.now()
+            target = datetime.datetime.combine(now.date(), target_time)
+
+            diff = (target - now).total_seconds() / 60
+
+            if diff < 0:
+                return None  # ★ -1分以下は無視（次の便へ）
+
+            remain = round(diff)
+
+            return remain  # ★ 0分はそのまま返す
+
+        now = datetime.datetime.now().time()
+        result = {}
 
         schedules = BusSchedule.objects.select_related('bus_stop').order_by(
             'station_departure',
@@ -225,44 +236,55 @@ class GetNextBusInfo(View):
         for bus_stop in BusStop.objects.all():
             stop_schedules = [s for s in schedules if s.bus_stop == bus_stop]
 
-            next_departure = next(
-                (s for s in stop_schedules
-                if s.station_departure and s.station_departure > current_time),
-                None
-            )
+            # --- 駅 → キャンパス ---
+            next_departure = None
+            for s in stop_schedules:
+                if s.station_departure:
+                    remain = calc_remaining_minutes(s.station_departure)
+                    if remain is not None:  # -1や過ぎた便は除外、0分は表示
+                        next_departure = remain
+                        break
 
-            next_return = next(
-                (s for s in stop_schedules
-                if s.campus_departure and s.campus_departure > current_time),
-                None
-            )
+            # --- キャンパス → 駅 ---
+            next_return = None
+            for s in stop_schedules:
+                if s.campus_departure:
+                    remain = calc_remaining_minutes(s.campus_departure)
+                    if remain is not None:
+                        next_return = remain
+                        break
 
-            if next_departure:
-                dep_display = self.calc_remaining_minutes(next_departure.station_departure)
-            else:
-                dep_display = next(
-                    (s.note for s in stop_schedules
-                    if not s.station_departure and s.note),
-                    "-"
-                )
+            # --- note fallback ---
+            if next_departure is None:
+                next_departure = next((s.note for s in stop_schedules if s.note), "-")
 
-            if next_return:
-                ret_display = self.calc_remaining_minutes(next_return.campus_departure)
-            else:
-                ret_display = next(
-                    (s.note for s in stop_schedules
-                    if not s.campus_departure and s.note),
-                    "-"
-                )
+            if next_return is None:
+                next_return = next((s.note for s in stop_schedules if s.note), "-")
 
-            # 🌟 ここを改善：コード + ラベルを返す
-            next_bus_info[bus_stop.name] = {
-                "label": bus_stop.get_name_display(),  # ← 日本語 # type: ignore
-                "departure_to_campus": dep_display,
-                "return_to_station": ret_display,
+            result[bus_stop.name] = {
+                "label": bus_stop.get_name_display(),  # type: ignore
+                "departure_to_campus": next_departure,
+                "return_to_station": next_return,
             }
 
-        return JsonResponse(next_bus_info)
+        return JsonResponse(result)
+
+class DebugBusSchedule(View):
+    def get(self, request, *args, **kwargs):
+        data = []
+
+        for s in BusSchedule.objects.select_related("bus_stop").order_by(
+            "bus_stop__name", "station_departure", "campus_departure"
+        ):
+            data.append({
+                "bus_stop": s.bus_stop.name,
+                "station_departure": s.station_departure.strftime("%H:%M") if s.station_departure else None,
+                "campus_departure": s.campus_departure.strftime("%H:%M") if s.campus_departure else None,
+                "note": s.note,
+            })
+
+        return JsonResponse(data, safe=False)
+
 
 def lecture_events(request):
     """講義スケジュールをFullCalendar形式で返すAPI"""
