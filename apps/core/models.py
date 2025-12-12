@@ -1,5 +1,6 @@
 from django.db import models
 
+from apps.accounts.models import Profile
 
 # ==========================================================
 # バスモデル
@@ -136,17 +137,34 @@ class LectureSchedule(models.Model):
     is_canceled = models.BooleanField(default=False)
 
     # 外部キー
-    course = models.ForeignKey(
+    department = models.ForeignKey(    # 学科 (必須)
+        Department,
+        on_delete=models.CASCADE,
+        related_name='lecture_schedules',
+        # コースがない場合の時間割はdepartmentで絞り込む
+    )
+    course = models.ForeignKey(         # コース (オプション)
         Course,
         on_delete=models.CASCADE,
-        related_name='lecture_schedules'
+        related_name='lecture_schedules',
+        null=True,                      # コースがない学科に対応
+        blank=True
     )
-
     room = models.ForeignKey(
         Room,
         on_delete=models.CASCADE,
         related_name='lecture_schedules'
     )
+    # 学年 (必須)
+    target_grade = models.PositiveIntegerField(
+        choices=Profile.GRADE_CHOICES,
+    )
+
+    # クラス (必須)
+    target_class_number = models.PositiveIntegerField(
+        choices=Profile.CLASS_CHOICES,
+    )
+
 
     @property
     def day_label(self):

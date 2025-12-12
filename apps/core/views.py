@@ -5,6 +5,9 @@ from datetime import datetime, timedelta
 from django.shortcuts import render
 from django.core import serializers
 import datetime
+from django.shortcuts import get_object_or_404
+from django.db.models import Q # 複雑なクエリのためにQオブジェクトをインポート
+from .models import LectureSchedule
 
 from apps.core.models import College, Department, Course, BusSchedule, BusStop, ReceivedEmail, LectureSchedule
 
@@ -30,6 +33,11 @@ class HomeView(TemplateView):
 
         return context
 
+
+
+# ==========================================================
+# ニュースビュー（お知らせのリストを返す）
+# ==========================================================
 class NewsListView(ListView):
     model = ReceivedEmail
     template_name = 'core/news.html'
@@ -47,14 +55,14 @@ def get_data_for_modal(request):
     if request.method == 'GET':
         # データベースから全データを取得
         queryset = BusSchedule.objects.all()
-        
+
         # データをJSON形式にシリアライズ
         # fields=['field1', 'field2', ...] で必要なフィールドのみ指定可能
         data = serializers.serialize('json', queryset)
-        
+
         # JsonResponseでクライアントに返す
         return JsonResponse(json.loads(data), safe=False)
-    
+
     # GETリクエスト以外の場合は許可しない
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
@@ -63,13 +71,13 @@ def get_data_for_modal(request):
 # ==========================================================
 # エンドポイント
 # ==========================================================
-
 class GetDepartmentsView(View):
     """選択された学部に応じて学科リストを返す"""
     def get(self, request, *args, **kwargs):
         college_id = request.GET.get('college_id')
         departments = Department.objects.filter(college_id=college_id).values('id', 'name')
         return JsonResponse(list(departments), safe=False)
+
 
 class GetCoursesView(View):
     """選択された学科に応じてコースリストを返す"""
@@ -181,28 +189,7 @@ def api_email_body(request, pk):
     # GETメソッド以外でのリクエストを拒否
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-# # ---------------------------------------------------
-# #     メール一覧表示
-# # ---------------------------------------------------
-# def mail_list_view(request):
-#     """
-#     すべての受信メールを表示するためのビュー。
-#     """
-#     # データベースからすべてのメールオブジェクトを取得します
-#     # 通常は新しい順に並べ替えます
-#     all_emails = ReceivedEmail.objects.all().order_by('-received_at')
 
-#     context = {
-#         'all_emails': all_emails,
-#         'page_title': 'すべての受信メール'
-#     }
-
-#     # mail_list.html' という新しいテンプレートをレンダリングします
-#     return render(request, 'core/mail_list.html', context)
-
-# ---------------------------------------------------
-#   LectureSchedule API
-# ---------------------------------------------------
 class GetNextBusInfo(View):
     """次のバス情報をJSONで返すAPI（完全版）"""
 
@@ -269,6 +256,7 @@ class GetNextBusInfo(View):
 
         return JsonResponse(result)
 
+
 class DebugBusSchedule(View):
     def get(self, request, *args, **kwargs):
         data = []
@@ -286,25 +274,64 @@ class DebugBusSchedule(View):
         return JsonResponse(data, safe=False)
 
 
+# ==========================================================
+#   FullCalendarAPI
+# ==========================================================
 def lecture_events(request):
     """講義スケジュールをFullCalendar形式で返すAPI"""
-    events = []
 
+    try:
+        # 認証済みのユーザーのプロフィールを取得
+        user_profile = request.user.profile
+    except Exception:
+        # プロフィールがない、または認証されていない場合
+        return JsonResponse([], safe=False)
+
+    # ユーザーの所属情報を取得
+    target_department = user_profile.department
+    target_course = user_profile.course  # コースがない場合は None になる
+    target_grade = user_profile.grade
+    target_class_number = user_profile.class_number
+
+    # フィルタリング条件を構築
+    # 講義は、以下の条件すべてを満たす必要がある：
+    # 1. 学科が一致する
+    # 2. 学年が一致する
+    # 3. クラスが一致する
+    base_filter = Q(
+        department=target_department,
+        target_grade=target_grade,
+        target_class_number=target_class_number,
+    )
+
+    if target_course:
+        # プロフィールにコースが設定されている場合
+        # → そのコースに紐づいた講義のみを対象とする
+        final_filter = base_filter & Q(course=target_course)
+    else:
+        # プロフィールにコースが設定されていない場合 (コースがない学科)
+        # → コースが NULL である講義のみを対象とする
+        final_filter = base_filter & Q(course__isnull=True)
+
+    # 絞り込まれた講義スケジュールを取得
+    lectures = LectureSchedule.objects.select_related("room", "department", "course").filter(final_filter)
+
+    events = []
     weekday_map = ["mon", "tue", "wed", "thu", "fri"]
 
-    for lec in LectureSchedule.objects.select_related("room", "course"):
-        # FullCalendar の daysOfWeek（0=日〜 6=土）
+    for lec in lectures:
         if lec.day_of_week in weekday_map:
-            fc_day = weekday_map.index(lec.day_of_week) + 1  # 月=1 → FC
+             fc_day = weekday_map.index(lec.day_of_week) + 1
 
         events.append({
             "title": lec.name,
-            "daysOfWeek": [fc_day],   # 毎週表示に必要 # type: ignore
+            "daysOfWeek": [fc_day],
             "startTime": lec.start_time.strftime("%H:%M"),
             "endTime": lec.end_time.strftime("%H:%M"),
             "extendedProps": {
                 "room": lec.room.name,
-                "course": lec.course.name,
+                "department": lec.department.name, # 表示用に学科名を追加
+                "course": lec.course.name if lec.course else "―", # コース名を表示
                 "period": f"{lec.start_period}〜{lec.end_period}限",
                 "is_canceled": lec.is_canceled
             }

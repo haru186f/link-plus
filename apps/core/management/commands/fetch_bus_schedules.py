@@ -154,9 +154,9 @@ class Command(BaseCommand):
 
         for row in rows:
             # テーブル構造に合わせて調整
-            station_departure = self.str_to_time(row[0]) if len(row) > 0 else None
-            campus_arrival = self.str_to_time(row[1]) if len(row) > 1 else None
-            campus_departure = self.str_to_time(row[2]) if len(row) > 2 else None
+            campus_departure = self.str_to_time(row[0]) if len(row) > 2 else None
+            campus_arrival = self.str_to_time(row[2]) if len(row) > 1 else None
+            station_departure = self.str_to_time(row[1]) if len(row) > 0 else None
             note = row[-1] if len(row) >= 4 else None
 
             BusSchedule.objects.create(

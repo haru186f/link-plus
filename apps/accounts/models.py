@@ -6,8 +6,6 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
-from apps.core.models import BusStop, College, Department, Course
-
 
 class CustomUserManager(BaseUserManager):
     """Define a model for User model with no username field."""
@@ -124,13 +122,13 @@ class Profile(models.Model):
 
     # 外部キー
     user = models.OneToOneField(            # ユーザー
-        CustomUser,
+        'accounts.CustomUser',
         on_delete=models.CASCADE,
         related_name="profile",
     )
 
     college = models.ForeignKey(            # カレッジ
-        College,
+        'core.College',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -138,7 +136,7 @@ class Profile(models.Model):
     )
 
     department = models.ForeignKey(         # 学科
-        Department,
+        'core.Department',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -146,7 +144,7 @@ class Profile(models.Model):
     )
 
     course = models.ForeignKey(             # コース
-        Course,
+        'core.Course',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -154,7 +152,7 @@ class Profile(models.Model):
     )
 
     bus_stop = models.ForeignKey(           # バス
-        BusStop,
+        'core.BusStop',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
