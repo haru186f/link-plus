@@ -6,6 +6,7 @@ from apps.core.models import LectureSchedule, Course, Room, College, Department
 # ============================================
 # 登録する講義データ（ハードコード）
 # ============================================
+# LECTURE_DATAはそのまま使用
 LECTURE_DATA = [
     {
         "name": "キャリアデザイン4",
@@ -14,6 +15,8 @@ LECTURE_DATA = [
         "end": 2,
         "room": "B-601",
         "course": "システム開発コース",
+        "grade": 2, # 新しいフィールド
+        "class": 1, # 新しいフィールド
     },
     {
         "name": "Webセキュリティ実習",
@@ -22,6 +25,8 @@ LECTURE_DATA = [
         "end": 4,
         "room": "B-601",
         "course": "システム開発コース",
+        "grade": 2,
+        "class": 1,
     },
     {
         "name": "卒業制作２",
@@ -30,6 +35,8 @@ LECTURE_DATA = [
         "end": 8,
         "room": "B-601",
         "course": "システム開発コース",
+        "grade": 2,
+        "class": 1,
     },
     {
         "name": "ITプロモーション",
@@ -38,6 +45,8 @@ LECTURE_DATA = [
         "end": 4,
         "room": "B-601",
         "course": "システム開発コース",
+        "grade": 2,
+        "class": 1,
     },
     {
         "name": "卒業制作２",
@@ -46,6 +55,8 @@ LECTURE_DATA = [
         "end": 8,
         "room": "B-601",
         "course": "システム開発コース",
+        "grade": 2,
+        "class": 1,
     },
     {
         "name": "プログラミング実習３",
@@ -54,6 +65,8 @@ LECTURE_DATA = [
         "end": 4,
         "room": "B-601",
         "course": "システム開発コース",
+        "grade": 2,
+        "class": 1,
     },
     {
         "name": "卒業制作２",
@@ -62,6 +75,8 @@ LECTURE_DATA = [
         "end": 4,
         "room": "B-601",
         "course": "システム開発コース",
+        "grade": 2,
+        "class": 1,
     },
     {
         "name": "情報資格対策講座４",
@@ -70,6 +85,8 @@ LECTURE_DATA = [
         "end": 6,
         "room": "B-601",
         "course": "システム開発コース",
+        "grade": 2,
+        "class": 1,
     },
 ]
 
@@ -84,13 +101,16 @@ class Command(BaseCommand):
         # カレッジと学科を作成
         # ==============================
         college, _ = College.objects.get_or_create(name="ITカレッジ")
+
+        # Departmentオブジェクトを取得/作成 (LectureScheduleへの紐づけに必要)
         department, _ = Department.objects.get_or_create(
             name="情報処理科",
             defaults={"college": college, "max_grade": 2}
         )
+        self.stdout.write(self.style.SUCCESS(f"学科: {department.name} を確認/作成しました。"))
 
         # ==============================
-        # B-601 を最初に作成
+        # B-601 を作成
         # ==============================
         room_obj, created_room = Room.objects.get_or_create(name="B-601")
 
@@ -106,30 +126,44 @@ class Command(BaseCommand):
             if lec["room"] != "B-601":
                 continue
 
-            # ==============================
-            # コースが存在しなければ作成（department を必ず紐付け）
-            # ==============================
-            course_name = lec["course"]
-            course, course_created = Course.objects.get_or_create(
-                name=course_name,
-                defaults={"department": department}
-            )
+            # 必須項目がデータに存在するかチェック
+            if not all(key in lec for key in ["grade", "class"]):
+                 self.stdout.write(self.style.ERROR(f"データセットに 'grade' または 'class' がありません: {lec['name']}"))
+                 continue
 
-            if course_created:
-                self.stdout.write(
-                    self.style.SUCCESS(f"Course '{course_name}' を新規作成しました")
+
+            # ==============================
+            # コースが存在すれば作成（department を必ず紐付け）
+            # ==============================
+            course_name = lec.get("course") # courseがない場合も考慮して.get()を使用
+            course = None # courseがNoneの場合も許容
+
+            if course_name:
+                course, course_created = Course.objects.get_or_create(
+                    name=course_name,
+                    defaults={"department": department}
                 )
 
+                if course_created:
+                    self.stdout.write(
+                        self.style.SUCCESS(f"Course '{course_name}' を新規作成しました")
+                    )
+
             # ==============================
-            # LectureSchedule 追加
+            # LectureSchedule 追加 (修正箇所)
             # ==============================
             LectureSchedule.objects.create(
                 name=lec["name"],
                 day_of_week=lec["day"],
                 start_period=lec["start"],
                 end_period=lec["end"],
-                course=course,
                 room=room_obj,
+
+                # 新しい絞り込みキー
+                department=department,                  # <== 学科オブジェクト
+                course=course,                          # <== コースオブジェクト (Noneの場合もある)
+                target_grade=lec["grade"],              # <== 学年 (int)
+                target_class_number=lec["class"],       # <== クラス (int)
             )
 
             created += 1
