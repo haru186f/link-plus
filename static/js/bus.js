@@ -172,6 +172,57 @@ function initScheduleModal() {
     const BUS_STOP_MAP = { 1: '八王子みなみ野', 2: '八王子' };
     const formatTime = (time) => time ? time.substring(0, 5) : '----';
 
+/**
+ * 残り時間やステータスの表示を整形して挿入
+ */
+function updateElementContent(elementId, value, busStopLabel) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+
+    let displayStr;
+    const isNumber = typeof value === 'number';
+
+    if (isNumber) {
+        displayStr = value === 0 ? "間もなく出発" : `${value}分後`;
+    } else {
+        displayStr = value === '-' ? "情報なし" : (value || "エラー");
+    }
+
+    // 数値（残り時間）の場合は強調、それ以外は通常表示
+    element.innerHTML = isNumber 
+        ? `<p style="font-size: 1.2em; color: #1e88e5; font-weight: bold;">${displayStr}</p>`
+        : `<p>${displayStr}</p>`;
+}
+
+/**
+ * 現在時刻の表示
+ */
+function updateClock() {
+    const clockEl = document.getElementById("clock");
+    if (!clockEl) return;
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('ja-JP', { hour12: false });
+    clockEl.textContent = `現在時刻：${timeStr}`;
+}
+
+/**
+ * エラーメッセージの表示
+ */
+function displayErrorMessage(msg) {
+    const container = document.getElementById('error_message_container');
+    if (container) {
+        container.innerHTML = msg ? `<p style="color: red;">${msg}</p>` : "";
+    }
+}
+
+// --- 6. モーダル（jQuery） ---
+
+function initScheduleModal() {
+    if (typeof $ === 'undefined') return;
+
+    const BUS_STOP_MAP = { 1: '八王子みなみ野', 2: '八王子' };
+    const formatTime = (time) => time ? time.substring(0, 5) : '----';
+
     $('#openModalBtn').on('click', function() {
         $.ajax({
             url: '/api/bus-schedules',
@@ -200,76 +251,3 @@ function initScheduleModal() {
         });
     });
 });
-// ===============================
-// バス時刻表の一覧
-// ===============================
-$(document).ready(function() {
-    // 💡 BusStopモデルのPKと名前のマッピングを定義
-    const BUS_STOP_MAP = {
-        1: '八王子みなみ野',
-        2: '八王子'
-    };
-
-    // htmlからIDを取得
-    const HACHIOJI_ID = USER_BUS_STOP_ID;
-
-    // 時刻文字列を "HH:MM" 形式に整形するヘルパー関数
-    const formatTime = (timeStr) => timeStr ? timeStr.substring(0, 5) : '----';
-
-    $('#openModalBtn').on('click', function() {
-        // 1. Ajax通信でデータを取得
-        $.ajax({
-            url: '/api/bus-schedules', // urls.pyで設定した名前
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                const $tableBody = $('#modalTableBody');
-                $tableBody.empty(); // テーブルをクリア
-
-                // 2. 取得したデータを行ごとに処理し、テーブルに追加
-                response.forEach(function(item) {
-                    const fields = item.fields;
-                    // 八王子か八王子みなみ野を判定
-                    if (fields.bus_stop === HACHIOJI_ID){
-                    // バス停IDを名前に変換
-                        const busStopName = BUS_STOP_MAP[fields.bus_stop] || '不明'; 
-
-                        const row = `<tr>
-                                   <td>${busStopName}</td> 
-                                   <td>${fields.is_saturday ? '土曜' : '平日'}</td>
-                                   <td>${formatTime(fields.station_departure)}</td>
-                                   <td>${formatTime(fields.campus_arrival)}</td>
-                                   <td>${formatTime(fields.campus_departure)}</td>
-                                   <td>${fields.note || ''}</td>
-                                 </tr>`;
-                        $tableBody.append(row);
-                    }
-                });
-
-                // 3. モーダルを表示
-                $('#dataModal').modal('show');
-            },
-            error: function(xhr, status, error) {
-                // エラー処理（例：サーバー側でNot Foundなどのエラーが発生した場合）
-                alert('データの取得に失敗しました: ' + (error || status));
-            }
-        });
-    });
-});
-
-// ===============================
-// 現在時刻
-// ===============================
-function updateClock() {
-    const now = new Date();
-    const hh = String(now.getHours()).padStart(2, "0");
-    const mm = String(now.getMinutes()).padStart(2, "0");
-    const ss = String(now.getSeconds()).padStart(2, "0");
-
-    document.getElementById("clock").textContent =
-        `現在時刻：${hh}:${mm}:${ss}`;
-}
-
-// 1秒ごとに表示更新
-setInterval(updateClock, 1000);
-updateClock();
