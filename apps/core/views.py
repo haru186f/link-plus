@@ -11,7 +11,7 @@ import datetime
 from django.shortcuts import get_object_or_404
 from django.db.models import Q # 複雑なクエリのためにQオブジェクトをインポート
 from .models import LectureSchedule
-import pytz
+
 from apps.core.models import College, Department, Course, BusSchedule, BusStop, ReceivedEmail, LectureSchedule
 
 import json
@@ -305,6 +305,7 @@ class GetNextBusInfo(View):
         }
 
         return JsonResponse(result, safe=False)
+
 
 
 
