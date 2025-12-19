@@ -226,6 +226,7 @@
       </div>
 
       {# 2. バス（中央） #}
+      {% with bus_stop_name=request.user.profile.bus_stop|default:'八王子' %}
       <div class="card shadow-sm rounded-4 border-0 h-100 flex-grow-2">
         <div class="card-header bg-light fw-semibold border-0 py-3 d-flex align-items-center">
           <i class="bi bi-bus-front me-2 fs-5 text-secondary"></i>
@@ -233,11 +234,10 @@
           <button type="button"
           class="btn btn-sm btn-outline-secondary ms-auto"
           id="openModalBtn">一覧
-        </button>
+        　</button>
       </div>
-      
-      <div class="card-body">
-          {% with bus_stop_name=request.user.profile.bus_stop|default:'八王子' %}
+        
+        <div class="card-body">
           <div class="bus">
             <div class="bus-info">
               <h3 id="goTo">
@@ -256,9 +256,9 @@
                 <h5><span>データを読み込み中...</span></h5>
             </div>
           </div>
-          {% endwith %}
         </div>
       </div>
+      {% endwith %}
 
       {# 3. マップ（下側） #}
       <div class="card shadow-sm rounded-4 border-0 h-100 flex-grow-3">
