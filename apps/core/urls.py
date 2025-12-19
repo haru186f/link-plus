@@ -20,6 +20,6 @@ urlpatterns = [
     path('api/body/<int:pk>/', api_email_body, name='api_email_body'),
     path('api/lecture-events/', lecture_events, name='lecture_events'),
     path('api/bus-schedules/', views.get_data_for_modal, name='get_modal_data'),
-    path("api/bus/next/", GetNextBusInfo.as_view(), name="api_next_bus"),
     path("api/debug-bus/", DebugBusSchedule.as_view(), name="debug_bus"),
+    path('api/next/', GetNextBusInfo.as_view(), name='get_next_bus_info'),
 ]

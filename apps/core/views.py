@@ -1,14 +1,17 @@
+from .models import BusStop, BusSchedule
+import math
 from django.views import View
 from django.http import JsonResponse
 from django.views.generic import TemplateView, ListView
 from datetime import datetime, timedelta
 from django.shortcuts import render
 from django.core import serializers
+from django.utils import timezone
 import datetime
 from django.shortcuts import get_object_or_404
 from django.db.models import Q # 複雑なクエリのためにQオブジェクトをインポート
 from .models import LectureSchedule
-
+import pytz
 from apps.core.models import College, Department, Course, BusSchedule, BusStop, ReceivedEmail, LectureSchedule
 
 import json
@@ -19,6 +22,7 @@ logger = logging.getLogger(__name__)
 # ホームビュー（全てのデータを集約）
 # ==========================================================
 
+
 class HomeView(TemplateView):
     template_name = 'core/home.html'
 
@@ -28,7 +32,8 @@ class HomeView(TemplateView):
 
         # contextにデータを集約
         context["bus_schedules"] = BusSchedule.objects.all()
-        context["received_mails"] = ReceivedEmail.objects.all().order_by('-received_at')[:5]
+        context["received_mails"] = ReceivedEmail.objects.all().order_by(
+            '-received_at')[:5]
         context["lecture_schedules"] = LectureSchedule.objects.all()
 
         return context
@@ -47,6 +52,7 @@ class NewsListView(ListView):
     extra_context = {
         'page_title': 'すべての受信メール'
     }
+
 
 def get_data_for_modal(request):
     """
@@ -67,28 +73,32 @@ def get_data_for_modal(request):
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
-
 # ==========================================================
 # エンドポイント
 # ==========================================================
 class GetDepartmentsView(View):
     """選択された学部に応じて学科リストを返す"""
+
     def get(self, request, *args, **kwargs):
         college_id = request.GET.get('college_id')
-        departments = Department.objects.filter(college_id=college_id).values('id', 'name')
+        departments = Department.objects.filter(
+            college_id=college_id).values('id', 'name')
         return JsonResponse(list(departments), safe=False)
 
 
 class GetCoursesView(View):
     """選択された学科に応じてコースリストを返す"""
+
     def get(self, request, *args, **kwargs):
         department_id = request.GET.get('department_id')
-        courses = Course.objects.filter(department_id=department_id).values('id', 'name')
+        courses = Course.objects.filter(
+            department_id=department_id).values('id', 'name')
         return JsonResponse(list(courses), safe=False)
 
 
 class GetGradesView(View):
     """学科ごとに年制を返す（2年制 / 3年制 / 4年制）"""
+
     def get(self, request, *args, **kwargs):
         department_id = request.GET.get('department_id')
 
@@ -118,7 +128,7 @@ class GetGradesView(View):
             # テクノロジーカレッジ
             '建築学科（4年制）',
             '一級自動車整備科（4年制）',
-            ]
+        ]
 
         try:
             department = Department.objects.get(id=department_id)
@@ -191,70 +201,111 @@ def api_email_body(request, pk):
 
 
 class GetNextBusInfo(View):
-    """次のバス情報をJSONで返すAPI（完全版）"""
-
     def get(self, request, *args, **kwargs):
 
         def calc_remaining_minutes(target_time):
-            """次の出発時刻までの残り分数。
-            ・0分 → 表示する
-            ・-1分以下 → スキップして None を返す
-            """
-            now = datetime.datetime.now()
+            # 1. そもそも時刻データがなければ即座にNone
+            if target_time is None:
+                print("[Debug] -> None判定されました")
+                return None
+
+            # 2. combineのミスを防ぐため、日付を跨ぐ判定を入れる
             target = datetime.datetime.combine(now.date(), target_time)
+            diff_seconds = (target - now).total_seconds()
+            diff_minutes = diff_seconds / 60
 
-            diff = (target - now).total_seconds() / 60
+            # 3. 過去の時刻（-1分以下）ならNone
+            if diff_minutes < -1:
+                return None
+            
+            # 4. 「間もなく出発」問題を回避するため、0〜1分未満はすべて「1」にするか
+            #    数値として確実に正の値を返す
+            remain = round(diff_minutes)
+            
+            # もし計算結果がマイナス（直近の過去）なら、0分とする
+            if remain < 0:
+                remain = 0
+                
+            return remain
 
-            if diff < 0:
-                return None  # ★ -1分以下は無視（次の便へ）
-
-            remain = round(diff)
-
-            return remain  # ★ 0分はそのまま返す
-
-        now = datetime.datetime.now().time()
+        target_bus_stop_name = request.GET.get('bus_stop', '八王子').strip()
         result = {}
 
-        schedules = BusSchedule.objects.select_related('bus_stop').order_by(
-            'station_departure',
-            'campus_departure'
-        )
+        try:
+            target_bus_stop = BusStop.objects.get(name=target_bus_stop_name) 
+        except BusStop.DoesNotExist:
+            return JsonResponse(result, safe=False)
 
-        for bus_stop in BusStop.objects.all():
-            stop_schedules = [s for s in schedules if s.bus_stop == bus_stop]
+        # --- 【曜日判定】 ---
+        now = datetime.datetime.now() # 本番用
+        # now = datetime.datetime(2025, 12, 21, 7, 0, 0) # テスト用（20日は土曜）
 
-            # --- 駅 → キャンパス ---
-            next_departure = None
-            for s in stop_schedules:
-                if s.station_departure:
-                    remain = calc_remaining_minutes(s.station_departure)
-                    if remain is not None:  # -1や過ぎた便は除外、0分は表示
-                        next_departure = remain
-                        break
+        # 0=月, 1=火, 2=水, 3=木, 4=金, 5=土, 6=日
+        current_weekday = now.weekday()
 
-            # --- キャンパス → 駅 ---
-            next_return = None
-            for s in stop_schedules:
-                if s.campus_departure:
-                    remain = calc_remaining_minutes(s.campus_departure)
-                    if remain is not None:
-                        next_return = remain
-                        break
+        if current_weekday == 5:
+        # 土曜日の場合：is_saturday=True のデータだけを取得
+            stop_schedules = BusSchedule.objects.filter(
+                bus_stop=target_bus_stop,
+                is_saturday=True
+            )
+        elif current_weekday == 6:
+            # 日曜日の場合：(もしデータがないなら) 空のクエリセット、または備考のみ
+            stop_schedules = BusSchedule.objects.none()
+        else:
+            # 平日（月〜金）の場合：is_saturday=False のデータだけを取得
+            stop_schedules = BusSchedule.objects.filter(
+                bus_stop=target_bus_stop,
+                is_saturday=False
+            )
 
-            # --- note fallback ---
-            if next_departure is None:
-                next_departure = next((s.note for s in stop_schedules if s.note), "-")
+        # --- 駅 → キャンパス ---
+        next_departure = None
+        valid_departure_times = [s.station_departure for s in stop_schedules if s.station_departure]
+        
+        for t in sorted(valid_departure_times):
+            remain = calc_remaining_minutes(t)
+            if remain is not None:
+                # 平日の場合のみ、30分以上空いたら備考へ逃がす
+                # 土曜日は無制限に数値（残り時間）を表示する
+                if current_weekday != 5 and remain > 20:
+                    next_departure = None
+                else:
+                    next_departure = remain
+                break
 
-            if next_return is None:
-                next_return = next((s.note for s in stop_schedules if s.note), "-")
+        # --- キャンパス → 駅 ---
+        next_return = None
+        valid_return_times = [s.campus_departure for s in stop_schedules if s.campus_departure]
+        
+        for t in sorted(valid_return_times):
+            remain = calc_remaining_minutes(t)
+            if remain is not None:
+                # 同じく土曜日は30分制限を無視する
+                if current_weekday != 5 and remain > 20:
+                    next_return = None
+                else:
+                    next_return = remain
+                break
 
-            result[bus_stop.name] = {
-                "label": bus_stop.get_name_display(),  # type: ignore
-                "departure_to_campus": next_departure,
-                "return_to_station": next_return,
-            }
+        # 5. 【重要】数値の0さえも見つからなかった場合のみ備考を出す
+        if next_departure is None:
+            # 備考を探す
+            note = next((s.note for s in stop_schedules if s.note), "-")
+            next_departure = note
 
-        return JsonResponse(result)
+        if next_return is None:
+            note = next((s.note for s in stop_schedules if s.note), "-")
+            next_return = note
+        
+        result[target_bus_stop.name] = {
+            "label": target_bus_stop.get_name_display(), 
+            "departure_to_campus": next_departure,
+            "return_to_station": next_return,
+        }
+
+        return JsonResponse(result, safe=False)
+
 
 
 class DebugBusSchedule(View):
@@ -272,6 +323,10 @@ class DebugBusSchedule(View):
             })
 
         return JsonResponse(data, safe=False)
+
+# ---------------------------------------------------
+#   LectureSchedule API
+# ---------------------------------------------------
 
 
 # ==========================================================

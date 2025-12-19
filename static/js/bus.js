@@ -1,234 +1,200 @@
-// ===============================
-// ボタンによるバスの向き切り替え
-// ===============================
-document.addEventListener('DOMContentLoaded', function () {
-    var flag = 0;
-    const documentButton = document.querySelector('#busBT');
+/**
+ * bus.js - バス情報取得・表示管理スクリプト
+ */
 
-    const busButton = () => {
-        if (flag === 0) {
-            document.querySelector('#goTo').textContent = '八王子行き';
-            document.querySelector('.bus-times span').innerText = '08:00';
-            document.querySelector('#bus').style = "transform: scale(-1, 1);";
-            flag = 1;
-        } else {
-            document.querySelector('#goTo').textContent = 'キャンパス行き';
-            document.querySelector('.bus-times span').innerText = '15:00';
-            document.querySelector('#bus').style = "";
-            flag = 0;
-        }
-    };
+// --- 1. 定数・グローバル設定 ---
+const BASE_API_URL = '/api/next/';
+const PREFIX_ID = 'bus_info_'; 
+const REFRESH_INTERVAL_MS = 60000; // 1分ごとに自動更新
 
-    documentButton.addEventListener('click', busButton);
-    console.log(documentButton.value);
+// Djangoから渡される変数、またはデフォルト値
+const SELECTED_BUS_STOP = typeof SELECTED_BUS_STOP_NAME !== 'undefined' ? SELECTED_BUS_STOP_NAME : '八王子';
+const HACHIOJI_ID = typeof USER_BUS_STOP_ID !== 'undefined' ? USER_BUS_STOP_ID : 2;
+
+// 内部状態
+let currentDirection = 'campus'; // 'campus' (行き) または 'station' (帰り)
+let latestBusData = null;      // APIから取得した最新のJSON
+
+// --- 2. 初期化処理 ---
+document.addEventListener('DOMContentLoaded', () => {
+    // 方向に切り替えボタン
+    const toggleBtn = document.getElementById('toggle_direction_btn');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', handleDirectionToggle);
+    }
+    
+    // 初回表示のセットアップ
+    updateToggleButtonDisplay();
+    fetchAndUpdateBusInfo();
+    
+    // 定期更新タイマー
+    setInterval(fetchAndUpdateBusInfo, REFRESH_INTERVAL_MS);
+    
+    // 時計の開始
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // 時刻表一覧モーダル (jQuery)
+    initScheduleModal();
 });
 
-// ===============================
-// API からデータ取得
-// ===============================
-let busData = null;
-
-function loadBusInfo() {
-    fetch("/api/bus/next/")
-        .then(response => response.json())
-        .then(data => {
-            busData = data; // ← 保存しておく
-
-            updateDisplay();
-        })
-        .catch(error => console.error("Error:", error));
+/**
+ * ボタンクリック時の方向切り替え処理
+ */
+function handleDirectionToggle() {
+    console.log("Direction toggle clicked");
+    currentDirection = (currentDirection === 'campus') ? 'station' : 'campus';
+    
+    updateToggleButtonDisplay();
+    
+    // すでにデータがあれば即座にHTMLに反映。なければ取得しにいく
+    if (latestBusData) {
+        updateHtml(latestBusData);
+    } else {
+        fetchAndUpdateBusInfo();
+    }
 }
 
-// ===============================
-// 画面表示更新
-// ===============================
-function updateDisplay() {
-    if (!busData) return;
+// --- 4. API・データ処理 ---
 
-    document.getElementById("bus-hachiouji-to-campus").textContent =
-        `八王子 → キャンパス：${busData.hachiouji.departure_to_campus} 分`;
+/**
+ * APIからバス情報を取得
+ */
+async function fetchAndUpdateBusInfo() {
+    try {
+        const url = `${BASE_API_URL}?bus_stop=${encodeURIComponent(SELECTED_BUS_STOP)}`;
+        const response = await fetch(url, { method: 'GET' });
 
-    document.getElementById("bus-hachiouji-to-station").textContent =
-        `キャンパス → 八王子：${busData.hachiouji.return_to_station} 分`;
+        if (!response.ok) throw new Error(`HTTPエラー: ${response.status}`);
 
-    document.getElementById("bus-minamino-to-campus").textContent =
-        `みなみ野 → キャンパス：${busData.minamino.departure_to_campus} 分`;
+        const data = await response.json();
+        latestBusData = data;
+        updateHtml(latestBusData);
+        displayErrorMessage(""); // エラーをクリア
 
-    document.getElementById("bus-minamino-to-station").textContent =
-        `キャンパス → みなみ野：${busData.minamino.return_to_station} 分`;
+    } catch (error) {
+        console.error("データ取得失敗:", error);
+        displayErrorMessage("情報の取得に失敗しました。");
+    }
 }
 
-// ===============================
-// PC 時刻の「分が変わる瞬間」に同期して更新
-// ===============================
-function syncEveryMinute(callback) {
-    const now = new Date();
-    const msToNextMinute = (60 - now.getSeconds()) * 1000;
+// --- 5. DOM更新（表示制御） ---
 
-    // 次の00秒で1回実行
-    setTimeout(() => {
-        callback();
+/**
+ * トグルボタンのテキスト更新
+ */
+function updateToggleButtonDisplay() {
+    const iconElement = document.getElementById('direction_icon');
+    const busElement = document.getElementById('bus');
+    if (!iconElement) return;
 
-        // 以降は毎分ぴったり実行（ズレなし）
-        setInterval(callback, 60000);
-
-    }, msToNextMinute);
+    // もし方向によって画像を変えたい場合はここで src を切り替えます
+    if (currentDirection === 'campus') {
+        iconElement.alt = "駅 → キャンパス";
+        busElement.style.transform = "scaleX(-1)";
+    } else {
+        iconElement.alt = `${SELECTED_BUS_STOP} → 駅`;
+        busElement.style.transform = "scaleX(1)";
+    }
 }
 
-// ===============================
-// 初回ロード
-// ===============================
-window.onload = () => {
-    loadBusInfo(); // まずAPIから取得
-};
+/**
+ * メインのバス情報エリアを更新
+ */
+function updateHtml(data) {
+    for (const busStopName in data) {
+        if (!data.hasOwnProperty(busStopName)) continue;
+        
+        const info = data[busStopName];
+        const elementId = `${PREFIX_ID}${busStopName}`;
 
-// ===============================
-// APIは30分に1回だけ再取得（任意）
-// ===============================
-setInterval(loadBusInfo, 1800000); // 30分
+        const isCampus = currentDirection === 'campus';
+        const displayValue = isCampus ? info.departure_to_campus : info.return_to_station;
+        const targetLabel = isCampus ? "駅発" : "キャンパス発";
 
-// ===============================
-// 表示だけは毎分PC時刻の00秒で更新
-// ===============================
-syncEveryMinute(() => {
-    if (!busData) return;
+        // ラベル更新
+        const labelEl = document.getElementById(`${elementId}_direction_label`);
+        if (labelEl) labelEl.textContent = targetLabel;
 
-    // 1分減らす
-    busData.hachiouji.departure_to_campus--;
-    busData.hachiouji.return_to_station--;
-    busData.minamino.departure_to_campus--;
-    busData.minamino.return_to_station--;
+        // 時刻・分後 コンテンツ更新
+        updateElementContent(`${elementId}_content`, displayValue, info.label);
+    }
+}
 
-    updateDisplay();
-});
+/**
+ * 残り時間やステータスの表示を整形して挿入
+ */
+function updateElementContent(elementId, value, busStopLabel) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
 
-// ===============================
-// バス時刻表の一覧
-// ===============================
-$(document).ready(function() {
-    // 💡 BusStopモデルのPKと名前のマッピングを定義
-    const BUS_STOP_MAP = {
-        1: '八王子みなみ野',
-        2: '八王子'
-    };
+    let displayStr;
+    const isNumber = typeof value === 'number';
 
-    // htmlからIDを取得
-    const HACHIOJI_ID = USER_BUS_STOP_ID;
+    if (isNumber) {
+        displayStr = value === 0 ? "間もなく出発" : `${value}分後`;
+    } else {
+        displayStr = value === '-' ? "情報なし" : (value || "エラー");
+    }
 
-    // 時刻文字列を "HH:MM" 形式に整形するヘルパー関数
-    const formatTime = (timeStr) => timeStr ? timeStr.substring(0, 5) : '----';
+    // 数値（残り時間）の場合は強調、それ以外は通常表示
+    element.innerHTML = isNumber 
+        ? `<p style="font-size: 1.2em; color: #1e88e5; font-weight: bold;">${displayStr}</p>`
+        : `<p>${displayStr}</p>`;
+}
 
-    $('#openModalBtn').on('click', function() {
-        // 1. Ajax通信でデータを取得
-        $.ajax({
-            url: '/api/bus-schedules', // urls.pyで設定した名前
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                const $tableBody = $('#modalTableBody');
-                $tableBody.empty(); // テーブルをクリア
-
-                // 2. 取得したデータを行ごとに処理し、テーブルに追加
-                response.forEach(function(item) {
-                    const fields = item.fields;
-                    // 八王子か八王子みなみ野を判定
-                    if (fields.bus_stop === HACHIOJI_ID){
-                    // バス停IDを名前に変換
-                        const busStopName = BUS_STOP_MAP[fields.bus_stop] || '不明'; 
-
-                        const row = `<tr>
-                                   <td>${busStopName}</td> 
-                                   <td>${fields.is_saturday ? '土曜' : '平日'}</td>
-                                   <td>${formatTime(fields.station_departure)}</td>
-                                   <td>${formatTime(fields.campus_arrival)}</td>
-                                   <td>${formatTime(fields.campus_departure)}</td>
-                                   <td>${fields.note || ''}</td>
-                                 </tr>`;
-                        $tableBody.append(row);
-                    }
-                });
-
-                // 3. モーダルを表示
-                $('#dataModal').modal('show');
-            },
-            error: function(xhr, status, error) {
-                // エラー処理（例：サーバー側でNot Foundなどのエラーが発生した場合）
-                alert('データの取得に失敗しました: ' + (error || status));
-            }
-        });
-    });
-});
-
-// ===============================
-// バス時刻表の一覧
-// ===============================
-$(document).ready(function() {
-    // 💡 BusStopモデルのPKと名前のマッピングを定義
-    const BUS_STOP_MAP = {
-        1: '八王子みなみ野',
-        2: '八王子'
-    };
-
-    // htmlからIDを取得
-    const HACHIOJI_ID = USER_BUS_STOP_ID;
-
-    // 時刻文字列を "HH:MM" 形式に整形するヘルパー関数
-    const formatTime = (timeStr) => timeStr ? timeStr.substring(0, 5) : '----';
-
-    $('#openModalBtn').on('click', function() {
-        // 1. Ajax通信でデータを取得
-        $.ajax({
-            url: '/api/bus-schedules', // urls.pyで設定した名前
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                const $tableBody = $('#modalTableBody');
-                $tableBody.empty(); // テーブルをクリア
-
-                // 2. 取得したデータを行ごとに処理し、テーブルに追加
-                response.forEach(function(item) {
-                    const fields = item.fields;
-                    // 八王子か八王子みなみ野を判定
-                    if (fields.bus_stop === HACHIOJI_ID){
-                    // バス停IDを名前に変換
-                        const busStopName = BUS_STOP_MAP[fields.bus_stop] || '不明'; 
-
-                        const row = `<tr>
-                                   <td>${busStopName}</td> 
-                                   <td>${fields.is_saturday ? '土曜' : '平日'}</td>
-                                   <td>${formatTime(fields.station_departure)}</td>
-                                   <td>${formatTime(fields.campus_arrival)}</td>
-                                   <td>${formatTime(fields.campus_departure)}</td>
-                                   <td>${fields.note || ''}</td>
-                                 </tr>`;
-                        $tableBody.append(row);
-                    }
-                });
-
-                // 3. モーダルを表示
-                $('#dataModal').modal('show');
-            },
-            error: function(xhr, status, error) {
-                // エラー処理（例：サーバー側でNot Foundなどのエラーが発生した場合）
-                alert('データの取得に失敗しました: ' + (error || status));
-            }
-        });
-    });
-});
-
-// ===============================
-// 現在時刻
-// ===============================
+/**
+ * 現在時刻の表示
+ */
 function updateClock() {
+    const clockEl = document.getElementById("clock");
+    if (!clockEl) return;
     const now = new Date();
-    const hh = String(now.getHours()).padStart(2, "0");
-    const mm = String(now.getMinutes()).padStart(2, "0");
-    const ss = String(now.getSeconds()).padStart(2, "0");
-
-    document.getElementById("clock").textContent =
-        `現在時刻：${hh}:${mm}:${ss}`;
+    const timeStr = now.toLocaleTimeString('ja-JP', { hour12: false });
+    clockEl.textContent = `現在時刻：${timeStr}`;
 }
 
-// 1秒ごとに表示更新
-setInterval(updateClock, 1000);
-updateClock();
+/**
+ * エラーメッセージの表示
+ */
+function displayErrorMessage(msg) {
+    const container = document.getElementById('error_message_container');
+    if (container) {
+        container.innerHTML = msg ? `<p style="color: red;">${msg}</p>` : "";
+    }
+}
+
+// --- 6. モーダル（jQuery） ---
+
+function initScheduleModal() {
+    if (typeof $ === 'undefined') return;
+
+    const BUS_STOP_MAP = { 1: '八王子みなみ野', 2: '八王子' };
+    const formatTime = (time) => time ? time.substring(0, 5) : '----';
+
+    $('#openModalBtn').on('click', function() {
+        $.ajax({
+            url: '/api/bus-schedules',
+            type: 'GET',
+            success: function(response) {
+                const $tableBody = $('#modalTableBody').empty();
+                response.forEach(item => {
+                    const f = item.fields;
+                    if (f.bus_stop === HACHIOJI_ID) {
+                        const row = `<tr>
+                            <td>${BUS_STOP_MAP[f.bus_stop] || '不明'}</td>
+                            <td>${f.is_saturday ? '土曜' : '平日'}</td>
+                            <td>${formatTime(f.campus_departure)}</td>
+                            <td>${formatTime(f.station_departure)}</td>
+                            <td>${formatTime(f.campus_arrival)}</td>
+                            <td>${f.note || ''}</td>
+                        </tr>`;
+                        $tableBody.append(row);
+                    }
+                });
+                $('#dataModal').modal('show');
+            },
+            error: (xhr) => alert('時刻表の取得に失敗しました。')
+        });
+    });
+}
