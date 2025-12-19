@@ -192,7 +192,9 @@ function initScheduleModal() {
                         $tableBody.append(row);
                     }
                 });
-                $('#dataModal').modal('show');
+                const modalEl = document.getElementById('dataModal');
+                const modalInst = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modalInst.show();
             },
             error: (xhr) => alert('時刻表の取得に失敗しました。')
         });
