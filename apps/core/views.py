@@ -4,13 +4,15 @@ from django.views import View
 from django.http import JsonResponse
 from django.views.generic import TemplateView, ListView
 from datetime import datetime, timedelta
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.core import serializers
 from django.utils import timezone
 import datetime
 from django.shortcuts import get_object_or_404
 from django.db.models import Q # 複雑なクエリのためにQオブジェクトをインポート
 from .models import LectureSchedule
+from .forms import AnnouncementForm
+from django.contrib.auth.decorators import user_passes_test
 
 from apps.core.models import College, Department, Course, BusSchedule, BusStop, ReceivedEmail, LectureSchedule
 
@@ -30,10 +32,21 @@ class HomeView(TemplateView):
         """データをcontextに集約してホームページに送信する"""
         context = super().get_context_data(**kwargs)
 
+        user_dept = None
+        user_grade = None
+        if self.request.user.is_authenticated:
+            try:
+                user_dept = self.request.user.profile.department
+                user_grade = self.request.user.profile.grade
+            except:
+                pass
+
         # contextにデータを集約
         context["bus_schedules"] = BusSchedule.objects.all()
-        context["received_mails"] = ReceivedEmail.objects.all().order_by(
-            '-received_at')[:5]
+        context["received_mails"] = ReceivedEmail.objects.filter(
+            (Q(target_department=user_dept) | Q(target_department__isnull=True)) &
+            (Q(target_grade=user_grade) | Q(target_grade__isnull=True))
+        ).order_by('-received_at')[:5]
         context["lecture_schedules"] = LectureSchedule.objects.all()
 
         return context
@@ -47,7 +60,20 @@ class NewsListView(ListView):
     model = ReceivedEmail
     template_name = 'core/news.html'
     context_object_name = 'all_emails'
-    ordering = ['-received_at']  # 新しい順
+
+    def get_queryset(self):
+        user_dept = None
+        if self.request.user.is_authenticated:
+            try:
+                user_dept = self.request.user.profile.department
+                user_grade = self.request.user.profile.grade
+            except:
+                pass
+        
+        return ReceivedEmail.objects.filter(
+            (Q(target_department=user_dept) | Q(target_department__isnull=True)) &
+            (Q(target_grade=user_grade) | Q(target_grade__isnull=True))
+        ).order_by('-received_at')
 
     extra_context = {
         'page_title': 'すべての受信メール'
@@ -72,6 +98,26 @@ def get_data_for_modal(request):
     # GETリクエスト以外の場合は許可しない
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
+# ==========================================================
+# ニュース投稿（お知らせのリストを返す）
+# ==========================================================
+@user_passes_test(lambda u: u.is_teacher)
+def announcement_create(request):
+    if request.method == 'POST':
+        form = AnnouncementForm(request.POST)
+        if form.is_valid():
+            # commit=False で一旦インスタンスを作り、足りない情報を補填する
+            announcement = form.save(commit=False)
+            announcement.sender = request.user.email
+            announcement.received_at = timezone.now()
+            announcement.message_uid = f"manual-{timezone.now().timestamp()}"
+            announcement.save() # ここで学科も含めて保存される
+            # ---------------------------------------
+            return redirect('core:home')
+    else:
+        form = AnnouncementForm()
+    
+    return render(request, 'core/announcement_form.html', {'form': form})
 
 # ==========================================================
 # エンドポイント

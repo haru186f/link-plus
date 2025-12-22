@@ -11,6 +11,7 @@ urlpatterns = [
 
     # お知らせ一覧
     path('news/', NewsListView.as_view(), name='news_list'),
+    path('announcement/new/', views.announcement_create, name='announcement_create'),
 
     # エンドポイント
     path('ajax/get-departments/', GetDepartmentsView.as_view(), name="get_departments"),

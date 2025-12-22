@@ -203,6 +203,22 @@ class ReceivedEmail(models.Model):
         null=True,
         blank=True
     )
+    target_department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL, # 学科が削除されても、お知らせ自体は消さない設定
+        related_name='announcements',
+        null=True,
+        blank=True,
+        verbose_name="対象学科"
+    )
+    target_grade = models.PositiveIntegerField(
+        choices=Profile.GRADE_CHOICES,
+        null=True,
+        blank=True,
+        verbose_name="対象学年"
+    )
 
     def __str__(self):
-        return self.subject
+        dept_name = self.target_department.name if self.target_department else "全学科"
+        grade_name = f"{self.target_grade}年" if self.target_grade else "全学年"
+        return f"[{dept_name} {grade_name}] {self.subject}"
