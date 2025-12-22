@@ -2,7 +2,6 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from apps.core.models import LectureSchedule, Course, Room, College, Department
 
-
 # ============================================
 # 登録する講義データ（ハードコード）
 # ============================================
@@ -15,8 +14,8 @@ LECTURE_DATA = [
         "end": 2,
         "room": "B-601",
         "course": "システム開発コース",
-        "grade": 2, # 新しいフィールド
-        "class": 1, # 新しいフィールド
+        "grade": 2,
+        "class": 1,
     },
     {
         "name": "Webセキュリティ実習",
@@ -90,6 +89,13 @@ LECTURE_DATA = [
     },
 ]
 
+DAY_MAPPING = {
+    "mon": 0,
+    "tue": 1,
+    "wed": 2,
+    "thu": 3,
+    "fri": 4,
+}
 
 class Command(BaseCommand):
     help = "講義スケジュールをデータベースへ登録します"
@@ -98,11 +104,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         # ==============================
-        # カレッジと学科を作成
+        # カレッジと学科を作成/取得
         # ==============================
         college, _ = College.objects.get_or_create(name="ITカレッジ")
 
-        # Departmentオブジェクトを取得/作成 (LectureScheduleへの紐づけに必要)
+        # Departmentオブジェクトを取得/作成
         department, _ = Department.objects.get_or_create(
             name="情報処理科",
             defaults={"college": college, "max_grade": 2}
@@ -110,7 +116,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"学科: {department.name} を確認/作成しました。"))
 
         # ==============================
-        # B-601 を作成
+        # 教室を作成/取得
         # ==============================
         room_obj, created_room = Room.objects.get_or_create(name="B-601")
 
@@ -123,20 +129,28 @@ class Command(BaseCommand):
 
         for lec in LECTURE_DATA:
 
-            if lec["room"] != "B-601":
+            # 講義データが特定の教室に依存している場合 (ここではB-601に限定)
+            if lec["room"] != room_obj.name:
                 continue
 
             # 必須項目がデータに存在するかチェック
-            if not all(key in lec for key in ["grade", "class"]):
-                 self.stdout.write(self.style.ERROR(f"データセットに 'grade' または 'class' がありません: {lec['name']}"))
-                 continue
+            required_keys = ["grade", "class", "day"]
+            if not all(key in lec for key in required_keys):
+                self.stdout.write(self.style.ERROR(f"データセットに必須キーがありません: {lec['name']}"))
+                continue
+
+            # 曜日文字列を整数値に変換
+            weekday_int = DAY_MAPPING.get(lec["day"])
+            if weekday_int is None:
+                self.stdout.write(self.style.ERROR(f"無効な曜日指定 '{lec['day']}' があります: {lec['name']}"))
+                continue
 
 
             # ==============================
-            # コースが存在すれば作成（department を必ず紐付け）
+            # コースが存在すれば作成/取得（department を必ず紐付け）
             # ==============================
-            course_name = lec.get("course") # courseがない場合も考慮して.get()を使用
-            course = None # courseがNoneの場合も許容
+            course_name = lec.get("course")
+            course = None
 
             if course_name:
                 course, course_created = Course.objects.get_or_create(
@@ -149,25 +163,46 @@ class Command(BaseCommand):
                         self.style.SUCCESS(f"Course '{course_name}' を新規作成しました")
                     )
 
-            # ==============================
-            # LectureSchedule 追加 (修正箇所)
-            # ==============================
-            LectureSchedule.objects.create(
-                name=lec["name"],
-                day_of_week=lec["day"],
-                start_period=lec["start"],
-                end_period=lec["end"],
-                room=room_obj,
 
-                # 新しい絞り込みキー
-                department=department,                  # <== 学科オブジェクト
-                course=course,                          # <== コースオブジェクト (Noneの場合もある)
-                target_grade=lec["grade"],              # <== 学年 (int)
-                target_class_number=lec["class"],       # <== クラス (int)
-            )
+            # ==============================
+            # LectureSchedule 登録/更新
+            # ==============================
 
-            created += 1
+            # 登録前に、ユニーク制約で使われるキーをすべて抽出して存在チェックを行う
+            # (LectureScheduleにget_or_createがないため、存在チェックのみ行う)
+            try:
+                # ユニーク制約 (department, course, target_grade, target_class_number, weekday, start_period)
+                existing_lecture = LectureSchedule.objects.get(
+                    department=department,
+                    course=course,
+                    target_grade=lec["grade"],
+                    target_class_number=lec["class"],
+                    weekday=weekday_int,
+                    start_period=lec["start"],
+                )
+                self.stdout.write(self.style.WARNING(f"講義 '{lec['name']}' ({lec['day']}{lec['start']}限) は既に存在します。スキップします。"))
+                continue
+
+            except LectureSchedule.DoesNotExist:
+                # 存在しない場合、新規作成
+                LectureSchedule.objects.create(
+                    subject=lec["name"], # <== フィールド名を subject に修正
+                    weekday=weekday_int, # <== フィールド名を weekday に修正し、整数値を使用
+                    start_period=lec["start"],
+                    end_period=lec["end"],
+                    room=room_obj,
+
+                    # 絞り込みキー
+                    department=department,
+                    course=course,
+                    target_grade=lec["grade"],
+                    target_class_number=lec["class"],
+
+                    # teacherフィールドが必須ではないため、ここではNone（未設定）のまま
+                )
+
+                created += 1
 
         self.stdout.write(self.style.SUCCESS(
-            f"{created} 件の B-601 講義スケジュールを登録しました！"
+            f"{created} 件の B-601 講義スケジュールを新規登録しました！"
         ))

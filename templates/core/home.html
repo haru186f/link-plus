@@ -35,7 +35,7 @@
     } else if (SELECTED_BUS_STOP_NAME === '八王子みなみ野') {
         USER_BUS_STOP_ID = 1;
     } else {
-        USER_BUS_STOP_ID = 2; 
+        USER_BUS_STOP_ID = 2;
     }
   </script>
 {% endblock script %}
@@ -103,6 +103,7 @@
 
 {# ----- Main content ----- #}
 
+<div style="height: 80px;"></div>
 
 <div class="container">
 
@@ -134,15 +135,6 @@
         <p><b>user.profile.grade = </b> {{ user.profile.grade }}</p>
         <p><b>user.profile.class_number = </b> {{ user.profile.class_number }}</p>
         <p><b>user.profile.bus_stop = </b> {{ user.profile.bus_stop }}</p>
-        <div class="bus-times" style="display:block; border:1px solid red; padding:10px;">
-          <span id="bus-hachiouji-to-campus">TEST1</span><br>
-          <span id="bus-hachiouji-to-station">TEST2</span><br>
-          <span id="bus-minamino-to-campus">TEST3</span><br>
-          <span id="bus-minamino-to-station">TEST4</span><br>
-        </div>
-      <p id="clock" style="font-size: 1.1rem; font-weight: bold; color: #2563eb;">
-          現在時刻：読み込み中…
-      </p>
       </div>
 
     </div>
@@ -196,7 +188,7 @@
       {# 1. お知らせ（上側） #}
       <div class="card shadow-sm rounded-4 border-0 h-100 flex-grow-5">
         <div class="card-header bg-light fw-semibold border-0 py-3 d-flex align-items-center">
-          <i class="bi bi-megaphone me-2 fs-5 text-secondary"></i>
+          <i class="bi bi-newspaper me-2 fs-5 text-secondary"></i>
           <span class="fs-5">お知らせ</span>
           <a href="{% url 'core:news_list' %}" class="ms-auto">
             <button class="btn btn-sm btn-outline-secondary">一覧</button>
@@ -236,7 +228,7 @@
           id="openModalBtn">一覧
         　</button>
       </div>
-        
+
         <div class="card-body">
           <div class="bus">
             <div class="bus-info">
@@ -251,9 +243,14 @@
             <h4>
               <img src="{% static 'images/bus.png' %}" class="bus-png" id="bus">
             </h4>
-            <div id="error_message_container"></div>
-            <div id="bus_info_{{ bus_stop_name }}_content" class="bus-times">
-                <h5><span>データを読み込み中...</span></h5>
+            <div class="bus-times d-flex flex-column justify-content-center align-items-center text-center p-3 rounded-4">
+              <h5 class="mb-2 text-secondary fw-bold" style="font-size: 0.9rem;">
+                到着まで <span class="text-primary fs-4 ms-1">15:00</span>
+              </h5>
+              {# 現在時刻 #}
+              <p id="clock" class="m-0" style="font-size: 1.1rem; font-weight: bold; color: #2563eb;">
+                現在時刻：読み込み中…
+              </p>
             </div>
           </div>
         </div>

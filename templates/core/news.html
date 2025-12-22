@@ -29,10 +29,17 @@
 </div>
 
 {# ----- News content ----- #}
-<div class="container">
-  <div class="d-flex align-items-center mb-3 pt-1">
-    <h2 class="m-0 lh-1">お知らせ一覧</h2>
-    <a href="{% url 'core:home' %}" class="btn btn-outline-secondary ms-auto">ホームに戻る</a>
+<div class="container py-5">
+  <div class="row align-items-center mb-5">
+    <div class="col">
+      <h2 class="fw-bold display-6 mb-1">お知らせ</h2>
+      <p class="text-muted mb-0">学校からのお知らせを確認できます</p>
+    </div>
+    <div class="col-auto">
+      <a href="{% url 'core:home' %}" class="btn btn-outline-secondary ms-auto">
+        ホームに戻る
+      </a>
+    </div>
   </div>
 {% for email in all_emails %}
 <div class="card email-item border-0 mb-2"

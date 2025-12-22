@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}
+  {% if object %}時間割の編集{% else %}時間割の登録{% endif %}
+{% endblock title %}
+
+
+{% block css %}
+{% endblock css %}
+
+
+{% block script %}
+{% endblock script %}
+
+
+{% block content %}
+<div class="container">
+  <div class="d-flex align-items-center mb-3 pt-1">
+    <h2 class="m-0 lh-1">{% if object %}時間割の編集{% else %}時間割の登録{% endif %}</h2>
+  </div>
+</div>
+
+{% endblock content %}

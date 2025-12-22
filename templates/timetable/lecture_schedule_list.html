@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}時間割管理{% endblock title %}
+
+{% block css %}
+  {# Reset CSS #}
+  <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  {# My CSS #}
+  <link rel="stylesheet" href="{% static 'css/home.css' %}">
+  <style>
+    .scroll-anchor {
+      scroll-margin-top: 100px; /* navbar の高さ分 */
+    }
+  </style>
+{% endblock css %}
+
+
+{% block content %}
+
+
+<div class="container py-5">
+  <div class="row align-items-center mb-5">
+    <div class="col">
+      <h1 class="fw-bold display-6 mb-1">時間割管理</h1>
+      <p class="text-muted mb-0">週間の講義スケジュールを管理します</p>
+    </div>
+    <div class="col-auto">
+      <a href="{% url 'core:home' %}" class="btn btn-outline-secondary ms-auto">
+        ホームに戻る
+      </a>
+    </div>
+  </div>
+
+  <div class="d-flex overflow-auto mt-n1 pb-2 mb-2 gap-2 no-scrollbar">
+    {% for group in grouped_schedules %}
+      <a href="#day-{{ group.value }}" class="btn btn-white shadow-sm rounded-pill px-3 border text-nowrap">
+        {{ group.label }}
+      </a>
+    {% endfor %}
+  </div>
+
+  {% for group in grouped_schedules %}
+    <div id="day-{{ group.value }}"
+         class="scroll-anchor {% if forloop.last %}mb-5 pb-5{% else %}mb-5{% endif %}">
+      <div class="d-flex align-items-center mb-4">
+        <h3 class="fw-bold mb-0 me-3">{{ group.label }}</h3>
+        <span class="badge bg-light text-dark rounded-pill border">{{ group.schedules|length }} 講義</span>
+        <div class="flex-grow-1 ms-3 border-bottom border-2 opacity-10"></div>
+        <a href="{% url 'core:lecture_schedule_create' %}?weekday={{ group.value }}"
+           class="btn btn-primary btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center shadow"
+           style="width: 32px; height: 32px;" title="追加">
+          <i class="bi bi-plus-lg"></i>
+        </a>
+      </div>
+
+      <div class="row g-4">
+        {% if group.schedules %}
+          {% for s in group.schedules %}
+          <div class="col-12">
+            <div class="card schedule-card shadow-sm rounded-4 overflow-hidden">
+              <div class="card-body p-4">
+                <div class="row align-items-center">
+
+                  <div class="col-auto d-flex align-items-center gap-3">
+                    <div class="period-box text-center shadow-sm border">
+                      <div class="h3 fw-black mb-0 text-primary">{{ s.start_period }}</div>
+                      <div class="text-muted small fw-bold" style="font-size: 0.6rem; letter-spacing: 1px;">PERIOD</div>
+                    </div>
+                    <div class="border-indicator
+                      {% if s.status == s.Status.NORMAL %}bg-success
+                      {% elif s.status == s.Status.CANCELED %}bg-danger
+                      {% elif s.status == s.Status.MAKEUP %}bg-warning
+                      {% endif %}">
+                    </div>
+                  </div>
+
+                  <div class="col ps-md-4">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                      <span class="badge
+                        {% if s.status == s.Status.NORMAL %}bg-success-subtle text-success
+                        {% elif s.status == s.Status.CANCELED %}bg-danger-subtle text-danger
+                        {% elif s.status == s.Status.MAKEUP %}bg-warning-subtle text-warning
+                        {% endif %} px-2 py-1">
+                        {{ s.get_status_display }}
+                      </span>
+                      {% if s.room %}
+                        <span class="text-muted small"><i class="bi bi-geo-alt-fill me-1"></i>{{ s.room }}</span>
+                      {% endif %}
+                    </div>
+
+                    <h5 class="fw-bold mb-1">{{ s.subject }}</h5>
+                    <p class="text-secondary mb-0 small">
+                      <i class="bi bi-person-fill me-1"></i>{{ s.teacher|default:"担当未定" }}
+                      {% if s.end_period != s.start_period %}
+                        <span class="mx-2 text-light">|</span>
+                        <i class="bi bi-clock me-1"></i>終了: {{ s.end_period }}限
+                      {% endif %}
+                    </p>
+
+                    {% if s.note %}
+                      <div class="mt-3 p-2 px-3 bg-light rounded-3 small text-muted border-start border-3">
+                        {{ s.note }}
+                      </div>
+                    {% endif %}
+                  </div>
+
+                  <div class="col-auto">
+                    <div class="d-flex gap-2">
+                      <a href="{% url 'core:lecture_schedule_update' s.pk %}" class="btn btn-outline-light btn-sm text-dark border shadow-sm">
+                        <i class="bi bi-pencil"></i>
+                      </a>
+                      <a href="{% url 'core:lecture_schedule_delete' s.pk %}" class="btn btn-outline-danger btn-sm shadow-sm">
+                        <i class="bi bi-trash"></i>
+                      </a>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="col-12">
+            <div class="py-5 text-center border-2 border-dashed rounded-4 bg-light opacity-75">
+              <i class="bi bi-calendar-x display-6 text-muted mb-2 d-block"></i>
+              <span class="text-muted fw-medium">この曜日の講義予定はありません</span>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock content %}
