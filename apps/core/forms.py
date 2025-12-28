@@ -1,5 +1,7 @@
 from django import forms
 from .models import ReceivedEmail
+from django.contrib.auth import get_user_model
+from apps.core.models import LectureSchedule, SchoolPeriod, Room
 
 class AnnouncementForm(forms.ModelForm):
     class Meta:
@@ -17,5 +19,122 @@ class AnnouncementForm(forms.ModelForm):
             'subject': forms.TextInput(attrs={'class': 'form-control'}),
             'body': forms.Textarea(attrs={'class': 'form-control', 'rows': 10}),
         }
-    
-    
+
+class LectureScheduleForm(forms.ModelForm):
+    """講義スケジュール登録・編集フォーム"""
+
+    weekday = forms.ChoiceField(
+        choices=LectureSchedule.Weekday.choices,
+        label="曜日",
+        widget=forms.Select(attrs={
+            "class": "form-select",
+        }),
+    )
+
+    subject = forms.CharField(
+        label="科目名",
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "例：プログラミング実習２",
+            "autofocus": True,
+        }),
+    )
+
+    start_period = forms.ModelChoiceField(
+        queryset=SchoolPeriod.objects.all(),
+        label="開始時限",
+        widget=forms.Select(attrs={
+            "class": "form-select",
+        }),
+    )
+
+    end_period = forms.ModelChoiceField(
+        queryset=SchoolPeriod.objects.all(),
+        label="終了時限",
+        widget=forms.Select(attrs={
+            "class": "form-select",
+        }),
+    )
+
+    User = get_user_model()
+    teacher = forms.ModelChoiceField(
+        queryset=User.objects.none(),  # View 側で上書き
+        required=False,
+        label="担当教員",
+        widget=forms.Select(attrs={
+            "class": "form-select",
+            "data-placeholder": "担当教員を選択（未定の場合は空欄）",
+        }),
+    )
+
+    room = forms.ModelChoiceField(
+        queryset=Room.objects.all(),
+        required=False,
+        label="教室",
+        widget=forms.Select(attrs={
+            "class": "form-select",
+            "data-placeholder": "教室を選択（未定の場合は空欄）",
+        }),
+    )
+
+    status = forms.ChoiceField(
+        choices=LectureSchedule.Status.choices,
+        label="講義状態",
+        widget=forms.Select(attrs={
+            "class": "form-select",
+        }),
+    )
+
+    note = forms.CharField(
+        required=False,
+        label="備考",
+        widget=forms.Textarea(attrs={
+            "class": "form-control",
+            "rows": 3,
+            "placeholder": "補足事項や休講理由があれば記入してください",
+        }),
+    )
+
+    class Meta:
+        model = LectureSchedule
+        fields = [
+            "weekday",
+            "subject",
+            "start_period",
+            "end_period",
+            "teacher",
+            "room",
+            "status",
+            "note",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Select 系の空ラベル統一
+        for field in ["start_period", "end_period", "teacher", "room"]:
+            self.fields[field].empty_label = "---------"
+    def clean(self):
+            """
+            カスタムバリデーション:
+            開始時限が終了時限よりも後になっていないかを確認する。
+            """
+            cleaned_data = super().clean()
+            start_period = cleaned_data.get("start_period")
+            end_period = cleaned_data.get("end_period")
+
+            if start_period and end_period:
+                # SchoolPeriod オブジェクトの比較:
+                # ここでは SchoolPeriod モデルに時限の順序を示すフィールド (例: `period_number`, `order`, `pk` など)
+                # があり、それを比較に利用できることを前提とします。
+                # 例として、PK (Primary Key) が時限の順序を表していると仮定します。
+                if start_period.pk > end_period.pk:
+                    # フォーム全体ではなく、関連するフィールドにエラーを割り当てる
+                    msg = "終了時限は開始時限以降である必要があります。"
+                    self.add_error('end_period', msg)
+
+                    # Globalなエラーとして表示したい場合は以下を使用:
+                    # raise ValidationError("終了時限は開始時限以降である必要があります。", code='invalid_period_range')
+
+            return cleaned_data

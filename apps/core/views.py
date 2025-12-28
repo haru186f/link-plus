@@ -2,19 +2,25 @@ from .models import BusStop, BusSchedule
 import math
 from django.views import View
 from django.http import JsonResponse
-from django.views.generic import TemplateView, ListView
 from datetime import datetime, timedelta
 from django.shortcuts import render, redirect
+from django.views.generic import TemplateView, CreateView, UpdateView, DeleteView, ListView
+from datetime import datetime
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.messages.views import SuccessMessageMixin
 from django.core import serializers
-from django.utils import timezone
+from django.urls import reverse_lazy
+from django.shortcuts import redirect
 import datetime
-from django.shortcuts import get_object_or_404
 from django.db.models import Q # 複雑なクエリのためにQオブジェクトをインポート
 from .models import LectureSchedule
 from .forms import AnnouncementForm
 from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 from apps.core.models import College, Department, Course, BusSchedule, BusStop, ReceivedEmail, LectureSchedule
+from apps.core.forms import LectureScheduleForm
 
 import json
 import logging
@@ -118,6 +124,126 @@ def announcement_create(request):
         form = AnnouncementForm()
     
     return render(request, 'core/announcement_form.html', {'form': form})
+# 時間割ビュー
+# ==========================================================
+
+class TeacherRequiredMixin(UserPassesTestMixin):
+    """
+    is_teacher=Trueのユーザーのみにアクセスを許可するMixin
+    （未認証または権限がない場合は、ホーム画面へリダイレクト）
+    """
+    # 権限がない場合はホーム画面へリダイレクト
+    permission_denied_url = reverse_lazy("core:home")
+
+    def test_func(self):
+        # 認証済み かつ is_teacher=True であるかを確認
+        user = self.request.user
+        return user.is_authenticated and getattr(user, 'is_teacher', False)
+
+class LectureScheduleListView(
+    TeacherRequiredMixin,
+    ListView,
+    ):
+    """
+    教員による時間割一覧表示ビュー（Read）
+    （全時間割を取得し、曜日ごとにグループ化して表示する）
+    """
+    template_name = "timetable/lecture_schedule_list.html"
+    model = LectureSchedule
+
+    def get_queryset(self):
+        """時間割データを取得し、事前にロード(selected_related)する"""
+        return (
+            self.model.objects
+            .select_related(
+                "start_period",
+                "end_period",
+                "teacher",
+                "department",
+                "course",
+                "room",
+            )
+            .order_by("weekday", "start_period__period")
+        )
+
+    def get_context_data(self, **kwargs):
+        """時間割データを曜日ごとにグループ化し、テンプレートに渡す"""
+        context = super().get_context_data(**kwargs)
+
+        schedules = self.object_list
+        weekdays = LectureSchedule.Weekday.choices
+
+        # 曜日ごとにグループ化
+        grouped = {v: [] for v, _ in weekdays}
+        for schedule in schedules:
+            grouped[schedule.weekday].append(schedule)
+
+        # テンプレートに渡すためのリスト構造に整形（曜日の並びを保持）
+        context["grouped_schedules"] = [
+            {
+                "value": value,
+                "label": label,
+                "schedules": grouped[value],
+            }
+            for value, label in weekdays
+        ]
+        return context
+
+class LectureScheduleCreateView(
+    TeacherRequiredMixin,
+    SuccessMessageMixin,
+    CreateView
+    ):
+    """
+    教師による時間割作成ビュー（Create）
+    （URLパラメータから曜日を初期値として設定する）
+    """
+    model = LectureSchedule
+    form_class = LectureScheduleForm
+    template_name = "timetable/lecture_schedule_form.html"
+    success_url = reverse_lazy("core:timetable_list")
+    success_message = "新しい時間割を作成しました。"
+
+    def get_initial(self):
+        """URLパラメータからweekdayを取得し、フォームの初期値として設定"""
+        initial = super().get_initial()
+        weekday = self.request.GET.get("weekday")
+        if weekday:
+            initial["weekday"] = weekday
+        return initial
+
+class LectureScheduleUpdateView(
+    TeacherRequiredMixin,
+    SuccessMessageMixin,
+    UpdateView
+):
+    """
+    教員による時間割更新ビュー（Update）
+    """
+    model = LectureSchedule
+    form_class = LectureScheduleForm
+    template_name = "timetable/lecture_schedule_form.html"
+    success_url = reverse_lazy("core:timetable_list")
+    success_message = "時間割を更新しました。"
+
+class LectureScheduleDeleteView(
+    TeacherRequiredMixin,
+    SuccessMessageMixin,
+    DeleteView
+):
+    """
+    教員による時間割削除ビュー（Delete）
+    （delete()をオーバーライドしてメッセージを送信）
+    """
+    model = LectureSchedule
+    template_name = "timetable/lecture_schedule_comfirm_delete.html"
+    success_url = reverse_lazy("core:timetable_list")
+
+    def delete(self, request, *args, **kwargs):
+            """オブジェクト削除後、成功メッセージを送信する"""
+            response = super().delete(request, *args, **kwargs)
+            messages.success(self.request, "時間割を削除しました。")
+            return response
 
 # ==========================================================
 # エンドポイント
@@ -263,22 +389,22 @@ class GetNextBusInfo(View):
             # 3. 過去の時刻（-1分以下）ならNone
             if diff_minutes < -1:
                 return None
-            
+
             # 4. 「間もなく出発」問題を回避するため、0〜1分未満はすべて「1」にするか
             #    数値として確実に正の値を返す
             remain = round(diff_minutes)
-            
+
             # もし計算結果がマイナス（直近の過去）なら、0分とする
             if remain < 0:
                 remain = 0
-                
+
             return remain
 
         target_bus_stop_name = request.GET.get('bus_stop', '八王子').strip()
         result = {}
 
         try:
-            target_bus_stop = BusStop.objects.get(name=target_bus_stop_name) 
+            target_bus_stop = BusStop.objects.get(name=target_bus_stop_name)
         except BusStop.DoesNotExist:
             return JsonResponse(result, safe=False)
 
@@ -308,7 +434,7 @@ class GetNextBusInfo(View):
         # --- 駅 → キャンパス ---
         next_departure = None
         valid_departure_times = [s.station_departure for s in stop_schedules if s.station_departure]
-        
+
         for t in sorted(valid_departure_times):
             remain = calc_remaining_minutes(t)
             if remain is not None:
@@ -323,7 +449,7 @@ class GetNextBusInfo(View):
         # --- キャンパス → 駅 ---
         next_return = None
         valid_return_times = [s.campus_departure for s in stop_schedules if s.campus_departure]
-        
+
         for t in sorted(valid_return_times):
             remain = calc_remaining_minutes(t)
             if remain is not None:
@@ -343,9 +469,9 @@ class GetNextBusInfo(View):
         if next_return is None:
             note = next((s.note for s in stop_schedules if s.note), "-")
             next_return = note
-        
+
         result[target_bus_stop.name] = {
-            "label": target_bus_stop.get_name_display(), 
+            "label": target_bus_stop.get_name_display(),
             "departure_to_campus": next_departure,
             "return_to_station": next_return,
         }

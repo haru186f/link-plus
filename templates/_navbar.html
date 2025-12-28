@@ -46,6 +46,13 @@
             </a>
           </li>
 
+          {# お知らせ #}
+          <li class="nav-item m-1">
+            <a class="btn btn-outline-light" href="{% url 'core:news_list' %}">
+              <i class="bi bi-newspaper me-1"></i>お知らせ
+            </a>
+          </li>
+
           {% comment %}
           ========================================
               教師ユーザー（追加の専用メニュー）
@@ -54,17 +61,17 @@
 
           {% if request.user.is_teacher %}
 
-            {# 時間管理（教師専用） #}
-            <li class="nav-item m-1">
-              <a class="btn btn-outline-light" href="#">
-                <i class="bi bi-calendar-week me-1"></i>時間割管理
-              </a>
-            </li>
-
             {# お知らせ投稿（教師専用） #}
             <li class="nav-item m-1">
               <a class="btn btn-outline-light" href="{% url 'core:announcement_create' %}">
                 <i class="bi bi-megaphone me-1"></i>お知らせ投稿
+              </a>
+            </li>
+
+            {# 時間管理（教師専用） #}
+            <li class="nav-item m-1">
+              <a class="btn btn-outline-light" href="{% url 'core:lecture_schedule_list' %}">
+                <i class="bi bi-calendar-week me-1"></i>時間割管理
               </a>
             </li>
 
