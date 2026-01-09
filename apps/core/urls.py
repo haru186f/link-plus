@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import HomeView
+from . import views
 from .views import GetDepartmentsView, GetCoursesView, GetGradesView, NewsListView
 from .views import receive_email_webhook, api_email_body, lecture_events, get_data_for_modal
 from .views import GetNextBusInfo, DebugBusSchedule

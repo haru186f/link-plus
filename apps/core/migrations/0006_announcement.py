@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0005_lectureschedule_department_and_more'),
+        ('core', '0003_remove_lectureschedule_is_canceled_and_more'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

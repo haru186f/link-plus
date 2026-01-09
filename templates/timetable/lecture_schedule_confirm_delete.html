@@ -20,6 +20,31 @@
   </div>
 
   <div class="card">
+    <div class="card-body">
+      <h5 class="card-title text-danger">警告：この操作は取り消せません</h5>
+      <p class="card-text">
+        以下の講義スケジュールを削除してもよろしいですか？
+      </p>
+
+      <ul class="list-group list-group-flush mb-4">
+        <li class="list-group-item"><strong>科目名:</strong> {{ object.subject }}</li>
+        <li class="list-group-item"><strong>曜日:</strong> {{ object.get_weekday_display }}</li>
+        <li class="list-group-item"><strong>時限:</strong> {{ object.start_period }} 〜 {{ object.end_period }}</li>
+      </ul>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash"></i> 削除する
+          </button>
+          <a href="{% url 'core:lecture_schedule_list' %}" class="btn btn-secondary">
+            キャンセル
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
 
   </div>
 

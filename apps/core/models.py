@@ -9,10 +9,13 @@ from django.core.exceptions import ValidationError
 # ==========================================================
 
 # バス停
+
+
 class BusStop(models.Model):
     BUS_CHOICES = [('hachiouji', '八王子'), ('minamino', '八王子みなみ野')]
 
-    name = models.CharField(max_length=20, choices=BUS_CHOICES, default='hachiouji')    # バス停の名前
+    name = models.CharField(
+        max_length=20, choices=BUS_CHOICES, default='hachiouji')    # バス停の名前
 
     def __str__(self):
         return self.name
@@ -52,8 +55,6 @@ class BusSchedule(models.Model):
         return f"{self.bus_stop}・{day_type}・{direction}：{time_str}"
 
 
-
-
 # ==========================================================
 # 講義モデル
 # ==========================================================
@@ -76,7 +77,7 @@ class Department(models.Model):
         College,
         on_delete=models.CASCADE,
         related_name='departments'
-        )
+    )
 
     def __str__(self):
         return self.name
@@ -91,7 +92,7 @@ class Course(models.Model):
         Department,
         on_delete=models.CASCADE,
         related_name='courses'
-        )
+    )
 
     def __str__(self):
         return self.name
@@ -142,7 +143,9 @@ class LectureSchedule(models.Model):
     weekday = models.PositiveSmallIntegerField("曜日", choices=Weekday.choices)
     subject = models.CharField("科目名", max_length=100)
     note = models.TextField("備考", blank=True)
-    status = models.PositiveSmallIntegerField("講義状態", choices=Status.choices, default=Status.NORMAL,)
+    status = models.PositiveSmallIntegerField(
+        "講義状態", choices=Status.choices, default=Status.NORMAL,)
+    teacher = models.CharField("担当教員", null=True, blank=True,)
 
     target_grade = models.PositiveSmallIntegerField(
         "対象学年",
@@ -167,15 +170,6 @@ class LectureSchedule(models.Model):
         on_delete=models.PROTECT,
         related_name="lecture_end_set",
         verbose_name="終了時限",
-    )
-
-    teacher = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        related_name="taught_lectures",
-        verbose_name="担当教師",
-        null=True,
-        blank=True,
     )
 
     department = models.ForeignKey(
@@ -280,6 +274,8 @@ class LectureSchedule(models.Model):
 # ==========================================================
 
 # 受信メール
+
+
 class ReceivedEmail(models.Model):
     subject = models.CharField(max_length=255)      # 件名
     sender = models.EmailField()                    # 送信元メールアドレス
@@ -289,14 +285,14 @@ class ReceivedEmail(models.Model):
         unique=True,
         null=True,
         blank=True
-        )
+    )
     received_at = models.DateTimeField(              # 受信日時
         null=True,
         blank=True
     )
     target_department = models.ForeignKey(
         Department,
-        on_delete=models.SET_NULL, # 学科が削除されても、お知らせ自体は消さない設定
+        on_delete=models.SET_NULL,  # 学科が削除されても、お知らせ自体は消さない設定
         related_name='announcements',
         null=True,
         blank=True,

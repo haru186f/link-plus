@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from apps.core.models import LectureSchedule, Course, Room, College, Department
+from apps.core.models import LectureSchedule, Course, Room, College, Department, SchoolPeriod
 
 # ============================================
 # 登録する講義データ（ハードコード）
@@ -106,6 +106,17 @@ class Command(BaseCommand):
         # ==============================
         # カレッジと学科を作成/取得
         # ==============================
+        # --- 1. 時限マスターの準備（これがないと ValueError になります） ---
+        self.stdout.write("時限マスターを確認中...")
+        for i in range(1, 9):
+            SchoolPeriod.objects.get_or_create(
+                period=i, 
+                defaults={'start_time': '09:00', 'end_time': '10:30'}
+            )
+        
+        # 辞書を作成（数値からSchoolPeriodオブジェクトを引けるようにする）
+        periods = {p.period: p for p in SchoolPeriod.objects.all()}
+        
         college, _ = College.objects.get_or_create(name="ITカレッジ")
 
         # Departmentオブジェクトを取得/作成
@@ -167,7 +178,8 @@ class Command(BaseCommand):
             # ==============================
             # LectureSchedule 登録/更新
             # ==============================
-
+            start_period_obj = periods.get(lec["start"])
+            end_period_obj = periods.get(lec["end"])
             # 登録前に、ユニーク制約で使われるキーをすべて抽出して存在チェックを行う
             # (LectureScheduleにget_or_createがないため、存在チェックのみ行う)
             try:
@@ -178,7 +190,7 @@ class Command(BaseCommand):
                     target_grade=lec["grade"],
                     target_class_number=lec["class"],
                     weekday=weekday_int,
-                    start_period=lec["start"],
+                    start_period=start_period_obj,
                 )
                 self.stdout.write(self.style.WARNING(f"講義 '{lec['name']}' ({lec['day']}{lec['start']}限) は既に存在します。スキップします。"))
                 continue
@@ -188,8 +200,8 @@ class Command(BaseCommand):
                 LectureSchedule.objects.create(
                     subject=lec["name"], # <== フィールド名を subject に修正
                     weekday=weekday_int, # <== フィールド名を weekday に修正し、整数値を使用
-                    start_period=lec["start"],
-                    end_period=lec["end"],
+                    start_period=start_period_obj,
+                    end_period=end_period_obj,
                     room=room_obj,
 
                     # 絞り込みキー

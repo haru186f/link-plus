@@ -3,11 +3,12 @@ from .models import ReceivedEmail
 from django.contrib.auth import get_user_model
 from apps.core.models import LectureSchedule, SchoolPeriod, Room
 
+
 class AnnouncementForm(forms.ModelForm):
     class Meta:
         model = ReceivedEmail
         fields = ['target_department', 'target_grade', 'subject', 'body']
-        
+
         labels = {
             'target_department': '投稿対象（未選択なら全員）',
             'subject': '件名',
@@ -19,6 +20,7 @@ class AnnouncementForm(forms.ModelForm):
             'subject': forms.TextInput(attrs={'class': 'form-control'}),
             'body': forms.Textarea(attrs={'class': 'form-control', 'rows': 10}),
         }
+
 
 class LectureScheduleForm(forms.ModelForm):
     """講義スケジュール登録・編集フォーム"""
@@ -58,13 +60,14 @@ class LectureScheduleForm(forms.ModelForm):
     )
 
     User = get_user_model()
-    teacher = forms.ModelChoiceField(
-        queryset=User.objects.none(),  # View 側で上書き
-        required=False,
+    teacher = forms.CharField(
         label="担当教員",
-        widget=forms.Select(attrs={
-            "class": "form-select",
-            "data-placeholder": "担当教員を選択（未定の場合は空欄）",
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "未選択の場合は空欄",
+            "autofocus": True,
         }),
     )
 
@@ -74,7 +77,7 @@ class LectureScheduleForm(forms.ModelForm):
         label="教室",
         widget=forms.Select(attrs={
             "class": "form-select",
-            "data-placeholder": "教室を選択（未定の場合は空欄）",
+            "data-placeholder": "未定の場合は空欄",
         }),
     )
 
@@ -113,28 +116,29 @@ class LectureScheduleForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         # Select 系の空ラベル統一
-        for field in ["start_period", "end_period", "teacher", "room"]:
+        for field in ["start_period", "end_period", "room"]:
             self.fields[field].empty_label = "---------"
+
     def clean(self):
-            """
-            カスタムバリデーション:
-            開始時限が終了時限よりも後になっていないかを確認する。
-            """
-            cleaned_data = super().clean()
-            start_period = cleaned_data.get("start_period")
-            end_period = cleaned_data.get("end_period")
+        """
+        カスタムバリデーション:
+        開始時限が終了時限よりも後になっていないかを確認する。
+        """
+        cleaned_data = super().clean()
+        start_period = cleaned_data.get("start_period")
+        end_period = cleaned_data.get("end_period")
 
-            if start_period and end_period:
-                # SchoolPeriod オブジェクトの比較:
-                # ここでは SchoolPeriod モデルに時限の順序を示すフィールド (例: `period_number`, `order`, `pk` など)
-                # があり、それを比較に利用できることを前提とします。
-                # 例として、PK (Primary Key) が時限の順序を表していると仮定します。
-                if start_period.pk > end_period.pk:
-                    # フォーム全体ではなく、関連するフィールドにエラーを割り当てる
-                    msg = "終了時限は開始時限以降である必要があります。"
-                    self.add_error('end_period', msg)
+        if start_period and end_period:
+            # SchoolPeriod オブジェクトの比較:
+            # ここでは SchoolPeriod モデルに時限の順序を示すフィールド (例: `period_number`, `order`, `pk` など)
+            # があり、それを比較に利用できることを前提とします。
+            # 例として、PK (Primary Key) が時限の順序を表していると仮定します。
+            if start_period.pk > end_period.pk:
+                # フォーム全体ではなく、関連するフィールドにエラーを割り当てる
+                msg = "終了時限は開始時限以降である必要があります。"
+                self.add_error('end_period', msg)
 
-                    # Globalなエラーとして表示したい場合は以下を使用:
-                    # raise ValidationError("終了時限は開始時限以降である必要があります。", code='invalid_period_range')
+                # Globalなエラーとして表示したい場合は以下を使用:
+                # raise ValidationError("終了時限は開始時限以降である必要があります。", code='invalid_period_range')
 
-            return cleaned_data
+        return cleaned_data
