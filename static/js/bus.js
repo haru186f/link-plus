@@ -172,57 +172,6 @@ function initScheduleModal() {
     const BUS_STOP_MAP = { 1: '八王子みなみ野', 2: '八王子' };
     const formatTime = (time) => time ? time.substring(0, 5) : '----';
 
-/**
- * 残り時間やステータスの表示を整形して挿入
- */
-function updateElementContent(elementId, value, busStopLabel) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-
-    let displayStr;
-    const isNumber = typeof value === 'number';
-
-    if (isNumber) {
-        displayStr = value === 0 ? "間もなく出発" : `${value}分後`;
-    } else {
-        displayStr = value === '-' ? "情報なし" : (value || "エラー");
-    }
-
-    // 数値（残り時間）の場合は強調、それ以外は通常表示
-    element.innerHTML = isNumber 
-        ? `<p style="font-size: 1.2em; color: #1e88e5; font-weight: bold;">${displayStr}</p>`
-        : `<p>${displayStr}</p>`;
-}
-
-/**
- * 現在時刻の表示
- */
-function updateClock() {
-    const clockEl = document.getElementById("clock");
-    if (!clockEl) return;
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('ja-JP', { hour12: false });
-    clockEl.textContent = `現在時刻：${timeStr}`;
-}
-
-/**
- * エラーメッセージの表示
- */
-function displayErrorMessage(msg) {
-    const container = document.getElementById('error_message_container');
-    if (container) {
-        container.innerHTML = msg ? `<p style="color: red;">${msg}</p>` : "";
-    }
-}
-
-// --- 6. モーダル（jQuery） ---
-
-function initScheduleModal() {
-    if (typeof $ === 'undefined') return;
-
-    const BUS_STOP_MAP = { 1: '八王子みなみ野', 2: '八王子' };
-    const formatTime = (time) => time ? time.substring(0, 5) : '----';
-
     $('#openModalBtn').on('click', function() {
         $.ajax({
             url: '/api/bus-schedules',
@@ -250,4 +199,4 @@ function initScheduleModal() {
             error: (xhr) => alert('時刻表の取得に失敗しました。')
         });
     });
-});
+};

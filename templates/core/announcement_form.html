@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-dark text-white">
+      <h5 class="mb-0"><i class="bi bi-megaphone me-2"></i>お知らせを作成</h5>
+    </div>
+    <div class="card-body">
+      <table class="table mb-0">
+        <tbody>
+          {# 投稿フォームの本体 #}
+          <tr>
+            <td class="p-4">
+              <form method="post">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                  <label class="form-label fw-bold">{{ form.target_department.label }}</label>
+                  {{ form.target_department }}
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-bold">{{ form.target_grade.label }}</label>
+                  {{ form.target_grade }}
+                  <div class="form-text">未選択の場合は全ての学年に表示されます。</div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-bold">{{ form.subject.label }}</label>
+                  {{ form.subject }}
+                </div>
+                
+                <div class="mb-3">
+                  <label class="form-label fw-bold">{{ form.body.label }}</label>
+                  {{ form.body }}
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                  <a href="{% url 'core:home' %}" class="btn btn-outline-secondary">
+                    キャンセル
+                  </a>
+                  <button type="submit" class="btn btn-primary px-4">
+                    <i class="bi bi-send-fill me-2"></i>投稿を公開する
+                  </button>
+                </div>
+              </form>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('id_target_department').addEventListener('change', function() {
+    const deptId = this.value;
+    const gradeSelect = document.getElementById('id_target_grade');
+    const helpText = document.getElementById('grade_help');
+
+    // リセット
+    gradeSelect.innerHTML = '<option value="">全学年</option>';
+
+    if (!deptId || deptId === "") {
+        return; // これにより、下の fetch（通信）が実行されず、学年も増えません
+    }
+
+    // views.py の GetGradesView を呼び出す
+    fetch(`/ajax/get-grades/?department_id=${deptId}`)
+        .then(response => response.json())
+        .then(data => {
+            const maxGrade = data.max_grade;
+            for (let i = 1; i <= maxGrade; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i + '年生';
+                gradeSelect.appendChild(option);
+            }
+            helpText.textContent = `この学科は${maxGrade}年制です。`;
+        });
+});
+</script>
+{% endblock %}

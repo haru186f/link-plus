@@ -16,6 +16,33 @@ document.addEventListener('DOMContentLoaded', function() {
     stickyHeaderDates: false,
     fixedWeekCount: true,
     height: 500,
+// --- ここを追加：時刻（数字）の表示を消す ---
+    displayEventTime: false,
+
+    noEventsContent: '本日の講義はありません',
+
+    events: {
+      url: '/api/lecture-events/',
+      method: 'GET',
+      failure: function() {
+        alert('講義予定を読み込めませんでした。');
+      }
+    },
+
+    eventDataTransform: function(eventData) {
+      if (eventData.extendedProps && eventData.extendedProps.full_title) {
+        eventData.title = eventData.extendedProps.full_title;
+      }
+      return eventData;
+    },
+
+    eventClick: function(info) {
+      alert(
+        "講義名: " + info.event.title + "\n" +
+        "時限: " + (info.event.extendedProps.period || "未設定") + "\n" +
+        "教室: " + (info.event.extendedProps.room || "未定")
+      );
+    }
   });
 
   calendar.render();

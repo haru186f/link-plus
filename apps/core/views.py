@@ -2,6 +2,9 @@ from .models import BusStop, BusSchedule
 import math
 from django.views import View
 from django.http import JsonResponse
+from datetime import datetime, timedelta
+from django.utils import timezone
+from django.shortcuts import render, redirect
 from django.views.generic import TemplateView, CreateView, UpdateView, DeleteView, ListView
 from datetime import datetime
 from django.contrib import messages
@@ -11,9 +14,12 @@ from django.core import serializers
 from django.urls import reverse_lazy
 from django.shortcuts import redirect
 import datetime
-from django.db.models import Q # 複雑なクエリのためにQオブジェクトをインポート
+from django.db.models import Q  # 複雑なクエリのためにQオブジェクトをインポート
 from .models import LectureSchedule
+from .forms import AnnouncementForm
+from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.core.exceptions import ValidationError
 
 from apps.core.models import College, Department, Course, BusSchedule, BusStop, ReceivedEmail, LectureSchedule
 from apps.core.forms import LectureScheduleForm
@@ -34,14 +40,24 @@ class HomeView(TemplateView):
         """データをcontextに集約してホームページに送信する"""
         context = super().get_context_data(**kwargs)
 
+        user_dept = None
+        user_grade = None
+        if self.request.user.is_authenticated:
+            try:
+                user_dept = self.request.user.profile.department
+                user_grade = self.request.user.profile.grade
+            except:
+                pass
+
         # contextにデータを集約
         context["bus_schedules"] = BusSchedule.objects.all()
-        context["received_mails"] = ReceivedEmail.objects.all().order_by(
-            '-received_at')[:5]
+        context["received_mails"] = ReceivedEmail.objects.filter(
+            (Q(target_department=user_dept) | Q(target_department__isnull=True)) &
+            (Q(target_grade=user_grade) | Q(target_grade__isnull=True))
+        ).order_by('-received_at')[:5]
         context["lecture_schedules"] = LectureSchedule.objects.all()
 
         return context
-
 
 
 # ==========================================================
@@ -51,7 +67,20 @@ class NewsListView(ListView):
     model = ReceivedEmail
     template_name = 'core/news.html'
     context_object_name = 'all_emails'
-    ordering = ['-received_at']  # 新しい順
+
+    def get_queryset(self):
+        user_dept = None
+        if self.request.user.is_authenticated:
+            try:
+                user_dept = self.request.user.profile.department
+                user_grade = self.request.user.profile.grade
+            except:
+                pass
+
+        return ReceivedEmail.objects.filter(
+            (Q(target_department=user_dept) | Q(target_department__isnull=True)) &
+            (Q(target_grade=user_grade) | Q(target_grade__isnull=True))
+        ).order_by('-received_at')
 
     extra_context = {
         'page_title': 'すべての受信メール'
@@ -77,8 +106,30 @@ def get_data_for_modal(request):
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 # ==========================================================
+# ニュース投稿（お知らせのリストを返す）
+# ==========================================================
+
+
+@user_passes_test(lambda u: u.is_teacher)
+def announcement_create(request):
+    if request.method == 'POST':
+        form = AnnouncementForm(request.POST)
+        if form.is_valid():
+            # commit=False で一旦インスタンスを作り、足りない情報を補填する
+            announcement = form.save(commit=False)
+            announcement.sender = request.user.email
+            announcement.received_at = timezone.now()
+            announcement.message_uid = f"manual-{timezone.now().timestamp()}"
+            announcement.save()  # ここで学科も含めて保存される
+            # ---------------------------------------
+            return redirect('core:home')
+    else:
+        form = AnnouncementForm()
+
+    return render(request, 'core/announcement_form.html', {'form': form})
 # 時間割ビュー
 # ==========================================================
+
 
 class TeacherRequiredMixin(UserPassesTestMixin):
     """
@@ -93,10 +144,11 @@ class TeacherRequiredMixin(UserPassesTestMixin):
         user = self.request.user
         return user.is_authenticated and getattr(user, 'is_teacher', False)
 
+
 class LectureScheduleListView(
     TeacherRequiredMixin,
     ListView,
-    ):
+):
     """
     教員による時間割一覧表示ビュー（Read）
     （全時間割を取得し、曜日ごとにグループ化して表示する）
@@ -106,18 +158,26 @@ class LectureScheduleListView(
 
     def get_queryset(self):
         """時間割データを取得し、事前にロード(selected_related)する"""
-        return (
-            self.model.objects
-            .select_related(
-                "start_period",
-                "end_period",
-                "teacher",
-                "department",
-                "course",
-                "room",
-            )
-            .order_by("weekday", "start_period__period")
+        user_profile = self.request.user.profile
+
+        # 1. 基本フィルタ（学科・学年・クラス）
+        # ※もし管理職など「全学科見たい」場合はここを if 分岐させます
+        queryset = self.model.objects.select_related(
+            "start_period", "end_period", "department", "course", "room"
+        ).filter(
+            department=user_profile.department,
+            target_grade=user_profile.grade,
+            target_class_number=user_profile.class_number,
         )
+
+        # 2. コース（専攻）の判定
+        if user_profile.course:
+            queryset = queryset.filter(course=user_profile.course)
+        else:
+            queryset = queryset.filter(course__isnull=True)
+
+        # 3. 並び替え（曜日順 ＞ 時限順）
+        return queryset.order_by("weekday", "start_period__period")
 
     def get_context_data(self, **kwargs):
         """時間割データを曜日ごとにグループ化し、テンプレートに渡す"""
@@ -142,11 +202,12 @@ class LectureScheduleListView(
         ]
         return context
 
+
 class LectureScheduleCreateView(
     TeacherRequiredMixin,
     SuccessMessageMixin,
     CreateView
-    ):
+):
     """
     教師による時間割作成ビュー（Create）
     （URLパラメータから曜日を初期値として設定する）
@@ -154,8 +215,34 @@ class LectureScheduleCreateView(
     model = LectureSchedule
     form_class = LectureScheduleForm
     template_name = "timetable/lecture_schedule_form.html"
-    success_url = reverse_lazy("core:timetable_list")
+    success_url = reverse_lazy("core:lecture_schedule_list")
     success_message = "新しい時間割を作成しました。"
+
+    def form_valid(self, form):
+        # 1. まだDBに保存せず、メモリ上にインスタンスを作る
+        schedule = form.save(commit=False)
+
+        # 2. ログインユーザー（教師）のプロフィールから情報を取得
+        # teacher.profile の構造に合わせて適宜調整してください
+        user_profile = self.request.user.profile
+
+        # 3. 足りない項目を自動で埋める
+        schedule.department = user_profile.department
+        schedule.target_grade = user_profile.grade
+        schedule.target_class_number = user_profile.class_number
+        schedule.course = user_profile.course
+
+        try:
+            schedule.full_clean()
+        except ValidationError as e:
+            # もし重複エラーが起きたら、エラー内容をフォームに渡して入力画面に戻る
+            for field, messages in e.message_dict.items():
+                for message in messages:
+                    form.add_error(field, message)
+            return self.form_invalid(form)
+
+        # 4. これで models.py の full_clean() をパスできるようになります
+        return super().form_valid(form)
 
     def get_initial(self):
         """URLパラメータからweekdayを取得し、フォームの初期値として設定"""
@@ -164,6 +251,7 @@ class LectureScheduleCreateView(
         if weekday:
             initial["weekday"] = weekday
         return initial
+
 
 class LectureScheduleUpdateView(
     TeacherRequiredMixin,
@@ -176,8 +264,9 @@ class LectureScheduleUpdateView(
     model = LectureSchedule
     form_class = LectureScheduleForm
     template_name = "timetable/lecture_schedule_form.html"
-    success_url = reverse_lazy("core:timetable_list")
+    success_url = reverse_lazy("core:lecture_schedule_list")
     success_message = "時間割を更新しました。"
+
 
 class LectureScheduleDeleteView(
     TeacherRequiredMixin,
@@ -189,18 +278,20 @@ class LectureScheduleDeleteView(
     （delete()をオーバーライドしてメッセージを送信）
     """
     model = LectureSchedule
-    template_name = "timetable/lecture_schedule_comfirm_delete.html"
-    success_url = reverse_lazy("core:timetable_list")
+    template_name = "timetable/lecture_schedule_confirm_delete.html"
+    success_url = reverse_lazy("core:lecture_schedule_list")
 
     def delete(self, request, *args, **kwargs):
-            """オブジェクト削除後、成功メッセージを送信する"""
-            response = super().delete(request, *args, **kwargs)
-            messages.success(self.request, "時間割を削除しました。")
-            return response
+        """オブジェクト削除後、成功メッセージを送信する"""
+        response = super().delete(request, *args, **kwargs)
+        messages.success(self.request, "時間割を削除しました。")
+        return response
 
 # ==========================================================
 # エンドポイント
 # ==========================================================
+
+
 class GetDepartmentsView(View):
     """選択された学部に応じて学科リストを返す"""
 
@@ -362,14 +453,14 @@ class GetNextBusInfo(View):
             return JsonResponse(result, safe=False)
 
         # --- 【曜日判定】 ---
-        now = datetime.datetime.now() # 本番用
+        now = datetime.datetime.now()  # 本番用
         # now = datetime.datetime(2025, 12, 21, 7, 0, 0) # テスト用（20日は土曜）
 
         # 0=月, 1=火, 2=水, 3=木, 4=金, 5=土, 6=日
         current_weekday = now.weekday()
 
         if current_weekday == 5:
-        # 土曜日の場合：is_saturday=True のデータだけを取得
+            # 土曜日の場合：is_saturday=True のデータだけを取得
             stop_schedules = BusSchedule.objects.filter(
                 bus_stop=target_bus_stop,
                 is_saturday=True
@@ -386,7 +477,8 @@ class GetNextBusInfo(View):
 
         # --- 駅 → キャンパス ---
         next_departure = None
-        valid_departure_times = [s.station_departure for s in stop_schedules if s.station_departure]
+        valid_departure_times = [
+            s.station_departure for s in stop_schedules if s.station_departure]
 
         for t in sorted(valid_departure_times):
             remain = calc_remaining_minutes(t)
@@ -401,7 +493,8 @@ class GetNextBusInfo(View):
 
         # --- キャンパス → 駅 ---
         next_return = None
-        valid_return_times = [s.campus_departure for s in stop_schedules if s.campus_departure]
+        valid_return_times = [
+            s.campus_departure for s in stop_schedules if s.campus_departure]
 
         for t in sorted(valid_return_times):
             remain = calc_remaining_minutes(t)
@@ -432,8 +525,6 @@ class GetNextBusInfo(View):
         return JsonResponse(result, safe=False)
 
 
-
-
 class DebugBusSchedule(View):
     def get(self, request, *args, **kwargs):
         data = []
@@ -450,72 +541,65 @@ class DebugBusSchedule(View):
 
         return JsonResponse(data, safe=False)
 
-# ---------------------------------------------------
-#   LectureSchedule API
-# ---------------------------------------------------
-
-
 # ==========================================================
 #   FullCalendarAPI
 # ==========================================================
 def lecture_events(request):
-    """講義スケジュールをFullCalendar形式で返すAPI"""
-
     try:
-        # 認証済みのユーザーのプロフィールを取得
         user_profile = request.user.profile
     except Exception:
-        # プロフィールがない、または認証されていない場合
         return JsonResponse([], safe=False)
 
-    # ユーザーの所属情報を取得
-    target_department = user_profile.department
-    target_course = user_profile.course  # コースがない場合は None になる
-    target_grade = user_profile.grade
-    target_class_number = user_profile.class_number
-
-    # フィルタリング条件を構築
-    # 講義は、以下の条件すべてを満たす必要がある：
-    # 1. 学科が一致する
-    # 2. 学年が一致する
-    # 3. クラスが一致する
+    # --- 1. フィルタ構築 ---
     base_filter = Q(
-        department=target_department,
-        target_grade=target_grade,
-        target_class_number=target_class_number,
+        department=user_profile.department,
+        target_grade=user_profile.grade,
+        target_class_number=user_profile.class_number,
     )
 
-    if target_course:
-        # プロフィールにコースが設定されている場合
-        # → そのコースに紐づいた講義のみを対象とする
-        final_filter = base_filter & Q(course=target_course)
+    if user_profile.course:
+        final_filter = base_filter & Q(course=user_profile.course)
     else:
-        # プロフィールにコースが設定されていない場合 (コースがない学科)
-        # → コースが NULL である講義のみを対象とする
         final_filter = base_filter & Q(course__isnull=True)
 
-    # 絞り込まれた講義スケジュールを取得
-    lectures = LectureSchedule.objects.select_related("room", "department", "course").filter(final_filter)
+    # --- 2. データの取得 ---
+    # ここで 'lectures' を定義しています
+    lectures = LectureSchedule.objects.select_related(
+        "start_period", "end_period", "room"
+    ).filter(final_filter)
 
     events = []
-    weekday_map = ["mon", "tue", "wed", "thu", "fri"]
+    print(f"DEBUG: 取得した講義数 = {lectures.count()}")
 
+    # 今週の月曜日を計算
+    today = datetime.date.today()
+    base_monday = today - datetime.timedelta(days=today.weekday())
+
+    # --- 3. ループ処理 ---
     for lec in lectures:
-        if lec.day_of_week in weekday_map:
-             fc_day = weekday_map.index(lec.day_of_week) + 1
+        try:
+            # 具体的な日付の計算
+            lec_date = base_monday + datetime.timedelta(days=lec.weekday)
 
-        events.append({
-            "title": lec.name,
-            "daysOfWeek": [fc_day],
-            "startTime": lec.start_time.strftime("%H:%M"),
-            "endTime": lec.end_time.strftime("%H:%M"),
-            "extendedProps": {
-                "room": lec.room.name,
-                "department": lec.department.name, # 表示用に学科名を追加
-                "course": lec.course.name if lec.course else "―", # コース名を表示
-                "period": f"{lec.start_period}〜{lec.end_period}限",
-                "is_canceled": lec.is_canceled
-            }
-        })
+            # タイトルを「開始時間：講義名」のような形式にする
+            if isinstance(lec.start_period.start_time, str):
+                start_time_short = lec.start_period.start_time[:5]
+            else:
+                start_time_short = lec.start_period.start_time.strftime('%H:%M')
+
+            full_title = f"{start_time_short} {lec.subject}"
+
+            events.append({
+                'title': lec.subject,
+                'start': f"{lec_date}T{lec.start_period.start_time}",
+                'end': f"{lec_date}T{lec.start_period.end_time}",
+                'extendedProps': {
+                    'full_title': full_title,
+                    'period': lec.start_period.period,
+                    'room': lec.room.name if lec.room else "未定",
+                }
+            })
+        except Exception as e:
+            continue
 
     return JsonResponse(events, safe=False)
