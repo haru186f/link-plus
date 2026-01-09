@@ -306,6 +306,4 @@ class ReceivedEmail(models.Model):
     )
 
     def __str__(self):
-        dept_name = self.target_department.name if self.target_department else "全学科"
-        grade_name = f"{self.target_grade}年" if self.target_grade else "全学年"
-        return f"[{dept_name} {grade_name}] {self.subject}"
+        return self.subject

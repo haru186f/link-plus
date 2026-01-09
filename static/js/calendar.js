@@ -44,6 +44,31 @@ document.addEventListener('DOMContentLoaded', function() {
       );
     }
   });
+    eventSources: [
+      // 終日イベント
+      {
+        url: '/api/all-day-events/',
+        method: 'GET',
+      },
+      // 時間割
+      {
+        url: '/api/lecture-events/',
+        method: 'GET',
+      }
+    ],
+      eventClick(info) {
+        if (info.event.allDay) {
+          alert('【行事】\n' + info.event.title);
+        } else {
+          alert(
+            '【講義】\n' +
+            info.event.title + '\n' +
+            info.event.extendedProps.room
+          );
+        }
+      },
+    }
+  );
 
   calendar.render();
 
@@ -90,18 +115,39 @@ document.addEventListener('DOMContentLoaded', function() {
 
     noEventsContent: '本日の講義はありません',
 
-    events: {
-      url: '/api/lecture-events/',
-      method: 'GET',
-      failure: function() {
-        alert('講義予定を読み込めませんでした。');
+    eventSources: [
+      // 終日イベント
+      {
+        url: '/api/all-day-events/',
+        method: 'GET',
+      },
+      // 時間割
+      {
+        url: '/api/lecture-events/',
+        method: 'GET',
+      }
+    ],
+
+    eventDidMount(info) {
+      // 行事を目立たせる
+      if (info.event.allDay) {
+        info.el.classList.add('fw-bold');
       }
     },
 
-    eventClick: function(info) {
-      alert(info.event.title + "\n" + info.event.extendedProps.room);
+    eventClick(info) {
+      if (info.event.allDay) {
+        alert('【行事】\n' + info.event.title);
+      } else {
+        alert(
+          '【講義】\n' +
+          info.event.title + '\n' +
+          info.event.extendedProps.room
+        );
+      }
     }
-  });
+  }
+);
 
   calendar2.render();
 

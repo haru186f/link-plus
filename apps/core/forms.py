@@ -1,7 +1,8 @@
 from django import forms
 from .models import ReceivedEmail
 from django.contrib.auth import get_user_model
-from apps.core.models import LectureSchedule, SchoolPeriod, Room
+from apps.core.models import Department, LectureSchedule, SchoolPeriod, Room, Event
+from apps.accounts.models import Profile
 
 
 class AnnouncementForm(forms.ModelForm):
@@ -140,5 +141,87 @@ class LectureScheduleForm(forms.ModelForm):
 
                 # Globalなエラーとして表示したい場合は以下を使用:
                 # raise ValidationError("終了時限は開始時限以降である必要があります。", code='invalid_period_range')
+
+        return cleaned_data
+
+
+class EventForm(forms.ModelForm):
+    """イベント登録・編集フォーム"""
+
+    title = forms.CharField(
+        label="イベント名",
+        max_length=200,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "例：紅華祭 / 試験期間 / 休校日",
+            "autofocus": True,
+        }),
+    )
+
+    start_date = forms.DateField(
+        label="開始日",
+        widget=forms.DateInput(attrs={
+            "type": "date",
+            "class": "form-control",
+        }),
+    )
+
+    end_date = forms.DateField(
+        label="終了日",
+        widget=forms.DateInput(attrs={
+            "type": "date",
+            "class": "form-control",
+        }),
+    )
+
+    description = forms.CharField(
+        required=False,
+        label="説明",
+        widget=forms.Textarea(attrs={
+            "class": "form-control",
+            "rows": 3,
+            "placeholder": "必要に応じて詳細を入力してください",
+        }),
+    )
+
+    target_department = forms.ModelChoiceField(
+        queryset=Department.objects.all(),
+        required=False,
+        label="対象学科（未選択なら全学科）",
+        widget=forms.Select(attrs={
+            "class": "form-select",
+        }),
+    )
+
+    target_grade = forms.ChoiceField(
+        choices=[("", "全学年")] + list(Profile.GRADE_CHOICES),
+        required=False,
+        label="対象学年（未選択なら全学年）",
+        widget=forms.Select(attrs={
+            "class": "form-select",
+        }),
+    )
+
+    class Meta:
+        model = Event
+        fields = [
+            "title",
+            "start_date",
+            "end_date",
+            "target_department",
+            "target_grade",
+            "description",
+        ]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start = cleaned_data.get("start_date")
+        end = cleaned_data.get("end_date")
+
+        if start and end and start > end:
+            self.add_error(
+                "end_date",
+                "終了日は開始日以降でなければなりません。"
+            )
 
         return cleaned_data
