@@ -5,6 +5,7 @@ from .views import GetDepartmentsView, GetCoursesView, GetGradesView, NewsListVi
 from .views import receive_email_webhook, api_email_body, lecture_events, get_data_for_modal
 from .views import GetNextBusInfo, DebugBusSchedule
 from .views import LectureScheduleListView, LectureScheduleCreateView, LectureScheduleUpdateView, LectureScheduleDeleteView
+from .views import all_day_events
 
 app_name = 'core'
 urlpatterns = [
@@ -17,13 +18,18 @@ urlpatterns = [
     # path('news/create/', NewsCreateView.as_view(), name="news_create"),
 
     # 時間割
-    path('timetable/', LectureScheduleListView.as_view(), name='lecture_schedule_list'),
-    path('timetable/create/', LectureScheduleCreateView.as_view(), name="lecture_schedule_create"),
-    path('timetable/<int:pk>/update/', LectureScheduleUpdateView.as_view(), name="lecture_schedule_update"),
-    path('timetable/<int:pk>/delete/', LectureScheduleDeleteView.as_view(), name="lecture_schedule_delete"),
+    path('timetable/', LectureScheduleListView.as_view(),
+         name='lecture_schedule_list'),
+    path('timetable/create/', LectureScheduleCreateView.as_view(),
+         name="lecture_schedule_create"),
+    path('timetable/<int:pk>/update/', LectureScheduleUpdateView.as_view(),
+         name="lecture_schedule_update"),
+    path('timetable/<int:pk>/delete/', LectureScheduleDeleteView.as_view(),
+         name="lecture_schedule_delete"),
 
     # エンドポイント
-    path('ajax/get-departments/', GetDepartmentsView.as_view(), name="get_departments"),
+    path('ajax/get-departments/',
+         GetDepartmentsView.as_view(), name="get_departments"),
     path('ajax/get-courses/', GetCoursesView.as_view(), name="get_courses"),
     path('ajax/get-grades/', GetGradesView.as_view(), name="get_grades"),
     path('webhook/', receive_email_webhook, name='email_webhook'),
@@ -33,4 +39,5 @@ urlpatterns = [
     path("api/bus/next/", GetNextBusInfo.as_view(), name="api_next_bus"),
     path("api/debug-bus/", DebugBusSchedule.as_view(), name="debug_bus"),
     path('api/next/', GetNextBusInfo.as_view(), name='get_next_bus_info'),
+    path('api/all-day-events/',  all_day_events, name='all_day_events'),
 ]

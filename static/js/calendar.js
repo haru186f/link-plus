@@ -10,39 +10,45 @@ document.addEventListener('DOMContentLoaded', function() {
     locale: 'ja',
     timeZone: 'Asia/Tokyo',
     height: 'auto',
-    weekends: false,
+    weekends: true,
     expandRows: true,
     headerToolbar: false,
     stickyHeaderDates: false,
     fixedWeekCount: true,
     height: 500,
-// --- ここを追加：時刻（数字）の表示を消す ---
-    displayEventTime: false,
+    displayEventTime: true, // ● 9:30 形式
+    // dayMaxEvents: true,     // +5 more 表示
+    // nowIndicator: true,
 
     noEventsContent: '本日の講義はありません',
 
-    events: {
-      url: '/api/lecture-events/',
-      method: 'GET',
-      failure: function() {
-        alert('講義予定を読み込めませんでした。');
+    eventSources: [
+      // 終日イベント
+      {
+        url: '/api/all-day-events/',
+        method: 'GET',
+      },
+      // 時間割
+      {
+        url: '/api/lecture-events/',
+        method: 'GET',
       }
-    },
+    ],
 
-    eventDataTransform: function(eventData) {
-      if (eventData.extendedProps && eventData.extendedProps.full_title) {
-        eventData.title = eventData.extendedProps.full_title;
-      }
-      return eventData;
-    },
+    // eventDataTransform: function(eventData) {
+    //   if (eventData.extendedProps && eventData.extendedProps.full_title) {
+    //     eventData.title = eventData.extendedProps.full_title;
+    //   }
+    //   return eventData;
+    // },
 
-    eventClick: function(info) {
-      alert(
-        "講義名: " + info.event.title + "\n" +
-        "時限: " + (info.event.extendedProps.period || "未設定") + "\n" +
-        "教室: " + (info.event.extendedProps.room || "未定")
-      );
-    }
+    // eventClick: function(info) {
+    //   alert(
+    //     "講義名: " + info.event.title + "\n" +
+    //     "時限: " + (info.event.extendedProps.period || "未設定") + "\n" +
+    //     "教室: " + (info.event.extendedProps.room || "未定")
+    //   );
+    // }
   });
 
   calendar.render();
@@ -83,25 +89,46 @@ document.addEventListener('DOMContentLoaded', function() {
     locale: 'ja',
     timeZone: 'Asia/Tokyo',
     height: 'auto',
-    weekends: true,
+    weekends: false,
     headerToolbar: false,
     businessHours: true,
     expandRows: true,
 
     noEventsContent: '本日の講義はありません',
 
-    events: {
-      url: '/api/lecture-events/',
-      method: 'GET',
-      failure: function() {
-        alert('講義予定を読み込めませんでした。');
+    eventSources: [
+      // 終日イベント
+      {
+        url: '/api/all-day-events/',
+        method: 'GET',
+      },
+      // 時間割
+      {
+        url: '/api/lecture-events/',
+        method: 'GET',
+      }
+    ],
+
+    eventDidMount(info) {
+      // 行事を目立たせる
+      if (info.event.allDay) {
+        info.el.classList.add('fw-bold');
       }
     },
 
-    eventClick: function(info) {
-      alert(info.event.title + "\n" + info.event.extendedProps.room);
-    }
-  });
+    // eventClick(info) {
+    //   if (info.event.allDay) {
+    //     alert('【行事】\n' + info.event.title);
+    //   } else {
+    //     alert(
+    //       '【講義】\n' +
+    //       info.event.title + '\n' +
+    //       info.event.extendedProps.room
+    //     );
+    //   }
+    // }
+  }
+);
 
   calendar2.render();
 
@@ -128,3 +155,5 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   updateTtTitle();
 });
+
+  

@@ -22,7 +22,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import ValidationError
 
 from apps.core.models import College, Department, Course, BusSchedule, BusStop, ReceivedEmail, LectureSchedule
-from apps.core.forms import LectureScheduleForm
+from apps.core.forms import LectureScheduleForm, Event
 
 import json
 import logging
@@ -601,5 +601,69 @@ def lecture_events(request):
             })
         except Exception as e:
             continue
+        # 開始時刻（HH:MM）
+        start_time = (
+            lec.start_period.start_time.strftime("%H:%M")
+            if hasattr(lec.start_period.start_time, "strftime")
+            else lec.start_period.start_time[:5]
+        )
+
+        end_time = (
+            lec.end_period.end_time.strftime("%H:%M")
+            if hasattr(lec.end_period.end_time, "strftime")
+            else lec.end_period.end_time[:5]
+        )
+
+        full_title = f"{start_time} {lec.subject}"
+
+        events.append({
+            "title": lec.subject,
+            # ★ ここが超重要 ★
+            "daysOfWeek": [lec.weekday + 1],  # 0=日, 1=月, ...（DBに合わせる）
+            "startTime": start_time,
+            "endTime": end_time,
+            "extendedProps": {
+                "full_title": full_title,
+                "period": lec.start_period.period,
+                "room": lec.room.name if lec.room else "未定",
+            },
+        })
+
+    return JsonResponse(events, safe=False)
+
+
+def all_day_events(request):
+    """
+    イベントを FullCalendar 形式で返却
+    （ログインユーザーの学科・学年に応じて絞り込み）
+    """
+    try:
+        user_profile = request.user.profile
+    except Exception:
+        return JsonResponse([], safe=False)
+
+    target_department = user_profile.department
+    target_grade = user_profile.grade
+
+    events = []
+
+    qs = Event.objects.filter(
+        Q(target_department__isnull=True) | Q(
+            target_department=target_department),
+        Q(target_grade__isnull=True) | Q(target_grade=target_grade),
+    )
+
+    for e in qs:
+        events.append({
+            "title": e.title,
+            "start": e.start_date.isoformat(),
+            "end": (e.end_date + timedelta(days=1)).isoformat(),
+            "allDay": True,
+            "extendedProps": {
+                "description": e.description,
+                "target_department": e.target_department_id,
+                "target_grade": e.target_grade,
+            },
+        })
 
     return JsonResponse(events, safe=False)
