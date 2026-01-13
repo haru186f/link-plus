@@ -281,14 +281,17 @@
         <div class="card-header bg-light fw-semibold border-0 py-3 d-flex align-items-center">
           <i class="bi bi-bus-front me-2 fs-5 text-secondary"></i>
           <span class="fs-5">バス時刻</span>
-          <button type="button"
-          class="btn btn-sm btn-outline-secondary ms-auto"
-          id="openModalBtn">一覧
-        　</button>
+          {% if request.user.is_authenticated %}
+            <button type="button"
+                    class="btn btn-sm btn-outline-secondary ms-auto"
+                      id="openModalBtn">一覧
+            </button>
+          {% endif %}
+
       </div>
 
       <div class="card-body px-4 py-3">
-        {% if request.user.is_authenticated and request.user.profile.bus_stop %}
+        {% if request.user.is_authenticated %}
           <div class="bus">
 
             <!-- 行先 & 切り替え -->
