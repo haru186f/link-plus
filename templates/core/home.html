@@ -187,10 +187,32 @@
           <div id="timetable-header-buttons" class="d-flex align-items-center ms-auto"></div>
         </div>
         <div class="card-body">
-          <div class="px-1 py-2">
-            <h3 id="timetable-title" class="m-0 fw-semibold"></h3>
-          </div>
-          <div id="calendar-list"></div>
+          {% if request.user.is_authenticated %}
+
+            <div class="px-1 py-2">
+              <h3 id="timetable-title" class="m-0 fw-semibold"></h3>
+            </div>
+            <div id="calendar-list"></div>
+
+          {% else %}
+
+            <div class="d-flex flex-column justify-content-center align-items-center text-center p-5 h-100">
+              <div class="mb-3 text-muted">
+                <i class="bi bi-calendar-x fs-1"></i>
+              </div>
+
+              <h5 class="fw-semibold mb-2">ログインが必要です</h5>
+
+              <p class="text-muted small mb-4" style="white-space: nowrap;">
+                時間割を確認するにはログインしてください
+              </p>
+
+              <a href="{% url 'login' %}" class="btn btn-primary rounded-pill px-4">
+                ログインする
+              </a>
+            </div>
+
+          {% endif %}
         </div>
       </div>
 
@@ -235,12 +257,13 @@
             </table>
           {% else %}
             <div class="d-flex flex-column justify-content-center align-items-center text-center p-5">
-              <div class="login-icon mb-3">
+              <div class="mb-3 text-muted">
                 <i class="bi bi-lock fs-1"></i>
               </div>
 
               <h5 class="fw-semibold mb-2">ログインが必要です</h5>
-              <p class="text-muted small mb-4">
+
+              <p class="text-muted small mb-4" style="white-space: nowrap;">
                 お知らせを確認するにはログインしてください
               </p>
 
@@ -265,42 +288,64 @@
       </div>
 
       <div class="card-body px-4 py-3">
-        <div class="bus">
+        {% if request.user.is_authenticated and request.user.profile.bus_stop %}
+          <div class="bus">
 
-          <!-- 行先 & 切り替え -->
-          <div class="bus-info d-flex align-items-center justify-content-between mb-3">
-            <div>
-              {% comment %} <div class="text-muted small">行先</div> {% endcomment %}
-              <div id="goTo" class="fw-bold fs-5">
-              <span id="bus_info_{{ bus_stop_name }}_direction_label"></span>
+            <!-- 行先 & 切り替え -->
+            <div class="bus-info d-flex align-items-center justify-content-between mb-3">
+              <div>
+                {% comment %} <div class="text-muted small">行先</div> {% endcomment %}
+                <div id="goTo" class="fw-bold fs-5">
+                <span id="bus_info_{{ bus_stop_name }}_direction_label"></span>
+                </div>
               </div>
+
+              <button
+                id="toggle_direction_btn"
+                type="button"
+                class="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                aria-label="方向切り替え">
+                <i id="direction_icon" class="bi bi-arrow-left-right direction-icon"></i>
+              </button>
             </div>
 
-            <button
-              id="toggle_direction_btn"
-              type="button"
-              class="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center"
-              aria-label="方向切り替え">
-              <i id="direction_icon" class="bi bi-arrow-left-right direction-icon"></i>
-            </button>
+            <!-- バスアイコン -->
+            <div class="text-center my-3">
+              <img src="{% static 'images/bus.png' %}" class="bus-png opacity-75" id="bus">
+            </div>
+
+            <!-- バス時刻 -->
+            <div class="bus-times d-flex flex-column justify-content-center align-items-center text-center p-3 rounded-4 bg-light">
+              <div class="text-muted small mb-1">次のバス</div>
+              <span
+                id="bus_info_{{ bus_stop_name }}_content"
+                class="text-primary fw-bold fs-2">
+                ---
+              </span>
+            </div>
+
           </div>
 
-          <!-- バスアイコン -->
-          <div class="text-center my-3">
-            <img src="{% static 'images/bus.png' %}" class="bus-png opacity-75" id="bus">
+        {% else %}
+
+          <div class="d-flex flex-column justify-content-center align-items-center text-center p-5 h-100">
+
+            <div class="mb-3 text-muted">
+              <i class="bi bi-bus-front fs-1"></i>
+            </div>
+
+            <h5 class="fw-semibold mb-2">ログインが必要です</h5>
+
+            <p class="text-muted small mb-4" style="white-space: nowrap;">
+              バス時刻を確認するにはログインしてください
+            </p>
+
+            <a href="{% url 'login' %}" class="btn btn-primary rounded-pill px-4">
+              ログインする
+            </a>
           </div>
 
-          <!-- バス時刻 -->
-          <div class="bus-times d-flex flex-column justify-content-center align-items-center text-center p-3 rounded-4 bg-light">
-            <div class="text-muted small mb-1">次のバス</div>
-            <span
-              id="bus_info_{{ bus_stop_name }}_content"
-              class="text-primary fw-bold fs-2">
-              ---
-            </span>
-          </div>
-
-        </div>
+        {% endif %}
       </div>
 
       </div>
