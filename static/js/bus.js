@@ -110,7 +110,7 @@ function updateHtml(data) {
 
         const isCampus = currentDirection === 'campus';
         const displayValue = isCampus ? info.departure_to_campus : info.return_to_station;
-        const targetLabel = isCampus ? "駅発" : "キャンパス発";
+        const targetLabel = isCampus ? `${SELECTED_BUS_STOP}駅発` : "キャンパス発";
 
         // ラベル更新
         const labelEl = document.getElementById(`${elementId}_direction_label`);

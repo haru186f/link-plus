@@ -10,6 +10,21 @@
   <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
   {# My CSS #}
   <link rel="stylesheet" href="{% static 'css/home.css' %}">
+  <style>
+    #toggle_direction_btn {
+      width: 44px;
+      height: 44px;
+      }
+
+      #toggle_direction_btn:hover {
+      background-color: #f1f3f5;
+      transform: rotate(180deg);
+      }
+
+      #direction_icon {
+      color: #495057;
+      }
+    </style>
 {% endblock css %}
 
 {% block script %}
@@ -37,7 +52,7 @@
     } else {
         USER_BUS_STOP_ID = 2;
     }
-    const STATION_GO_TEXT = SELECTED_BUS_STOP_NAME + '行き';
+    const STATION_GO_TEXT = SELECTED_BUS_STOP_NAME + '発';
   </script>
 {% endblock script %}
 
@@ -79,7 +94,7 @@
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="dataModalLabel">データベースのリスト</h5>
+        <h3>バスの時刻表</h3>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -192,29 +207,48 @@
           <i class="bi bi-newspaper me-2 fs-5 text-secondary"></i>
           <span class="fs-5">お知らせ</span>
           <a href="{% url 'core:news_list' %}" class="ms-auto">
-            <button class="btn btn-sm btn-outline-secondary">一覧</button>
+            {% if request.user.is_authenticated %}
+              <button class="btn btn-sm btn-outline-secondary">一覧</button>
+            {% endif %}
           </a>
         </div>
         <div class="card-body p-0">
-          <table class="table table-sm mb-0 table-hover align-middle">
-            <thead class="table-light">
-              <tr>
-                <th style="width:80px; text-align:center;">発信日</th>
-                <th style="text-align:left;">タイトル</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for email in received_mails %}
-                <tr href="{% url 'core:api_email_body' email.pk %}" class="email-link "
-                    data-url="{% url 'core:api_email_body' email.pk %}"
-                    style="cursor:pointer;">
-                  <td style="text-align:center;">{{ email.received_at|date:"m/d" }}</td>
-                  <td style="text-align:left;">{{ email.subject|truncatechars:46 }}</td>
+          {% if request.user.is_authenticated %}
+            <table class="table table-sm mb-0 table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th style="width:80px; text-align:center;">発信日</th>
+                  <th style="text-align:left;">タイトル</th>
                 </tr>
-                {% empty %}
-              {% endfor %}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {% for email in received_mails %}
+                  <tr href="{% url 'core:api_email_body' email.pk %}" class="email-link "
+                      data-url="{% url 'core:api_email_body' email.pk %}"
+                      style="cursor:pointer;">
+                    <td style="text-align:center;">{{ email.received_at|date:"m/d" }}</td>
+                    <td style="text-align:left;">{{ email.subject|truncatechars:46 }}</td>
+                  </tr>
+                  {% empty %}
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <div class="d-flex flex-column justify-content-center align-items-center text-center p-5">
+              <div class="login-icon mb-3">
+                <i class="bi bi-lock fs-1"></i>
+              </div>
+
+              <h5 class="fw-semibold mb-2">ログインが必要です</h5>
+              <p class="text-muted small mb-4">
+                お知らせを確認するにはログインしてください
+              </p>
+
+              <a href="{% url 'login' %}" class="btn btn-primary rounded-pill px-4">
+                ログインする
+              </a>
+            </div>
+          {% endif %}
         </div>
       </div>
 
@@ -230,29 +264,45 @@
         　</button>
       </div>
 
-        <div class="card-body">
-          <div class="bus">
-            <div class="bus-info">
-              <h3 id="goTo">
-                <strong>行先: </strong>
-                <span id="bus_info_{{ bus_stop_name }}_direction_label"></span>
-              </h3>
-              <button id="toggle_direction_btn" class="direction-toggle-btn active" type="button">
-                <img id="direction_icon" src="{% static 'images/settings.png' %}" alt="方向切り替え" class="bus-png" id="busBT">
-              </button>
-            </div>
-            <h4>
-              <img src="{% static 'images/bus.png' %}" class="bus-png" id="bus">
-            </h4>
-            <div class="bus-times d-flex flex-column justify-content-center align-items-center text-center p-3 rounded-4">
-              <h5 class="mb-2 text-secondary fw-bold" style="font-size: 0.9rem;">
-                <span id="bus_info_八王子_content" class="text-primary fs-4 ms-1">---</span>
-              </h5>
-              {# 現在時刻 #}
+      <div class="card-body px-4 py-3">
+        <div class="bus">
 
+          <!-- 行先 & 切り替え -->
+          <div class="bus-info d-flex align-items-center justify-content-between mb-3">
+            <div>
+              {% comment %} <div class="text-muted small">行先</div> {% endcomment %}
+              <div id="goTo" class="fw-bold fs-5">
+              <span id="bus_info_{{ bus_stop_name }}_direction_label"></span>
+              </div>
             </div>
+
+            <button
+              id="toggle_direction_btn"
+              type="button"
+              class="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+              aria-label="方向切り替え">
+              <i id="direction_icon" class="bi bi-arrow-left-right direction-icon"></i>
+            </button>
           </div>
+
+          <!-- バスアイコン -->
+          <div class="text-center my-3">
+            <img src="{% static 'images/bus.png' %}" class="bus-png opacity-75" id="bus">
+          </div>
+
+          <!-- バス時刻 -->
+          <div class="bus-times d-flex flex-column justify-content-center align-items-center text-center p-3 rounded-4 bg-light">
+            <div class="text-muted small mb-1">次のバス</div>
+            <span
+              id="bus_info_{{ bus_stop_name }}_content"
+              class="text-primary fw-bold fs-2">
+              ---
+            </span>
+          </div>
+
         </div>
+      </div>
+
       </div>
       {% endwith %}
 
