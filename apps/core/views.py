@@ -21,8 +21,8 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import ValidationError
 
-from apps.core.models import College, Department, Course, BusSchedule, BusStop, ReceivedEmail, LectureSchedule, Event
-from apps.core.forms import LectureScheduleForm, EventForm
+from apps.core.models import College, Department, Course, BusSchedule, BusStop, ReceivedEmail, LectureSchedule
+from apps.core.forms import LectureScheduleForm, Event
 
 import json
 import logging
@@ -286,64 +286,6 @@ class LectureScheduleDeleteView(
         response = super().delete(request, *args, **kwargs)
         messages.success(self.request, "時間割を削除しました。")
         return response
-
-# ==========================================================
-# イベントビュー
-# ==========================================================
-class EventListView(
-    TeacherRequiredMixin,
-    ListView
-):
-    """
-    イベント一覧表示
-    """
-    model = Event
-    template_name = "events/event_list.html"
-
-class EventCreateView(
-    TeacherRequiredMixin,
-    SuccessMessageMixin,
-    CreateView
-):
-    """
-    イベント作成
-    """
-    model = Event
-    form_class = EventForm
-    template_name = "events/event_form.html"
-    success_url = reverse_lazy("core:event_list")
-    success_message = "イベントを作成しました。"
-
-class EventUpdateView(
-    TeacherRequiredMixin,
-    SuccessMessageMixin,
-    UpdateView
-):
-    """
-    イベント更新
-    """
-    model = Event
-    form_class = EventForm
-    template_name = "events/event_form.html"
-    success_url = reverse_lazy("core:event_list")
-    success_message = "イベントを更新しました。"
-
-class EventDeleteView(
-    TeacherRequiredMixin,
-    DeleteView
-):
-    """
-    終日イベント削除
-    """
-    model = Event
-    template_name = "events/event_confirm_delete.html"
-    success_url = reverse_lazy("core:event_list")
-
-    def delete(self, request, *args, **kwargs):
-        response = super().delete(request, *args, **kwargs)
-        messages.success(request, "終日イベントを削除しました。")
-        return response
-
 
 # ==========================================================
 # エンドポイント
@@ -659,6 +601,33 @@ def lecture_events(request):
             })
         except Exception as e:
             continue
+        # 開始時刻（HH:MM）
+        start_time = (
+            lec.start_period.start_time.strftime("%H:%M")
+            if hasattr(lec.start_period.start_time, "strftime")
+            else lec.start_period.start_time[:5]
+        )
+
+        end_time = (
+            lec.end_period.end_time.strftime("%H:%M")
+            if hasattr(lec.end_period.end_time, "strftime")
+            else lec.end_period.end_time[:5]
+        )
+
+        full_title = f"{start_time} {lec.subject}"
+
+        events.append({
+            "title": lec.subject,
+            # ★ ここが超重要 ★
+            "daysOfWeek": [lec.weekday + 1],  # 0=日, 1=月, ...（DBに合わせる）
+            "startTime": start_time,
+            "endTime": end_time,
+            "extendedProps": {
+                "full_title": full_title,
+                "period": lec.start_period.period,
+                "room": lec.room.name if lec.room else "未定",
+            },
+        })
 
     return JsonResponse(events, safe=False)
 
@@ -679,7 +648,8 @@ def all_day_events(request):
     events = []
 
     qs = Event.objects.filter(
-        Q(target_department__isnull=True) | Q(target_department=target_department),
+        Q(target_department__isnull=True) | Q(
+            target_department=target_department),
         Q(target_grade__isnull=True) | Q(target_grade=target_grade),
     )
 

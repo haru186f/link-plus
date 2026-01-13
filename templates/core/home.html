@@ -28,7 +28,7 @@
   <script>
     // サーバー側で値が埋め込まれる（例: '八王子'）
     const SELECTED_BUS_STOP_NAME = '{{ request.user.profile.bus_stop|default:"八王子" }}';
-    // 💡 この変換ロジックも、埋め込まれた値を使って即座に実行される必要があります。
+
     let USER_BUS_STOP_ID;
     if (SELECTED_BUS_STOP_NAME === '八王子') {
         USER_BUS_STOP_ID = 2;
@@ -37,6 +37,7 @@
     } else {
         USER_BUS_STOP_ID = 2;
     }
+    const STATION_GO_TEXT = SELECTED_BUS_STOP_NAME + '行き';
   </script>
 {% endblock script %}
 
@@ -248,9 +249,7 @@
                 <span id="bus_info_八王子_content" class="text-primary fs-4 ms-1">---</span>
               </h5>
               {# 現在時刻 #}
-              <p id="clock" class="m-0" style="font-size: 1.1rem; font-weight: bold; color: #2563eb;">
-                現在時刻：読み込み中…
-              </p>
+
             </div>
           </div>
         </div>
