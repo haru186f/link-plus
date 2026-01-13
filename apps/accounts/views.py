@@ -1,15 +1,18 @@
 from django.contrib.auth import login, get_user_model
+from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .forms import SignupForm, CustomAuthenticationForm, ProfileForm
-from apps.core.models import College
+from apps.core.models import College, Course
 from .models import Profile
 
 
 User = get_user_model()
+
+
 class SignupView(CreateView):
     """ユーザ登録ビュー"""
     model = User
