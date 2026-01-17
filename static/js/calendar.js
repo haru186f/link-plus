@@ -9,23 +9,21 @@ document.addEventListener('DOMContentLoaded', function() {
     initialView: 'dayGridMonth',
     locale: 'ja',
     timeZone: 'Asia/Tokyo',
-    height: 'auto',
     weekends: true,
+    height: 600,
     expandRows: true,
     headerToolbar: false,
     stickyHeaderDates: false,
     fixedWeekCount: true,
-    height: 500,
-    displayEventTime: true, // ● 9:30 形式
-    // dayMaxEvents: true,     // +5 more 表示
-    // nowIndicator: true,
+    dayMaxEventRows: 3,
+    displayEventTime: true,
 
     noEventsContent: '本日の講義はありません',
 
     eventSources: [
-      // 終日イベント
+      // 学内イベント
       {
-        url: '/api/all-day-events/',
+        url: 'api/events/internal/',
         method: 'GET',
       },
       // 時間割
@@ -34,21 +32,6 @@ document.addEventListener('DOMContentLoaded', function() {
         method: 'GET',
       }
     ],
-
-    // eventDataTransform: function(eventData) {
-    //   if (eventData.extendedProps && eventData.extendedProps.full_title) {
-    //     eventData.title = eventData.extendedProps.full_title;
-    //   }
-    //   return eventData;
-    // },
-
-    // eventClick: function(info) {
-    //   alert(
-    //     "講義名: " + info.event.title + "\n" +
-    //     "時限: " + (info.event.extendedProps.period || "未設定") + "\n" +
-    //     "教室: " + (info.event.extendedProps.room || "未定")
-    //   );
-    // }
   });
 
   calendar.render();
@@ -89,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
     locale: 'ja',
     timeZone: 'Asia/Tokyo',
     height: 'auto',
-    weekends: false,
+    weekends: true,
     headerToolbar: false,
     businessHours: true,
     expandRows: true,

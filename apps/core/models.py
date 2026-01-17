@@ -314,6 +314,7 @@ class ReceivedEmail(models.Model):
 
 
 class Event(models.Model):
+
     title = models.CharField(max_length=200)
     start_date = models.DateField()
     end_date = models.DateField()
@@ -324,18 +325,43 @@ class Event(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        default=None
     )
 
     target_grade = models.PositiveIntegerField(
         choices=Profile.GRADE_CHOICES,
         null=True,
         blank=True,
+        default=None
+    )
+
+    is_external = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="学外向けイベントかどうか（False=学内向け）",
     )
 
     class Meta:
-        ordering = ["start_date"]
+        ordering = ["is_external", "start_date", "end_date"]
 
     def __str__(self):
-        dept_name = self.target_department.name if self.target_department else "全学科"
-        grade_name = f"{self.target_grade}年" if self.target_grade else "全学年"
-        return f"[{dept_name} {grade_name}] {self.title}（{self.start_date}〜{self.end_date}）"
+        scope = "学外" if self.is_external else "学内"
+
+        dept = (
+            self.target_department.name
+            if self.target_department
+            else "全学科"
+        )
+
+        grade = (
+            self.get_target_grade_display()
+            if self.target_grade is not None
+            else "全学年"
+        )
+
+        if self.start_date == self.end_date:
+            date_str = self.start_date
+        else:
+            date_str = f"{self.start_date}〜{self.end_date}"
+
+        return f"[{scope}｜{dept} {grade}] {self.title}（{date_str}）"

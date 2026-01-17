@@ -161,8 +161,12 @@
   {# ----- Main content ----- #}
   <div class="row g-4 h-100">
 
+
+
     {# ----- 左列：カレンダーと時間割（２項目）----- #}
     <div class="col-lg-8 d-flex flex-column gap-4">
+
+
 
       {# 1. カレンダー（上側） #}
       <div class="card shadow-sm rounded-4 border-0 h-100">
@@ -179,6 +183,8 @@
         </div>
       </div>
 
+
+
       {# 2. 時間割（下側） #}
       <div class="card shadow-sm rounded-4 border-0 h-100">
         <div class="card-header bg-light fw-semibold border-0 py-3 d-flex align-items-center">
@@ -187,10 +193,31 @@
           <div id="timetable-header-buttons" class="d-flex align-items-center ms-auto"></div>
         </div>
         <div class="card-body">
-          <div class="px-1 py-2">
-            <h3 id="timetable-title" class="m-0 fw-semibold"></h3>
-          </div>
-          <div id="calendar-list"></div>
+          {% if request.user.is_authenticated %}
+
+            {# === ログイン時：フル機能 === #}
+            <div class="px-1 py-2">
+              <h3 id="timetable-title" class="m-0 fw-semibold"></h3>
+            </div>
+            <div id="calendar-list"></div>
+
+          {% else %}
+
+            {# 未ログイン：ログインを促す #}
+            <div class="d-flex flex-column justify-content-center align-items-center text-center p-5">
+              <div class="mb-3 text-muted">
+                <i class="bi bi-lock fs-1"></i>
+              </div>
+              <h5 class="fw-semibold mb-2">ログインが必要です</h5>
+              <p class="text-muted small mb-4" style="white-space: nowrap;">
+                ログインすると担任が設定した時間割を確認できます
+              </p>
+              <a href="{% url 'login' %}" class="btn btn-primary rounded-pill px-4">
+                ログインする
+              </a>
+            </div>
+
+          {% endif %}
         </div>
       </div>
 
@@ -214,6 +241,8 @@
         </div>
         <div class="card-body p-0">
           {% if request.user.is_authenticated %}
+
+            {# === ログイン時：フル機能 === #}
             <table class="table table-sm mb-0 table-hover align-middle">
               <thead class="table-light">
                 <tr>
@@ -233,24 +262,28 @@
                 {% endfor %}
               </tbody>
             </table>
+
           {% else %}
+
+            {# === 未ログイン時：ログインを促す === #}
             <div class="d-flex flex-column justify-content-center align-items-center text-center p-5">
-              <div class="login-icon mb-3">
+              <div class="mb-3 text-muted">
                 <i class="bi bi-lock fs-1"></i>
               </div>
-
               <h5 class="fw-semibold mb-2">ログインが必要です</h5>
-              <p class="text-muted small mb-4">
-                お知らせを確認するにはログインしてください
+              <p class="text-muted small mb-4" style="white-space: nowrap;">
+                ログインすると学内向けのお知らせを確認できます
               </p>
-
               <a href="{% url 'login' %}" class="btn btn-primary rounded-pill px-4">
                 ログインする
               </a>
             </div>
+
           {% endif %}
         </div>
       </div>
+
+
 
       {# 2. バス（中央） #}
       {% with bus_stop_name=request.user.profile.bus_stop|default:'八王子' %}
@@ -258,53 +291,79 @@
         <div class="card-header bg-light fw-semibold border-0 py-3 d-flex align-items-center">
           <i class="bi bi-bus-front me-2 fs-5 text-secondary"></i>
           <span class="fs-5">バス時刻</span>
-          <button type="button"
-          class="btn btn-sm btn-outline-secondary ms-auto"
-          id="openModalBtn">一覧
-        　</button>
-      </div>
+          {% if request.user.is_authenticated %}
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary ms-auto"
+              id="openModalBtn">
+              一覧
+            </button>
+          {% endif %}
+        </div>
+        <div class="card-body px-4 py-3">
 
-      <div class="card-body px-4 py-3">
-        <div class="bus">
+          {% if request.user.is_authenticated %}
+            {# === ログイン時：フル機能 === #}
+            <div class="bus">
 
-          <!-- 行先 & 切り替え -->
-          <div class="bus-info d-flex align-items-center justify-content-between mb-3">
-            <div>
-              {% comment %} <div class="text-muted small">行先</div> {% endcomment %}
-              <div id="goTo" class="fw-bold fs-5">
-              <span id="bus_info_{{ bus_stop_name }}_direction_label"></span>
+              <!-- 行先 & 切り替え -->
+              <div class="bus-info d-flex align-items-center justify-content-between mb-3">
+                <div class="fw-bold fs-5">
+                  <span id="bus_info_{{ bus_stop_name }}_direction_label"></span>
+                </div>
+              <button
+                id="toggle_direction_btn"
+                type="button"
+                class="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                aria-label="方向切り替え">
+                <i id="direction_icon" class="bi bi-arrow-left-right"></i>
+              </button>
               </div>
+
+              <!-- バスアイコン -->
+              <div class="text-center my-3">
+                <img
+                  id="bus"
+                  src="{% static 'images/bus.png' %}"
+                  class="bus-png opacity-75"
+                  alt="bus">
+              </div>
+
+              <!-- 次のバス -->
+              <div class="bus-times d-flex flex-column justify-content-center align-items-center text-center p-3 rounded-4 bg-light">
+                <div class="text-muted small mb-1">次のバス</div>
+                <span
+                  id="bus_info_{{ bus_stop_name }}_content"
+                  class="text-primary fw-bold fs-2">
+                  ---
+                </span>
+              </div>
+
             </div>
 
-            <button
-              id="toggle_direction_btn"
-              type="button"
-              class="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center"
-              aria-label="方向切り替え">
-              <i id="direction_icon" class="bi bi-arrow-left-right direction-icon"></i>
-            </button>
-          </div>
+          {% else %}
 
-          <!-- バスアイコン -->
-          <div class="text-center my-3">
-            <img src="{% static 'images/bus.png' %}" class="bus-png opacity-75" id="bus">
-          </div>
+            {# === 未ログイン：簡易表示＋ログインを促す === #}
+            <div class="d-flex flex-column justify-content-center align-items-center text-center p-4 h-100 rounded-4">
+              <div class="text-muted small mb-1">
+                次のバス（八王子駅 → キャンパス）
+              </div>
+              <div class="fw-bold fs-2 text-primary mb-2"  id="bus_info_八王子_content">
+                --:--
+              </div>
+              <p class="text-muted small mb-4">
+                ログインするとバス停・方向別に確認できます
+              </p>
+              <a href="{% url 'login' %}" class="btn btn-primary rounded-pill px-4">
+                ログインする
+              </a>
+            </div>
 
-          <!-- バス時刻 -->
-          <div class="bus-times d-flex flex-column justify-content-center align-items-center text-center p-3 rounded-4 bg-light">
-            <div class="text-muted small mb-1">次のバス</div>
-            <span
-              id="bus_info_{{ bus_stop_name }}_content"
-              class="text-primary fw-bold fs-2">
-              ---
-            </span>
-          </div>
-
+          {% endif %}
         </div>
       </div>
-
-      </div>
       {% endwith %}
+
 
       {# 3. マップ（下側） #}
       <div class="card shadow-sm rounded-4 border-0 h-100 flex-grow-3">
