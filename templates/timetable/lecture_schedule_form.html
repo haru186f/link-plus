@@ -11,10 +11,6 @@
 {% endblock css %}
 
 
-{% block script %}
-{% endblock script %}
-
-
 {% block content %}
 <div class="container py-4">
   <div class="card shadow-sm">
@@ -107,6 +103,15 @@
           {{ form.status }}
         </div>
 
+        <div id="specific-date-area" class="mb-3" style="display: none;">
+          <label for="specific_date" class="form-label text-primary fw-bold">
+            <i class="fas fa-calendar-check"></i> 適用する日付を選択してください
+          </label>
+          <input type="date" id="specific_date" name="specific_date" class="form-control border-primary">
+          <div id="date-error" class="form-text text-danger"></div>
+          <small class="text-muted">※選択した日の授業のみ状態が変更されます。他の週は影響を受けません。</small>
+        </div>
+
         {# --- 備考 --- #}
         <div class="mb-3">
           <label for="{{ form.note.id_for_label }}" class="form-label">
@@ -129,3 +134,49 @@
 </div>
 
 {% endblock content %}
+
+{# --- ここから下に書き足します --- #}
+{% block script %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statusField = document.querySelector('[name="status"]');
+    const weekdayField = document.querySelector('[name="weekday"]');
+    const dateArea = document.getElementById('specific-date-area');
+    const dateInput = document.getElementById('specific_date');
+    const errorMsg = document.getElementById('date-error');
+
+    function toggleDateInput() {
+        const statusText = statusField.options[statusField.selectedIndex].text;
+        if (statusText.includes('休講')) {
+            dateArea.style.display = 'block';
+        } else {
+            dateArea.style.display = 'none';
+            dateInput.value = '';
+        }
+    }
+
+    statusField.addEventListener('change', toggleDateInput);
+    toggleDateInput();
+
+    dateInput.addEventListener('change', function() {
+        if (!this.value) return;
+        const date = new Date(this.value);
+        const day = date.getDay(); 
+        
+        // Djangoの曜日(0:月...)をJSの曜日(1:月...)に変換
+        const selectedWeekdayValue = parseInt(weekdayField.value); 
+        const targetDay = selectedWeekdayValue + 1; 
+
+        if (day !== targetDay) {
+            const weekdayName = weekdayField.options[weekdayField.selectedIndex].text;
+            errorMsg.textContent = `※${weekdayName}の日付を選択してください。`;
+            this.value = '';
+            this.classList.add('is-invalid');
+        } else {
+            errorMsg.textContent = "";
+            this.classList.remove('is-invalid');
+        }
+    });
+});
+</script>
+{% endblock script %}
