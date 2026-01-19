@@ -23,22 +23,32 @@ class AnnouncementForm(forms.ModelForm):
         }
 
 
-class AnnouncementForm(forms.ModelForm):
-    class Meta:
-        model = ReceivedEmail
-        fields = ['target_department', 'target_grade', 'subject', 'body']
+# class EventForm(forms.ModelForm):
+#     class Meta:
+#         model = Event
+#         # description をリストに追加します
+#         fields = ['title', 'start_date', 'end_date',
+#                   'description', 'is_external']
 
-        labels = {
-            'target_department': '投稿対象（未選択なら全員）',
-            'subject': '件名',
-            'body': '本文',
-        }
-        widgets = {
-            'target_department': forms.Select(attrs={'class': 'form-select', 'id': 'id_target_department'}),
-            'target_grade': forms.Select(attrs={'class': 'form-select', 'id': 'id_target_grade'}),
-            'subject': forms.TextInput(attrs={'class': 'form-control'}),
-            'body': forms.Textarea(attrs={'class': 'form-control', 'rows': 10}),
-        }
+#         widgets = {
+#             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '例：紅華祭 / 試験期間 / 休校日'}),
+#             'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+#             'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+#             # 説明欄を textarea（複数行入力）に設定
+#             'description': forms.Textarea(attrs={
+#                 'class': 'form-control',
+#                 'rows': 3,
+#                 'placeholder': '必要に応じて詳細を入力してください'
+#             }),
+#             'is_external': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+#         }
+#         labels = {
+#             'title': 'イベント名',
+#             'start_date': '開始日',
+#             'end_date': '終了日',
+#             'is_external': '公開範囲',
+#             'description': '説明',
+#         }
 
 
 class LectureScheduleForm(forms.ModelForm):
@@ -192,6 +202,18 @@ class EventForm(forms.ModelForm):
         }),
     )
 
+    is_external = forms.ChoiceField(
+        label="公開範囲",
+        choices=[
+            (False, "学内"),
+            (True, "学外"),
+        ],
+        widget=forms.Select(attrs={
+            "class": "form-select",
+        }),
+        initial=False,
+    )
+
     description = forms.CharField(
         required=False,
         label="説明",
@@ -226,6 +248,7 @@ class EventForm(forms.ModelForm):
             "title",
             "start_date",
             "end_date",
+            "is_external",
             "target_department",
             "target_grade",
             "description",

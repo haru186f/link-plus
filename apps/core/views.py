@@ -20,9 +20,10 @@ from .forms import AnnouncementForm
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import ValidationError
+from django.contrib.auth.decorators import login_required
 
-from apps.core.models import College, Department, Course, BusSchedule, BusStop, ReceivedEmail, LectureSchedule
-from apps.core.forms import LectureScheduleForm, Event
+from apps.core.models import College, Department, Course, BusSchedule, BusStop, ReceivedEmail, LectureSchedule, Event
+from apps.core.forms import LectureScheduleForm, EventForm
 
 import json
 import logging
@@ -58,6 +59,17 @@ class HomeView(TemplateView):
         context["lecture_schedules"] = LectureSchedule.objects.all()
 
         return context
+
+
+def home(request):
+    if request.user.is_authenticated:
+        # ログインしている人は全部見える
+        events = Event.objects.all()
+    else:
+        # ログインしていない人は、プルダウンで「すべて(True)」にしたものだけ見える
+        events = Event.objects.filter(is_external=True)
+
+    return render(request, 'core/home.html', {'events': events})
 
 
 # ==========================================================
@@ -544,6 +556,8 @@ class DebugBusSchedule(View):
 # ==========================================================
 #   FullCalendarAPI
 # ==========================================================
+
+
 def lecture_events(request):
     try:
         user_profile = request.user.profile
@@ -585,7 +599,8 @@ def lecture_events(request):
             if isinstance(lec.start_period.start_time, str):
                 start_time_short = lec.start_period.start_time[:5]
             else:
-                start_time_short = lec.start_period.start_time.strftime('%H:%M')
+                start_time_short = lec.start_period.start_time.strftime(
+                    '%H:%M')
 
             full_title = f"{start_time_short} {lec.subject}"
 
@@ -632,38 +647,93 @@ def lecture_events(request):
     return JsonResponse(events, safe=False)
 
 
-def all_day_events(request):
+@login_required
+def internal_events_api(request):
     """
-    イベントを FullCalendar 形式で返却
-    （ログインユーザーの学科・学年に応じて絞り込み）
+    学内イベント（ログインユーザーの学科・学年に応じて）
     """
-    try:
-        user_profile = request.user.profile
-    except Exception:
-        return JsonResponse([], safe=False)
-
-    target_department = user_profile.department
-    target_grade = user_profile.grade
-
-    events = []
+    profile = request.user.profile
 
     qs = Event.objects.filter(
+        is_external=False
+    ).filter(
         Q(target_department__isnull=True) | Q(
-            target_department=target_department),
-        Q(target_grade__isnull=True) | Q(target_grade=target_grade),
+            target_department=profile.department),
+        Q(target_grade__isnull=True) | Q(target_grade=profile.grade),
     )
 
-    for e in qs:
-        events.append({
+    events = [
+        {
             "title": e.title,
             "start": e.start_date.isoformat(),
             "end": (e.end_date + timedelta(days=1)).isoformat(),
             "allDay": True,
             "extendedProps": {
                 "description": e.description,
-                "target_department": e.target_department_id,
-                "target_grade": e.target_grade,
+                "scope": "internal",
             },
-        })
+        }
+        for e in qs
+    ]
 
     return JsonResponse(events, safe=False)
+
+
+def external_events_api(request):
+    """
+    学外向けイベント（全員に公開）
+    """
+    qs = Event.objects.filter(is_external=True)
+
+    events = [
+        {
+            "title": e.title,
+            "start": e.start_date.isoformat(),
+            "end": (e.end_date + timedelta(days=1)).isoformat(),
+            "allDay": True,
+            "extendedProps": {
+                "description": e.description,
+                "scope": "external",
+            },
+        }
+        for e in qs
+    ]
+
+    return JsonResponse(events, safe=False)
+
+
+class BaseEventCreateView(LoginRequiredMixin, CreateView):
+    model = Event
+    form_class = EventForm
+    template_name = "core/event_form.html"
+    success_url = reverse_lazy("core:home")
+
+    is_external_value = None  # 子クラスで指定
+
+    def form_valid(self, form):
+        event = form.save(commit=False)
+        event.is_external = self.is_external_value
+        event.save()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["scope"] = "external" if self.is_external_value else "internal"
+        return context
+
+
+class InternalEventCreateView(BaseEventCreateView):
+    """
+    学内イベント作成
+    """
+    is_external_value = False
+
+
+class ExternalEventCreateView(UserPassesTestMixin, BaseEventCreateView):
+    """
+    学外イベント作成（管理者専用）
+    """
+    is_external_value = True
+
+    def test_func(self):
+        return self.request.user.is_staff
