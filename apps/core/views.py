@@ -427,6 +427,24 @@ def api_email_body(request, pk):
     # GETメソッド以外でのリクエストを拒否
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
+# ---------------------------------------------------
+# ✨ メール一覧表示 ✨
+# ---------------------------------------------------
+def mail_list_view(request):
+    """
+    すべての受信メールを表示するためのビュー。
+    """
+    # データベースからすべてのメールオブジェクトを取得します
+    # 通常は新しい順に並べ替えます
+    all_emails = ReceivedEmail.objects.all().order_by('-received_at')
+
+    context = {
+        'all_emails': all_emails,
+        'page_title': 'すべての受信メール'
+    }
+
+    # mail_list.html' という新しいテンプレートをレンダリングします
+    return render(request, 'core/mail_list.html', context)
 
 class GetNextBusInfo(View):
     def get(self, request, *args, **kwargs):
