@@ -564,7 +564,6 @@ def lecture_events(request):
     except Exception:
         return JsonResponse([], safe=False)
 
-    # --- 1. フィルタ構築 ---
     base_filter = Q(
         department=user_profile.department,
         target_grade=user_profile.grade,
@@ -576,47 +575,13 @@ def lecture_events(request):
     else:
         final_filter = base_filter & Q(course__isnull=True)
 
-    # --- 2. データの取得 ---
-    # ここで 'lectures' を定義しています
     lectures = LectureSchedule.objects.select_related(
         "start_period", "end_period", "room"
     ).filter(final_filter)
 
     events = []
-    print(f"DEBUG: 取得した講義数 = {lectures.count()}")
 
-    # 今週の月曜日を計算
-    today = datetime.date.today()
-    base_monday = today - datetime.timedelta(days=today.weekday())
-
-    # --- 3. ループ処理 ---
     for lec in lectures:
-        try:
-            # 具体的な日付の計算
-            lec_date = base_monday + datetime.timedelta(days=lec.weekday)
-
-            # タイトルを「開始時間：講義名」のような形式にする
-            if isinstance(lec.start_period.start_time, str):
-                start_time_short = lec.start_period.start_time[:5]
-            else:
-                start_time_short = lec.start_period.start_time.strftime(
-                    '%H:%M')
-
-            full_title = f"{start_time_short} {lec.subject}"
-
-            events.append({
-                'title': lec.subject,
-                'start': f"{lec_date}T{lec.start_period.start_time}",
-                'end': f"{lec_date}T{lec.start_period.end_time}",
-                'extendedProps': {
-                    'full_title': full_title,
-                    'period': lec.start_period.period,
-                    'room': lec.room.name if lec.room else "未定",
-                }
-            })
-        except Exception as e:
-            continue
-        # 開始時刻（HH:MM）
         start_time = (
             lec.start_period.start_time.strftime("%H:%M")
             if hasattr(lec.start_period.start_time, "strftime")
@@ -629,22 +594,21 @@ def lecture_events(request):
             else lec.end_period.end_time[:5]
         )
 
-        full_title = f"{start_time} {lec.subject}"
-
         events.append({
             "title": lec.subject,
-            # ★ ここが超重要 ★
-            "daysOfWeek": [lec.weekday + 1],  # 0=日, 1=月, ...（DBに合わせる）
+            "daysOfWeek": [lec.weekday + 1],  # FullCalendar仕様
             "startTime": start_time,
             "endTime": end_time,
             "extendedProps": {
-                "full_title": full_title,
                 "period": lec.start_period.period,
                 "room": lec.room.name if lec.room else "未定",
+                "status": lec.status,
+                "note": lec.note,
             },
         })
 
     return JsonResponse(events, safe=False)
+
 
 
 @login_required

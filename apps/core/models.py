@@ -138,7 +138,7 @@ class LectureSchedule(models.Model):
     class Status(models.IntegerChoices):
         NORMAL = 0, "通常"
         CANCELED = 1, "休講"
-        MAKEUP = 2, "補講"
+
 
     weekday = models.PositiveSmallIntegerField("曜日", choices=Weekday.choices)
     subject = models.CharField("科目名", max_length=100)

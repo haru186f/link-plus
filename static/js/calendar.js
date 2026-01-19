@@ -32,6 +32,22 @@ document.addEventListener('DOMContentLoaded', function() {
         method: 'GET',
       }
     ],
+
+  eventClassNames: function(arg) {
+    if (arg.event.extendedProps.status === 1) {
+      return ['event-canceled'];
+    }
+    return [];
+  },
+
+  eventDidMount: function(info) {
+    if (info.event.extendedProps.status === 1) {
+      const titleEl = info.el.querySelector('.fc-event-title');
+      if (titleEl) {
+        titleEl.textContent = '【休講】' + titleEl.textContent;
+      }
+    }
+  },
   });
 
   calendar.render();
@@ -82,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
     eventSources: [
       // 終日イベント
       {
-        url: '/api/all-day-events/',
+        url: 'api/events/internal/',
         method: 'GET',
       },
       // 時間割
@@ -92,12 +108,44 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     ],
 
-    eventDidMount(info) {
-      // 行事を目立たせる
-      if (info.event.allDay) {
-        info.el.classList.add('fw-bold');
+  eventClassNames: function(arg) {
+    if (arg.event.extendedProps.status === 1) {
+      return ['event-canceled'];
+    }
+    return [];
+  },
+
+  eventDidMount: function(info) {
+
+  // 終日イベントを太字
+  if (info.event.allDay) {
+    const titleCell = info.el.querySelector('.fc-list-event-title');
+    if (titleCell) {
+      titleCell.classList.add('fw-bold');
+    }
+  }
+
+    // 休講イベント
+    if (info.event.extendedProps.status === 1) {
+      const titleCell = info.el.querySelector('.fc-list-event-title');
+      if (titleCell) {
+        titleCell.textContent = '【休講】' + titleCell.textContent;
       }
-    },
+    }
+
+    // ★ 備考をホバー表示（ここだけ追加）
+    if (info.event.extendedProps.note) {
+      info.el.setAttribute(
+        'title',
+        info.event.extendedProps.note
+      );
+    }
+
+
+  },
+
+
+
 
     // eventClick(info) {
     //   if (info.event.allDay) {
@@ -139,4 +187,3 @@ document.addEventListener('DOMContentLoaded', function() {
   updateTtTitle();
 });
 
-  
