@@ -9,8 +9,6 @@ from django.core.exceptions import ValidationError
 # ==========================================================
 
 # バス停
-
-
 class BusStop(models.Model):
     BUS_CHOICES = [('hachiouji', '八王子'), ('minamino', '八王子みなみ野')]
 
@@ -21,7 +19,7 @@ class BusStop(models.Model):
         return self.name
 
 
-# バスの時刻表
+# バス時刻
 class BusSchedule(models.Model):
     campus_departure = models.TimeField(blank=True, null=True)     # キャンパス発（下校）
     campus_arrival = models.TimeField(blank=True, null=True)       # キャンパス着
@@ -110,7 +108,7 @@ class Room(models.Model):
         return self.name
 
 
-# 時限マスタ
+# 時限
 class SchoolPeriod(models.Model):
     period = models.PositiveIntegerField("時限", unique=True)
     start_time = models.TimeField("開始時刻")
@@ -127,7 +125,6 @@ class SchoolPeriod(models.Model):
 
 # 講義スケジュール
 class LectureSchedule(models.Model):
-
     class Weekday(models.IntegerChoices):
         MONDAY = 0, "月曜日"
         TUESDAY = 1, "火曜日"
@@ -140,12 +137,12 @@ class LectureSchedule(models.Model):
         CANCELED = 1, "休講"
 
 
-    weekday = models.PositiveSmallIntegerField("曜日", choices=Weekday.choices)
     subject = models.CharField("科目名", max_length=100)
-    note = models.TextField("備考", blank=True)
+    weekday = models.PositiveSmallIntegerField("曜日", choices=Weekday.choices)
+    teacher = models.CharField("担当教員", null=True, blank=True,)
     status = models.PositiveSmallIntegerField(
         "講義状態", choices=Status.choices, default=Status.NORMAL,)
-    teacher = models.CharField("担当教員", null=True, blank=True,)
+    note = models.TextField("備考", blank=True)
 
     target_grade = models.PositiveSmallIntegerField(
         "対象学年",
@@ -274,8 +271,6 @@ class LectureSchedule(models.Model):
 # ==========================================================
 
 # 受信メール
-
-
 class ReceivedEmail(models.Model):
     subject = models.CharField(max_length=255)      # 件名
     sender = models.EmailField()                    # 送信元メールアドレス
@@ -319,21 +314,6 @@ class Event(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     description = models.TextField(blank=True)
-
-    target_department = models.ForeignKey(
-        Department,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        default=None
-    )
-
-    target_grade = models.PositiveIntegerField(
-        choices=Profile.GRADE_CHOICES,
-        null=True,
-        blank=True,
-        default=None
-    )
 
     is_external = models.BooleanField(
         default=False,
