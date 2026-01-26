@@ -11,6 +11,39 @@
 {% endblock css %}
 
 
+{% block script %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statusSelect = document.getElementById('id_status');
+    const specificDateInput = document.getElementById('id_specific_date');
+    
+    // 入力欄・ラベル・ヘルプテキストを包んでいる div (mb-3) を取得
+    const dateFieldWrapper = specificDateInput.closest('.mb-3');
+
+    function toggleDateField() {
+        // statusSelect.value が '1' (休講) の時だけ表示
+        // Djangoモデルの LectureSchedule.Status で 休講=1 と定義されている前提です
+        const isCanceled = statusSelect.value === '1'; 
+
+        if (isCanceled) {
+            // 表示（Bootstrapの block 表示）
+            dateFieldWrapper.style.display = 'block';
+        } else {
+            // 非表示
+            dateFieldWrapper.style.display = 'none';
+        }
+    }
+
+    // 初期化（ページを開いた瞬間の状態を反映）
+    toggleDateField();
+
+    // 変更イベントの監視
+    statusSelect.addEventListener('change', toggleDateField);
+});
+</script>
+{% endblock script %}
+
+
 {% block content %}
 <div class="container py-4">
   <div class="card shadow-sm">
@@ -103,13 +136,17 @@
           {{ form.status }}
         </div>
 
-        <div id="specific-date-area" class="mb-3" style="display: none;">
-          <label for="specific_date" class="form-label text-primary fw-bold">
-            <i class="fas fa-calendar-check"></i> 適用する日付を選択してください
+        {# --- 休講日 --- #}
+        <div id="date-field-wrapper" class="mb-3" style="display: none; transition: all 0.3s ease;">
+          <label for="{{ form.specific_date.id_for_label }}" class="form-label ms-4">
+            └ {{ form.specific_date.label }}
           </label>
-          <input type="date" id="specific_date" name="specific_date" class="form-control border-primary">
-          <div id="date-error" class="form-text text-danger"></div>
-          <small class="text-muted">※選択した日の授業のみ状態が変更されます。他の週は影響を受けません。</small>
+          <div class="ms-4">
+            {{ form.specific_date }}
+            <div class="form-text">
+              ※特定の日だけを休講にする場合に日付を選択してください。
+            </div>
+          </div>
         </div>
 
         {# --- 備考 --- #}
@@ -136,7 +173,7 @@
 {% endblock content %}
 
 {# --- ここから下に書き足します --- #}
-{% block script %}
+{% comment %} {% block script %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const statusField = document.querySelector('[name="status"]');
@@ -179,4 +216,4 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-{% endblock script %}
+{% endblock script %} {% endcomment %}

@@ -284,3 +284,18 @@ footer {
 .fc-daygrid-body tr {
   height: calc(100% / 5)  !important;
 }
+
+.event-canceled .fc-daygrid-event-dot {
+  border-color: red !important;
+}
+
+.event-canceled .fc-list-event-dot {
+  border-color: red !important;
+}
+
+.note-icon {
+  margin-left: 6px;
+  color: #0d6efd;
+  cursor: help;
+  font-weight: normal;
+}

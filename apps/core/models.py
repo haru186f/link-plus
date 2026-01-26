@@ -138,13 +138,14 @@ class LectureSchedule(models.Model):
     class Status(models.IntegerChoices):
         NORMAL = 0, "通常"
         CANCELED = 1, "休講"
-        MAKEUP = 2, "補講"
+
 
     weekday = models.PositiveSmallIntegerField("曜日", choices=Weekday.choices)
     subject = models.CharField("科目名", max_length=100)
     note = models.TextField("備考", blank=True)
     status = models.PositiveSmallIntegerField(
         "講義状態", choices=Status.choices, default=Status.NORMAL,)
+    specific_date = models.DateField("休講日", null=True, blank=True, help_text="特定の日のみ休講・補講にする場合に入力します")
     teacher = models.CharField("担当教員", null=True, blank=True,)
 
     target_grade = models.PositiveSmallIntegerField(
@@ -211,6 +212,7 @@ class LectureSchedule(models.Model):
                     "target_class_number",
                     "weekday",
                     "start_period",
+                    "specific_date",
                 ],
                 name="unique_lecture_slot_for_target",
             )
@@ -225,47 +227,52 @@ class LectureSchedule(models.Model):
         )
 
     def clean(self):
+        """
+        バリデーションロジック
+        """
+        from django.core.exceptions import ValidationError
         errors = {}
 
-        # 入力途中（admin対策）
-        if not all([
-            self.start_period_id,
-            self.end_period_id,
-            self.department_id,
-        ]):
+        # 必須項目が入力されているかチェック（adminでのエラー回避用）
+        if not all([self.start_period_id, self.end_period_id, self.department_id]):
             return
 
-        # ① 開始 <= 終了
+        # ① 開始時限 <= 終了時限 のチェック
         if self.start_period.period > self.end_period.period:
             errors["end_period"] = "終了時限は開始時限以降でなければなりません。"
 
-        # ② 時限の重なりチェック（休講は枠を占有しない）
-        overlapping_qs = LectureSchedule.objects.filter(
-            department=self.department,
-            target_grade=self.target_grade,
-            target_class_number=self.target_class_number,
-            weekday=self.weekday,
-            start_period__period__lte=self.end_period.period,
-            end_period__period__gte=self.start_period.period,
-        ).exclude(status=LectureSchedule.Status.CANCELED)
+        # ② 時限の重なりチェック
+        # ★ specific_date が「空」の場合（＝毎週の予定）のみ、重複を厳格にチェックする
+        # これにより、「毎週の予定」がある枠に対して「特定日の休講」を重ねて登録できるようになります。
+        if not self.specific_date:
+            overlapping_qs = LectureSchedule.objects.filter(
+                department=self.department,
+                target_grade=self.target_grade,
+                target_class_number=self.target_class_number,
+                weekday=self.weekday,
+                specific_date__isnull=True,  # 毎週の予定同士のみを比較対象にする
+                start_period__period__lte=self.end_period.period,
+                end_period__period__gte=self.start_period.period,
+            ).exclude(status=LectureSchedule.Status.CANCELED)
 
-        # course の NULL 比較
-        if self.course_id:
-            overlapping_qs = overlapping_qs.filter(course=self.course)
-        else:
-            overlapping_qs = overlapping_qs.filter(course__isnull=True)
+            # コース(course)の絞り込み（NULL比較対応）
+            if self.course_id:
+                overlapping_qs = overlapping_qs.filter(course=self.course)
+            else:
+                overlapping_qs = overlapping_qs.filter(course__isnull=True)
 
-        # 更新時は自分自身を除外
-        if self.pk:
-            overlapping_qs = overlapping_qs.exclude(pk=self.pk)
+            # 更新時は自分自身を比較対象から外す
+            if self.pk:
+                overlapping_qs = overlapping_qs.exclude(pk=self.pk)
 
-        if overlapping_qs.exists():
-            errors["start_period"] = "この時限帯には既に別の授業が登録されています。"
+            if overlapping_qs.exists():
+                errors["start_period"] = "この時限帯には既に毎週の授業が登録されています。"
 
         if errors:
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
+        # 保存前に clean() を実行してバリデーションをかける
         self.full_clean()
         super().save(*args, **kwargs)
 
