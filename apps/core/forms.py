@@ -22,35 +22,6 @@ class AnnouncementForm(forms.ModelForm):
             'body': forms.Textarea(attrs={'class': 'form-control', 'rows': 10}),
         }
 
-
-# class EventForm(forms.ModelForm):
-#     class Meta:
-#         model = Event
-#         # description をリストに追加します
-#         fields = ['title', 'start_date', 'end_date',
-#                   'description', 'is_external']
-
-#         widgets = {
-#             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '例：紅華祭 / 試験期間 / 休校日'}),
-#             'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-#             'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-#             # 説明欄を textarea（複数行入力）に設定
-#             'description': forms.Textarea(attrs={
-#                 'class': 'form-control',
-#                 'rows': 3,
-#                 'placeholder': '必要に応じて詳細を入力してください'
-#             }),
-#             'is_external': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-#         }
-#         labels = {
-#             'title': 'イベント名',
-#             'start_date': '開始日',
-#             'end_date': '終了日',
-#             'is_external': '公開範囲',
-#             'description': '説明',
-#         }
-
-
 class LectureScheduleForm(forms.ModelForm):
     """講義スケジュール登録・編集フォーム"""
 
@@ -70,6 +41,16 @@ class LectureScheduleForm(forms.ModelForm):
             "placeholder": "例：プログラミング実習２",
             "autofocus": True,
         }),
+    )
+
+    specific_date = forms.DateField(
+        label="休講日",
+        required=False,
+        widget=forms.DateInput(attrs={
+            "class": "form-control",
+            "type": "date",  # これでブラウザ標準のカレンダーが出ます
+        }),
+        help_text="※特定の日だけを休講にする場合に選択してください。毎週の場合は空欄のままでOK。"
     )
 
     start_period = forms.ModelChoiceField(
@@ -133,6 +114,7 @@ class LectureScheduleForm(forms.ModelForm):
         fields = [
             "weekday",
             "subject",
+            "specific_date",
             "start_period",
             "end_period",
             "teacher",

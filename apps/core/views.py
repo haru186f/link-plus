@@ -427,6 +427,24 @@ def api_email_body(request, pk):
     # GETメソッド以外でのリクエストを拒否
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
+# ---------------------------------------------------
+# ✨ メール一覧表示 ✨
+# ---------------------------------------------------
+def mail_list_view(request):
+    """
+    すべての受信メールを表示するためのビュー。
+    """
+    # データベースからすべてのメールオブジェクトを取得します
+    # 通常は新しい順に並べ替えます
+    all_emails = ReceivedEmail.objects.all().order_by('-received_at')
+
+    context = {
+        'all_emails': all_emails,
+        'page_title': 'すべての受信メール'
+    }
+
+    # mail_list.html' という新しいテンプレートをレンダリングします
+    return render(request, 'core/mail_list.html', context)
 
 class GetNextBusInfo(View):
     def get(self, request, *args, **kwargs):
@@ -557,7 +575,6 @@ class DebugBusSchedule(View):
 #   FullCalendarAPI
 # ==========================================================
 
-
 def lecture_events(request):
     try:
         user_profile = request.user.profile
@@ -580,35 +597,69 @@ def lecture_events(request):
     ).filter(final_filter)
 
     events = []
+    schedules = LectureSchedule.objects.select_related('start_period', 'end_period').all()
+
+    print("\n" + "="*60)
+    print(f"【Lecture Events Debug Log】 Total Schedules in DB: {schedules.count()}")
+    print("="*60)
 
     for lec in lectures:
-        start_time = (
-            lec.start_period.start_time.strftime("%H:%M")
-            if hasattr(lec.start_period.start_time, "strftime")
-            else lec.start_period.start_time[:5]
-        )
+        start_t = lec.start_period.start_time.strftime("%H:%M:%S")
+        end_t = lec.end_period.end_time.strftime("%H:%M:%S")
 
-        end_time = (
-            lec.end_period.end_time.strftime("%H:%M")
-            if hasattr(lec.end_period.end_time, "strftime")
-            else lec.end_period.end_time[:5]
-        )
+        # --- 1. 通常の毎週の予定 (Base Event) ---
+        fc_weekday = (lec.weekday + 1) % 7
+        reg_id = f"reg-{lec.id}"
 
-        events.append({
+        reg_event = {
+            "id": reg_id,
             "title": lec.subject,
-            "daysOfWeek": [lec.weekday + 1],  # FullCalendar仕様
-            "startTime": start_time,
-            "endTime": end_time,
+            "daysOfWeek": [fc_weekday],
+            "startTime": start_t,
+            "endTime": end_t,
+            "color": "#3788d8",
             "extendedProps": {
-                "period": lec.start_period.period,
-                "room": lec.room.name if lec.room else "未定",
-                "status": lec.status,
-                "note": lec.note,
-            },
-        })
+                "status": 0,
+                "subject": lec.subject
+            }
+        }
+        events.append(reg_event)
+        
+        # ログ出力用（通常）
+        weekday_name = ["日", "月", "火", "水", "木", "金", "土"][fc_weekday]
+        print(f"GENERATE: [ID:{reg_event['id']}] {lec.subject:<10} | Every {weekday_name} | {start_t} - {end_t} | Status: Normal")
+
+        # --- 2. 特定適用日 (Special Event / Cancellation) ---
+        if lec.specific_date:
+            cancel_id = f"cancel-{lec.id}"
+            status_label = "休講 (Canceled)" if lec.status == 1 else "✅ 変更 (Changed)"
+            spec_event = {
+                "id": cancel_id,
+                "title": f"休講：{lec.subject}" if lec.status == 1 else lec.subject,
+                "start": f"{lec.specific_date.isoformat()}T{start_t}",
+                "end": f"{lec.specific_date.isoformat()}T{end_t}",
+                "color": "#ff4444" if lec.status == 1 else "#3788d8",
+                "extendedProps": {
+                    "status": lec.status,
+                    "subject": lec.subject
+                }
+            }
+            events.append(spec_event)
+            
+            # ログ出力用（特定日）
+            print(f"ADD SPEC: [ID:{spec_event['id']}] {lec.subject:<10} | DATE: {lec.specific_date} | Status: {status_label}")
+
+    # デバッグ情報をさらに詳細に
+    print("\n" + "="*50)
+    for e in events:
+        print(f"SENDING -> ID: {e['id']} | Title: {e['title']} | Status: {e['extendedProps']['status']}")
+    print("="*50 + "\n")
+
+    print("="*60)
+    print(f"Total JSON objects to send: {len(events)}")
+    print("="*60 + "\n")
 
     return JsonResponse(events, safe=False)
-
 
 
 @login_required
