@@ -4,7 +4,7 @@
 
 // --- 1. 定数・グローバル設定 ---
 const BASE_API_URL = '/api/next/';
-const PREFIX_ID = 'bus_info_'; 
+const PREFIX_ID = 'bus_info_';
 const REFRESH_INTERVAL_MS = 60000; // 1分ごとに自動更新
 
 // Djangoから渡される変数、またはデフォルト値
@@ -22,14 +22,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (toggleBtn) {
         toggleBtn.addEventListener('click', handleDirectionToggle);
     }
-    
+
     // 初回表示のセットアップ
     updateToggleButtonDisplay();
     fetchAndUpdateBusInfo();
-    
+
     // 定期更新タイマー
     setInterval(fetchAndUpdateBusInfo, REFRESH_INTERVAL_MS);
-    
+
     // 時計の開始
     updateClock();
     setInterval(updateClock, 1000);
@@ -44,9 +44,9 @@ document.addEventListener('DOMContentLoaded', () => {
 function handleDirectionToggle() {
     console.log("Direction toggle clicked");
     currentDirection = (currentDirection === 'campus') ? 'station' : 'campus';
-    
+
     updateToggleButtonDisplay();
-    
+
     // すでにデータがあれば即座にHTMLに反映。なければ取得しにいく
     if (latestBusData) {
         updateHtml(latestBusData);
@@ -104,7 +104,7 @@ function updateToggleButtonDisplay() {
 function updateHtml(data) {
     for (const busStopName in data) {
         if (!data.hasOwnProperty(busStopName)) continue;
-        
+
         const info = data[busStopName];
         const elementId = `${PREFIX_ID}${busStopName}`;
 
@@ -138,7 +138,7 @@ function updateElementContent(elementId, value, busStopLabel) {
     }
 
     // 数値（残り時間）の場合は強調、それ以外は通常表示
-    element.innerHTML = isNumber 
+    element.innerHTML = isNumber
         ? `<p style="font-size: 1.2em; color: #1e88e5; font-weight: bold;">${displayStr}</p>`
         : `<p>${displayStr}</p>`;
 }
@@ -174,7 +174,7 @@ function initScheduleModal() {
 
     $('#openModalBtn').on('click', function() {
         $.ajax({
-            url: '/api/bus-schedules',
+            url: '/api/bus-schedules/',
             type: 'GET',
             success: function(response) {
                 const $tableBody = $('#modalTableBody').empty();

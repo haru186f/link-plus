@@ -63,21 +63,21 @@
 
             {# お知らせ投稿（教師専用） #}
             <li class="nav-item m-1">
-              <a class="btn btn-outline-light" href="{% url 'core:announcement_create' %}">
+              <a class="btn btn-outline-light" href="{% url 'core:news_create' %}">
                 <i class="bi bi-megaphone me-1"></i>お知らせ投稿
               </a>
             </li>
 
             {# 時間管理（教師専用） #}
             <li class="nav-item m-1">
-              <a class="btn btn-outline-light" href="{% url 'core:lecture_schedule_list' %}">
+              <a class="btn btn-outline-light" href="{% url 'core:lecture_list' %}">
                 <i class="bi bi-calendar-week me-1"></i>時間割管理
               </a>
             </li>
 
             {# カレンダー編集 #}
             <li class="nav-item m-1">
-              <a class="btn btn-outline-light" href="{% url 'core:internal_event_create' %}">
+              <a class="btn btn-outline-light" href="{% url 'core:event_create' %}">
                 <i class="bi bi-calendar-date me-1"></i>カレンダー登録
               </a>
             </li>

@@ -16,23 +16,20 @@ from django.shortcuts import redirect
 import datetime
 from django.db.models import Q  # 複雑なクエリのためにQオブジェクトをインポート
 from .models import LectureSchedule
-from .forms import AnnouncementForm
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required
-
 from apps.core.models import College, Department, Course, BusSchedule, BusStop, ReceivedEmail, LectureSchedule, Event
-from apps.core.forms import LectureScheduleForm, EventForm
-
+from apps.core.forms import LectureScheduleForm, EventForm, NewsForm
 import json
 import logging
 logger = logging.getLogger(__name__)
 
+
 # ==========================================================
 # ホームビュー（全てのデータを集約）
 # ==========================================================
-
 
 class HomeView(TemplateView):
     template_name = 'core/home.html'
@@ -41,6 +38,7 @@ class HomeView(TemplateView):
         """データをcontextに集約してホームページに送信する"""
         context = super().get_context_data(**kwargs)
 
+        # プロフィール情報
         user_dept = None
         user_grade = None
         if self.request.user.is_authenticated:
@@ -57,27 +55,31 @@ class HomeView(TemplateView):
             (Q(target_grade=user_grade) | Q(target_grade__isnull=True))
         ).order_by('-received_at')[:5]
         context["lecture_schedules"] = LectureSchedule.objects.all()
+        context["events"] = Event.objects.all()
 
         return context
 
+# 教師ユーザ専用機能にするMixin
+class TeacherRequiredMixin(UserPassesTestMixin):
+    """
+    is_teacher=Trueのユーザーのみにアクセスを許可するMixin
+    （未認証または権限がない場合は、ホーム画面へリダイレクト）
+    """
+    # 権限がない場合はホーム画面へリダイレクト
+    permission_denied_url = reverse_lazy("core:home")
 
-def home(request):
-    if request.user.is_authenticated:
-        # ログインしている人は全部見える
-        events = Event.objects.all()
-    else:
-        # ログインしていない人は、プルダウンで「すべて(True)」にしたものだけ見える
-        events = Event.objects.filter(is_external=True)
-
-    return render(request, 'core/home.html', {'events': events})
-
+    def test_func(self):
+        # 認証済み かつ is_teacher=True であるかを確認
+        user = self.request.user
+        return user.is_authenticated and getattr(user, 'is_teacher', False)
 
 # ==========================================================
 # ニュースビュー（お知らせのリストを返す）
 # ==========================================================
+
 class NewsListView(ListView):
     model = ReceivedEmail
-    template_name = 'core/news.html'
+    template_name = 'news/news_list.html'
     context_object_name = 'all_emails'
 
     def get_queryset(self):
@@ -117,45 +119,34 @@ def get_data_for_modal(request):
     # GETリクエスト以外の場合は許可しない
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
+
 # ==========================================================
-# ニュース投稿（お知らせのリストを返す）
+# お知らせビュー
 # ==========================================================
+class NewsCreateView(
+    TeacherRequiredMixin,
+    CreateView
+):
+    form_class = NewsForm
+    template_name = 'news/news_form.html'
+    success_url = reverse_lazy('core:home')
+
+    def form_valid(self, form):
+        # commit=False で一旦インスタンス生成
+        news = form.save(commit=False)
+
+        # 自動補完
+        news.sender = self.request.user.email
+        news.received_at = timezone.now()
+        news.message_uid = f"manual-{timezone.now().timestamp()}"
+
+        news.save()
+        return super().form_valid(form)
 
 
-@user_passes_test(lambda u: u.is_teacher)
-def announcement_create(request):
-    if request.method == 'POST':
-        form = AnnouncementForm(request.POST)
-        if form.is_valid():
-            # commit=False で一旦インスタンスを作り、足りない情報を補填する
-            announcement = form.save(commit=False)
-            announcement.sender = request.user.email
-            announcement.received_at = timezone.now()
-            announcement.message_uid = f"manual-{timezone.now().timestamp()}"
-            announcement.save()  # ここで学科も含めて保存される
-            # ---------------------------------------
-            return redirect('core:home')
-    else:
-        form = AnnouncementForm()
-
-    return render(request, 'core/announcement_form.html', {'form': form})
+# ==========================================================
 # 時間割ビュー
 # ==========================================================
-
-
-class TeacherRequiredMixin(UserPassesTestMixin):
-    """
-    is_teacher=Trueのユーザーのみにアクセスを許可するMixin
-    （未認証または権限がない場合は、ホーム画面へリダイレクト）
-    """
-    # 権限がない場合はホーム画面へリダイレクト
-    permission_denied_url = reverse_lazy("core:home")
-
-    def test_func(self):
-        # 認証済み かつ is_teacher=True であるかを確認
-        user = self.request.user
-        return user.is_authenticated and getattr(user, 'is_teacher', False)
-
 
 class LectureScheduleListView(
     TeacherRequiredMixin,
@@ -165,7 +156,7 @@ class LectureScheduleListView(
     教員による時間割一覧表示ビュー（Read）
     （全時間割を取得し、曜日ごとにグループ化して表示する）
     """
-    template_name = "timetable/lecture_schedule_list.html"
+    template_name = "lectures/lectures_list.html"
     model = LectureSchedule
 
     def get_queryset(self):
@@ -226,8 +217,8 @@ class LectureScheduleCreateView(
     """
     model = LectureSchedule
     form_class = LectureScheduleForm
-    template_name = "timetable/lecture_schedule_form.html"
-    success_url = reverse_lazy("core:lecture_schedule_list")
+    template_name = "lectures/lectures_form.html"
+    success_url = reverse_lazy("core:lecture_list")
     success_message = "新しい時間割を作成しました。"
 
     def form_valid(self, form):
@@ -275,8 +266,8 @@ class LectureScheduleUpdateView(
     """
     model = LectureSchedule
     form_class = LectureScheduleForm
-    template_name = "timetable/lecture_schedule_form.html"
-    success_url = reverse_lazy("core:lecture_schedule_list")
+    template_name = "lectures/lectures_form.html"
+    success_url = reverse_lazy("core:lecture_list")
     success_message = "時間割を更新しました。"
 
 
@@ -290,8 +281,8 @@ class LectureScheduleDeleteView(
     （delete()をオーバーライドしてメッセージを送信）
     """
     model = LectureSchedule
-    template_name = "timetable/lecture_schedule_confirm_delete.html"
-    success_url = reverse_lazy("core:lecture_schedule_list")
+    template_name = "lectures/lectures_confirm_delete.html"
+    success_url = reverse_lazy("core:lecture_list")
 
     def delete(self, request, *args, **kwargs):
         """オブジェクト削除後、成功メッセージを送信する"""
@@ -299,11 +290,29 @@ class LectureScheduleDeleteView(
         messages.success(self.request, "時間割を削除しました。")
         return response
 
+
+# ==========================================================
+# イベントビュー
+# ==========================================================
+
+class EventCreateView(LoginRequiredMixin, CreateView):
+    model = Event
+    form_class = EventForm
+    template_name = "events/events_form.html"
+    success_url = reverse_lazy("core:home")
+
+    def form_valid(self, form):
+        event = form.save(commit=False)
+        event.save()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
 # ==========================================================
 # エンドポイント
 # ==========================================================
-
-
 class GetDepartmentsView(View):
     """選択された学部に応じて学科リストを返す"""
 
@@ -427,24 +436,6 @@ def api_email_body(request, pk):
     # GETメソッド以外でのリクエストを拒否
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-# ---------------------------------------------------
-# ✨ メール一覧表示 ✨
-# ---------------------------------------------------
-def mail_list_view(request):
-    """
-    すべての受信メールを表示するためのビュー。
-    """
-    # データベースからすべてのメールオブジェクトを取得します
-    # 通常は新しい順に並べ替えます
-    all_emails = ReceivedEmail.objects.all().order_by('-received_at')
-
-    context = {
-        'all_emails': all_emails,
-        'page_title': 'すべての受信メール'
-    }
-
-    # mail_list.html' という新しいテンプレートをレンダリングします
-    return render(request, 'core/mail_list.html', context)
 
 class GetNextBusInfo(View):
     def get(self, request, *args, **kwargs):
@@ -571,6 +562,7 @@ class DebugBusSchedule(View):
 
         return JsonResponse(data, safe=False)
 
+
 # ==========================================================
 #   FullCalendarAPI
 # ==========================================================
@@ -624,30 +616,30 @@ def lecture_events(request):
             }
         }
         events.append(reg_event)
-        
+
         # ログ出力用（通常）
         weekday_name = ["日", "月", "火", "水", "木", "金", "土"][fc_weekday]
         print(f"GENERATE: [ID:{reg_event['id']}] {lec.subject:<10} | Every {weekday_name} | {start_t} - {end_t} | Status: Normal")
 
         # --- 2. 特定適用日 (Special Event / Cancellation) ---
-        if lec.specific_date:
+        if lec.canceled_date:
             cancel_id = f"cancel-{lec.id}"
             status_label = "休講 (Canceled)" if lec.status == 1 else "✅ 変更 (Changed)"
-            spec_event = {
+            canceled_event = {
                 "id": cancel_id,
                 "title": f"休講：{lec.subject}" if lec.status == 1 else lec.subject,
-                "start": f"{lec.specific_date.isoformat()}T{start_t}",
-                "end": f"{lec.specific_date.isoformat()}T{end_t}",
+                "start": f"{lec.canceled_date.isoformat()}T{start_t}",
+                "end": f"{lec.canceled_date.isoformat()}T{end_t}",
                 "color": "#ff4444" if lec.status == 1 else "#3788d8",
                 "extendedProps": {
                     "status": lec.status,
                     "subject": lec.subject
                 }
             }
-            events.append(spec_event)
-            
+            events.append(canceled_event)
+
             # ログ出力用（特定日）
-            print(f"ADD SPEC: [ID:{spec_event['id']}] {lec.subject:<10} | DATE: {lec.specific_date} | Status: {status_label}")
+            print(f"ADD SPEC: [ID:{canceled_event['id']}] {lec.subject:<10} | DATE: {lec.canceled_date} | Status: {status_label}")
 
     # デバッグ情報をさらに詳細に
     print("\n" + "="*50)
@@ -662,93 +654,37 @@ def lecture_events(request):
     return JsonResponse(events, safe=False)
 
 
-@login_required
-def internal_events_api(request):
+def all_day_events(request):
     """
-    学内イベント（ログインユーザーの学科・学年に応じて）
+    イベントを FullCalendar 形式で返却
+    （ログインユーザーの学科・学年に応じて絞り込み）
     """
-    profile = request.user.profile
+    try:
+        user_profile = request.user.profile
+    except Exception:
+        return JsonResponse([], safe=False)
+
+    target_department = user_profile.department
+    target_grade = user_profile.grade
+
+    events = []
 
     qs = Event.objects.filter(
-        is_external=False
-    ).filter(
-        Q(target_department__isnull=True) | Q(
-            target_department=profile.department),
-        Q(target_grade__isnull=True) | Q(target_grade=profile.grade),
+        Q(target_department__isnull=True) | Q(target_department=target_department),
+        Q(target_grade__isnull=True) | Q(target_grade=target_grade),
     )
 
-    events = [
-        {
+    for e in qs:
+        events.append({
             "title": e.title,
             "start": e.start_date.isoformat(),
             "end": (e.end_date + timedelta(days=1)).isoformat(),
             "allDay": True,
             "extendedProps": {
                 "description": e.description,
-                "scope": "internal",
+                "target_department": e.target_department_id,
+                "target_grade": e.target_grade,
             },
-        }
-        for e in qs
-    ]
+        })
 
     return JsonResponse(events, safe=False)
-
-
-def external_events_api(request):
-    """
-    学外向けイベント（全員に公開）
-    """
-    qs = Event.objects.filter(is_external=True)
-
-    events = [
-        {
-            "title": e.title,
-            "start": e.start_date.isoformat(),
-            "end": (e.end_date + timedelta(days=1)).isoformat(),
-            "allDay": True,
-            "extendedProps": {
-                "description": e.description,
-                "scope": "external",
-            },
-        }
-        for e in qs
-    ]
-
-    return JsonResponse(events, safe=False)
-
-
-class BaseEventCreateView(LoginRequiredMixin, CreateView):
-    model = Event
-    form_class = EventForm
-    template_name = "core/event_form.html"
-    success_url = reverse_lazy("core:home")
-
-    is_external_value = None  # 子クラスで指定
-
-    def form_valid(self, form):
-        event = form.save(commit=False)
-        event.is_external = self.is_external_value
-        event.save()
-        return super().form_valid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["scope"] = "external" if self.is_external_value else "internal"
-        return context
-
-
-class InternalEventCreateView(BaseEventCreateView):
-    """
-    学内イベント作成
-    """
-    is_external_value = False
-
-
-class ExternalEventCreateView(UserPassesTestMixin, BaseEventCreateView):
-    """
-    学外イベント作成（管理者専用）
-    """
-    is_external_value = True
-
-    def test_func(self):
-        return self.request.user.is_staff

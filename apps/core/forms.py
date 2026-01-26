@@ -5,7 +5,7 @@ from apps.core.models import Department, LectureSchedule, SchoolPeriod, Room, Ev
 from apps.accounts.models import Profile
 
 
-class AnnouncementForm(forms.ModelForm):
+class NewsForm(forms.ModelForm):
     class Meta:
         model = ReceivedEmail
         fields = ['target_department', 'target_grade', 'subject', 'body']
@@ -43,7 +43,7 @@ class LectureScheduleForm(forms.ModelForm):
         }),
     )
 
-    specific_date = forms.DateField(
+    canceled_date = forms.DateField(
         label="休講日",
         required=False,
         widget=forms.DateInput(attrs={
@@ -114,7 +114,7 @@ class LectureScheduleForm(forms.ModelForm):
         fields = [
             "weekday",
             "subject",
-            "specific_date",
+            "canceled_date",
             "start_period",
             "end_period",
             "teacher",
@@ -184,18 +184,6 @@ class EventForm(forms.ModelForm):
         }),
     )
 
-    is_external = forms.ChoiceField(
-        label="公開範囲",
-        choices=[
-            (False, "学内"),
-            (True, "学外"),
-        ],
-        widget=forms.Select(attrs={
-            "class": "form-select",
-        }),
-        initial=False,
-    )
-
     description = forms.CharField(
         required=False,
         label="説明",
@@ -230,7 +218,6 @@ class EventForm(forms.ModelForm):
             "title",
             "start_date",
             "end_date",
-            "is_external",
             "target_department",
             "target_grade",
             "description",

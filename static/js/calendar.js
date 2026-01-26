@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const calendarEl = document.getElementById('calendar');
-    
+
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         locale: 'ja',
@@ -16,9 +16,9 @@ document.addEventListener('DOMContentLoaded', function() {
         noEventsContent: '本日の講義はありません',
 
         eventSources: [
-          // 学内イベント
+          // 終日イベント
           {
-            url: 'api/events/internal/',
+            url: '/api/all-day-events/',
             method: 'GET',
           },
           // 時間割
@@ -33,19 +33,19 @@ document.addEventListener('DOMContentLoaded', function() {
           const subject = arg.event.extendedProps.subject;
           const eventDate = arg.event.startStr.split('T')[0];
 
-          if (status === 1) { 
+          if (status === 1) {
               // --- ❌ 休講（赤色・斜線）の見た目設定 ---
               arg.el.style.setProperty('color', '#6c757d', 'important');
-              
+
               // 休講は必ず表示する
               arg.el.style.setProperty('display', 'block', 'important');
 
           } else {
               // --- 🔵 通常授業（青色）の見た目設定 ---
               // 判定：今日、この科目の「休講(status:1)」がデータとして存在するか？
-              const hasCancelToday = calendar.getEvents().some(ev => 
-                  ev.extendedProps.status === 1 && 
-                  ev.extendedProps.subject === subject && 
+              const hasCancelToday = calendar.getEvents().some(ev =>
+                  ev.extendedProps.status === 1 &&
+                  ev.extendedProps.subject === subject &&
                   ev.startStr.split('T')[0] === eventDate
               );
 
@@ -62,6 +62,32 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     calendar.render();
+
+  // -----------------------------
+  // ボタン（card-header）に追加
+  // -----------------------------
+  const headerButtons = document.getElementById('calendar-header-buttons');
+  headerButtons.innerHTML = `
+    <button class="btn btn-outline-secondary btn-sm me-1" id="fc-prev">
+      <i class="bi bi-chevron-left"></i>
+    </button>
+
+    <button class="btn btn-outline-secondary btn-sm me-1" id="fc-next">
+      <i class="bi bi-chevron-right"></i>
+    </button>
+
+    <button class="btn btn-outline-primary btn-sm" id="fc-today">今日</button>
+  `;
+
+  document.getElementById('fc-prev').onclick  = () => { calendar.prev(); updateTitle(); };
+  document.getElementById('fc-next').onclick  = () => { calendar.next(); updateTitle(); };
+  document.getElementById('fc-today').onclick = () => { calendar.today(); updateTitle(); };
+
+  function updateTitle() {
+    document.getElementById('calendar-title').textContent = calendar.view.title;
+  }
+  updateTitle();
+
 
 // ============================
 //  時間割（list view）
@@ -83,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
     eventSources: [
       // 終日イベント
       {
-        url: 'api/events/internal/',
+        url: '/api/all-day-events/',
         method: 'GET',
       },
       // 時間割
@@ -105,20 +131,20 @@ document.addEventListener('DOMContentLoaded', function() {
           const subject = arg.event.extendedProps.subject;
           const eventDate = arg.event.startStr.split('T')[0];
 
-          if (status === 1) { 
+          if (status === 1) {
               // --- ❌ 休講（赤色・斜線）の見た目設定 ---
               arg.el.style.setProperty('color', '#6c757d', 'important');
               arg.el.style.setProperty('border', '1px solid #dee2e6', 'important');
-              
+
               // 休講は必ず表示する
               arg.el.style.setProperty('display', 'block', 'important');
 
           } else {
               // --- 🔵 通常授業（青色）の見た目設定 ---
               // 判定：今日、この科目の「休講(status:1)」がデータとして存在するか？
-              const hasCancelToday = calendar.getEvents().some(ev => 
-                  ev.extendedProps.status === 1 && 
-                  ev.extendedProps.subject === subject && 
+              const hasCancelToday = calendar.getEvents().some(ev =>
+                  ev.extendedProps.status === 1 &&
+                  ev.extendedProps.subject === subject &&
                   ev.startStr.split('T')[0] === eventDate
               );
 
@@ -133,19 +159,6 @@ document.addEventListener('DOMContentLoaded', function() {
               }
           }
       }
-
-
-    // eventClick(info) {
-    //   if (info.event.allDay) {
-    //     alert('【行事】\n' + info.event.title);
-    //   } else {
-    //     alert(
-    //       '【講義】\n' +
-    //       info.event.title + '\n' +
-    //       info.event.extendedProps.room
-    //     );
-    //   }
-    // }
   }
 );
 

@@ -47,7 +47,7 @@
         <h3 class="fw-bold mb-0 me-3">{{ group.label }}</h3>
         <span class="badge bg-light text-dark rounded-pill border">{{ group.schedules|length }} 講義</span>
         <div class="flex-grow-1 ms-3 border-bottom border-2 opacity-10"></div>
-        <a href="{% url 'core:lecture_schedule_create' %}?weekday={{ group.value }}"
+        <a href="{% url 'core:lecture_create' %}?weekday={{ group.value }}"
            class="btn btn-primary btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center shadow"
            style="width: 32px; height: 32px;" title="追加">
           <i class="bi bi-plus-lg"></i>
@@ -107,10 +107,10 @@
 
                   <div class="col-auto">
                     <div class="d-flex gap-2">
-                      <a href="{% url 'core:lecture_schedule_update' s.pk %}" class="btn btn-outline-light btn-sm text-dark border shadow-sm">
+                      <a href="{% url 'core:lecture_update' s.pk %}" class="btn btn-outline-light btn-sm text-dark border shadow-sm">
                         <i class="bi bi-pencil"></i>
                       </a>
-                      <a href="{% url 'core:lecture_schedule_delete' s.pk %}" class="btn btn-outline-danger btn-sm shadow-sm">
+                      <a href="{% url 'core:lecture_delete' s.pk %}" class="btn btn-outline-danger btn-sm shadow-sm">
                         <i class="bi bi-trash"></i>
                       </a>
                     </div>

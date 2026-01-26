@@ -140,9 +140,8 @@ class LectureSchedule(models.Model):
     subject = models.CharField("科目名", max_length=100)
     weekday = models.PositiveSmallIntegerField("曜日", choices=Weekday.choices)
     teacher = models.CharField("担当教員", null=True, blank=True,)
-    status = models.PositiveSmallIntegerField(
-        "講義状態", choices=Status.choices, default=Status.NORMAL,)
-    specific_date = models.DateField("休講日", null=True, blank=True, help_text="特定の日のみ休講・補講にする場合に入力します")
+    status = models.PositiveSmallIntegerField("講義状態", choices=Status.choices, default=Status.NORMAL,)
+    canceled_date = models.DateField("休講日", null=True, blank=True)
     teacher = models.CharField("担当教員", null=True, blank=True,)
     note = models.TextField("備考", blank=True)
 
@@ -210,7 +209,7 @@ class LectureSchedule(models.Model):
                     "target_class_number",
                     "weekday",
                     "start_period",
-                    "specific_date",
+                    "canceled_date",
                 ],
                 name="unique_lecture_slot_for_target",
             )
@@ -240,15 +239,15 @@ class LectureSchedule(models.Model):
             errors["end_period"] = "終了時限は開始時限以降でなければなりません。"
 
         # ② 時限の重なりチェック
-        # ★ specific_date が「空」の場合（＝毎週の予定）のみ、重複を厳格にチェックする
+        # ★ canceled_date が「空」の場合（＝毎週の予定）のみ、重複を厳格にチェックする
         # これにより、「毎週の予定」がある枠に対して「特定日の休講」を重ねて登録できるようになります。
-        if not self.specific_date:
+        if not self.canceled_date:
             overlapping_qs = LectureSchedule.objects.filter(
                 department=self.department,
                 target_grade=self.target_grade,
                 target_class_number=self.target_class_number,
                 weekday=self.weekday,
-                specific_date__isnull=True,  # 毎週の予定同士のみを比較対象にする
+                canceled_date__isnull=True,  # 毎週の予定同士のみを比較対象にする
                 start_period__period__lte=self.end_period.period,
                 end_period__period__gte=self.start_period.period,
             ).exclude(status=LectureSchedule.Status.CANCELED)
@@ -311,45 +310,34 @@ class ReceivedEmail(models.Model):
     def __str__(self):
         return self.subject
 
+
 # ==========================================================
 # イベントモデル
 # ==========================================================
 
-
 class Event(models.Model):
-
     title = models.CharField(max_length=200)
     start_date = models.DateField()
     end_date = models.DateField()
     description = models.TextField(blank=True)
 
-    is_external = models.BooleanField(
-        default=False,
-        db_index=True,
-        help_text="学外向けイベントかどうか（False=学内向け）",
+    target_department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+
+    target_grade = models.PositiveIntegerField(
+        choices=Profile.GRADE_CHOICES,
+        null=True,
+        blank=True,
     )
 
     class Meta:
-        ordering = ["is_external", "start_date", "end_date"]
+        ordering = ["start_date"]
 
     def __str__(self):
-        scope = "学外" if self.is_external else "学内"
-
-        dept = (
-            self.target_department.name
-            if self.target_department
-            else "全学科"
-        )
-
-        grade = (
-            self.get_target_grade_display()
-            if self.target_grade is not None
-            else "全学年"
-        )
-
-        if self.start_date == self.end_date:
-            date_str = self.start_date
-        else:
-            date_str = f"{self.start_date}〜{self.end_date}"
-
-        return f"[{scope}｜{dept} {grade}] {self.title}（{date_str}）"
+        dept_name = self.target_department.name if self.target_department else "全学科"
+        grade_name = f"{self.target_grade}年" if self.target_grade else "全学年"
+        return f"[{dept_name} {grade_name}] {self.title}（{self.start_date}〜{self.end_date}）"

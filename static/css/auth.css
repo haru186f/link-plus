@@ -1,13 +1,5 @@
 @charset "UTF-8";
 
-
-/* html {
-    transform: scale(0.9);
-    transform-origin: left top;
-    height: calc(100% / 0.9);
-    width: calc(100% / 0.9);
-} */
-
 body {
   margin: 0;
   padding: 0;
