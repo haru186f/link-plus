@@ -56,11 +56,10 @@
   </script>
 {% endblock script %}
 
-{% block header %}
-  {% include "_header.html" %}
-{% endblock header %}
 
 {% block content %}
+  <div style="height: 80px;"></div>
+
 
 
 {# ----- News modal ----- #}
@@ -119,12 +118,11 @@
 
 {# ----- Main content ----- #}
 
-<div style="height: 80px;"></div>
-
 <div class="container">
 
 
   {# ----- Debug用 ----- #}
+  {% comment %}
   <div class="debug-box" style="padding: 10px; background: #f8f9fa; border-radius: 8px;">
 
     <div id="debugAccordion">
@@ -156,6 +154,7 @@
     </div>
 
   </div>
+  {% endcomment %}
 
 
   {# ----- Main content ----- #}
@@ -386,4 +385,6 @@
 
   </div>
 </div>
+
+
 {% endblock content %}

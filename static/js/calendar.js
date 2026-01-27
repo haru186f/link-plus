@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
         headerToolbar: false,
         stickyHeaderDates: false,
         fixedWeekCount: true,
-        dayMaxEventRows: 3,
+        dayMaxEventRows: 5,
         displayEventTime: true,
         noEventsContent: '本日の講義はありません',
 
@@ -28,38 +28,37 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         ],
 
+        eventClassNames: function(arg) {
+            const status = arg.event.extendedProps.status;
+            const subject = arg.event.extendedProps.subject;
+            const eventDate = arg.event.startStr.split('T')[0];
+
+            if (status !== 1) {
+                const allEvents = calendar.getEvents();
+                const hasCancelToday = allEvents.some(ev =>
+                    ev.extendedProps.status === 1 &&
+                    ev.extendedProps.subject === subject &&
+                    ev.startStr.split('T')[0] === eventDate
+                );
+
+                if (hasCancelToday) {
+                    return ['is-hidden'];
+                }
+            }
+            return [];
+        },
+
         eventDidMount: function(arg) {
-          const status = arg.event.extendedProps.status;
-          const subject = arg.event.extendedProps.subject;
-          const eventDate = arg.event.startStr.split('T')[0];
+            const status = arg.event.extendedProps.status;
 
-          if (status === 1) {
-              // --- ❌ 休講（赤色・斜線）の見た目設定 ---
-              arg.el.style.setProperty('color', '#6c757d', 'important');
-
-              // 休講は必ず表示する
-              arg.el.style.setProperty('display', 'block', 'important');
-
-          } else {
-              // --- 🔵 通常授業（青色）の見た目設定 ---
-              // 判定：今日、この科目の「休講(status:1)」がデータとして存在するか？
-              const hasCancelToday = calendar.getEvents().some(ev =>
-                  ev.extendedProps.status === 1 &&
-                  ev.extendedProps.subject === subject &&
-                  ev.startStr.split('T')[0] === eventDate
-              );
-
-              if (hasCancelToday) {
-                  // 重複がある「その日」だけ、この要素を隠す
-                  arg.el.style.setProperty('display', 'none', 'important');
-              } else {
-                  // 重複がない他の月曜日は青色で表示
-                  arg.el.style.setProperty('display', 'block', 'important');
-                  arg.el.style.setProperty('border-color', '#3788d8', 'important');
-                  arg.el.style.setProperty('color', '#6c757d', 'important');
-              }
-          }
-      }
+            if (status === 1) {
+                // --- ❌ 休講の設定 ---
+                arg.el.style.setProperty('color', '#d9534f', 'important');
+            } else {
+                // --- 🔵 通常授業の設定 ---
+                //arg.el.style.setProperty('border-left', '5px solid #3788d8', 'important');
+            }
+        }
     });
     calendar.render();
 

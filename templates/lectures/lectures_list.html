@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% load static %}
 
+
 {% block title %}時間割管理{% endblock title %}
+
 
 {% block css %}
   {# Reset CSS #}
@@ -17,10 +19,8 @@
 
 
 {% block content %}
-
-
-<div class="container py-5">
-  <div class="row align-items-center mb-5">
+<div class="container py-4">
+  <div class="row align-items-center mb-4">
     <div class="col">
       <h1 class="fw-bold display-6 mb-1">時間割管理</h1>
       <p class="text-muted mb-0">週間の講義スケジュールを管理します</p>
@@ -80,7 +80,6 @@
                       <span class="badge
                         {% if s.status == s.Status.NORMAL %}bg-success-subtle text-success
                         {% elif s.status == s.Status.CANCELED %}bg-danger-subtle text-danger
-                        {% elif s.status == s.Status.MAKEUP %}bg-warning-subtle text-warning
                         {% endif %} px-2 py-1">
                         {{ s.get_status_display }}
                       </span>

@@ -8,6 +8,10 @@
 
 
 {% block css %}
+  {# Reset CSS #}
+  <link rel="stylesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  {# My CSS #}
+  <link rel="stylesheet" href="{% static 'css/home.css' %}">
 {% endblock css %}
 
 
@@ -15,205 +19,176 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const statusSelect = document.getElementById('id_status');
-    const specificDateInput = document.getElementById('id_specific_date');
-    
-    // 入力欄・ラベル・ヘルプテキストを包んでいる div (mb-3) を取得
-    const dateFieldWrapper = specificDateInput.closest('.mb-3');
+    const weekdaySelect = document.querySelector('[name="weekday"]');
+    const canceledDateInput = document.getElementById('id_canceled_date');
+    const dateFieldWrapper = document.getElementById('date-field-wrapper');
+
+    const errorFeedback = document.createElement('div');
+    errorFeedback.className = 'invalid-feedback ms-4';
+    canceledDateInput.parentNode.appendChild(errorFeedback);
 
     function toggleDateField() {
-        // statusSelect.value が '1' (休講) の時だけ表示
-        // Djangoモデルの LectureSchedule.Status で 休講=1 と定義されている前提です
-        const isCanceled = statusSelect.value === '1'; 
+        const isCanceled = statusSelect.value === '1';
+        dateFieldWrapper.style.display = isCanceled ? 'block' : 'none';
 
-        if (isCanceled) {
-            // 表示（Bootstrapの block 表示）
-            dateFieldWrapper.style.display = 'block';
-        } else {
-            // 非表示
-            dateFieldWrapper.style.display = 'none';
+        if (!isCanceled) {
+            canceledDateInput.value = '';
+            clearError();
         }
     }
 
-    // 初期化（ページを開いた瞬間の状態を反映）
-    toggleDateField();
+    function clearError() {
+        canceledDateInput.classList.remove('is-invalid');
+        errorFeedback.textContent = '';
+    }
 
-    // 変更イベントの監視
+    function validateWeekday() {
+        if (!canceledDateInput.value || !weekdaySelect.value) {
+            clearError();
+            return;
+        }
+
+        const selectedDate = new Date(canceledDateInput.value);
+        const jsDay = selectedDate.getDay(); // 0(日) ~ 6(土)
+
+        const djangoToJsMap = {
+            '0': 1, '1': 2, '2': 3, '3': 4, '4': 5, '5': 6, '6': 0
+        };
+
+        const expectedJsDay = djangoToJsMap[weekdaySelect.value];
+
+        if (jsDay !== expectedJsDay) {
+            const weekdayText = weekdaySelect.options[weekdaySelect.selectedIndex].text;
+            canceledDateInput.classList.add('is-invalid');
+            errorFeedback.textContent = `※${weekdayText}の日付を選択してください。`;
+            canceledDateInput.value = '';
+        } else {
+            clearError();
+        }
+    }
+
     statusSelect.addEventListener('change', toggleDateField);
+    canceledDateInput.addEventListener('change', validateWeekday);
+    weekdaySelect.addEventListener('change', validateWeekday);
+
+    toggleDateField();
 });
 </script>
 {% endblock script %}
 
 
 {% block content %}
-<div class="container py-4">
-  <div class="card shadow-sm">
-    <div class="card-header bg-primary text-white">
-      <h2 class="h5 m-0">
+<div class="container py-5">
+
+  <!-- ヘッダー -->
+  <div class="row align-items-center mb-5">
+    <div class="col">
+      <h1 class="fw-bold display-6 mb-1">
+        {% if object %}時間割の編集{% else %}時間割の登録{% endif %}
+      </h1>
+      <p class="text-muted mb-0">
         {% if object %}
-          <i class="fas fa-edit"></i> 時間割の編集: {{ object.lecture.name }}
+          登録済みの時間割を編集します
         {% else %}
-          <i class="fas fa-plus-circle"></i> 新しい時間割の登録
+          学内時間割に表示される授業を登録します
         {% endif %}
-      </h2>
+      </p>
     </div>
+    <div class="col-auto">
+      <a href="{% url 'core:lecture_list' %}" class="btn btn-outline-secondary">
+        一覧に戻る
+      </a>
+    </div>
+  </div>
 
-    <div class="card-body">
-      <form method="post" novalidate>{% csrf_token %}
-      {# --- Error messages --- #}
-      {% if form.errors %}
-        <div class="alert alert-danger" role="alert">
-          <ul class="mb-0">
-            {# 非フィールドエラー #}
-            {% for error in form.non_field_errors %}
-              <li>{{ error }}</li>
-            {% endfor %}
+  <!-- フォームカード -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
 
-            {# フィールドエラー（複数OK） #}
-            {% for field in form %}
-              {% for error in field.errors %}
-                <li>
-                  <strong>{{ field.label }}：</strong>{{ error }}
-                </li>
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.errors %}
+          <div class="alert alert-danger" role="alert">
+            <ul class="mb-0">
+              {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
               {% endfor %}
-            {% endfor %}
-          </ul>
-        </div>
-      {% endif %}
+              {% for field in form %}
+                {% for error in field.errors %}
+                  <li><strong>{{ field.label }}：</strong>{{ error }}</li>
+                {% endfor %}
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
 
-        {# --- 曜日 --- #}
-        <div class="mb-3">
-          <label for="{{ form.weekday.id_for_label }}" class="form-label">
-            {{ form.weekday.label }}
-          </label>
+        <div class="mb-4">
+          <label class="form-label fw-semibold">{{ form.weekday.label }}</label>
           {{ form.weekday }}
         </div>
 
-        {# --- 科目名 --- #}
-        <div class="mb-3">
-          <label for="{{ form.subject.id_for_label }}" class="form-label">
-            {{ form.subject.label }}
-          </label>
+        <div class="mb-4">
+          <label class="form-label fw-semibold">{{ form.subject.label }}</label>
           {{ form.subject }}
         </div>
 
-        {# --- 開始時限 --- #}
-        <div class="mb-3">
-          <label for="{{ form.start_period.id_for_label }}" class="form-label">
-            {{ form.start_period.label }}
-          </label>
+        <div class="mb-4">
+          <label class="form-label fw-semibold">{{ form.start_period.label }}</label>
           {{ form.start_period }}
         </div>
 
-        {# --- 終了時限 --- #}
-        <div class="mb-3">
-          <label for="{{ form.end_period.id_for_label }}" class="form-label">
-            {{ form.end_period.label }}
-          </label>
+        <div class="mb-4">
+          <label class="form-label fw-semibold">{{ form.end_period.label }}</label>
           {{ form.end_period }}
         </div>
 
-        {# --- 担当教員 --- #}
-        <div class="mb-3">
-          <label for="{{ form.teacher.id_for_label }}" class="form-label">
-            {{ form.teacher.label }}
-          </label>
+        <div class="mb-4">
+          <label class="form-label fw-semibold">{{ form.teacher.label }}</label>
           {{ form.teacher }}
         </div>
 
-        {# --- 教室 --- #}
-        <div class="mb-3">
-          <label for="{{ form.room.id_for_label }}" class="form-label">
-            {{ form.room.label }}
-          </label>
+        <div class="mb-4">
+          <label class="form-label fw-semibold">{{ form.room.label }}</label>
           {{ form.room }}
         </div>
 
-        {# --- 講義状態 --- #}
-        <div class="mb-3">
-          <label for="{{ form.status.id_for_label }}" class="form-label">
-            {{ form.status.label }}
-          </label>
+        <div class="mb-4">
+          <label class="form-label fw-semibold">{{ form.status.label }}</label>
           {{ form.status }}
         </div>
 
-        {# --- 休講日 --- #}
-        <div id="date-field-wrapper" class="mb-3" style="display: none; transition: all 0.3s ease;">
-          <label for="{{ form.specific_date.id_for_label }}" class="form-label ms-4">
-            └ {{ form.specific_date.label }}
+        <!-- 休講日 -->
+        <div id="date-field-wrapper" class="mb-4" style="display: none;">
+          <label class="form-label fw-semibold ms-3">
+            └ {{ form.canceled_date.label }}
           </label>
-          <div class="ms-4">
-            {{ form.specific_date }}
+          <div class="ms-3">
+            {{ form.canceled_date }}
             <div class="form-text">
               ※特定の日だけを休講にする場合に日付を選択してください。
             </div>
           </div>
         </div>
 
-        {# --- 備考 --- #}
-        <div class="mb-3">
-          <label for="{{ form.note.id_for_label }}" class="form-label">
-            {{ form.note.label }}
-          </label>
+        <div class="mb-4">
+          <label class="form-label fw-semibold">{{ form.note.label }}</label>
           {{ form.note }}
         </div>
 
-        <div class="d-flex justify-content-between">
-          <a href="{% url 'core:lecture_schedule_list' %}" class="btn btn-secondary">
+        <div class="d-flex justify-content-between align-items-center mt-5">
+          <a href="{% url 'core:lecture_list' %}" class="btn btn-outline-secondary">
             キャンセル
           </a>
-          <button type="submit" class="btn btn-success">
+          <button type="submit" class="btn btn-primary px-4">
             {% if object %}更新する{% else %}登録する{% endif %}
           </button>
         </div>
+
       </form>
+
     </div>
   </div>
+
 </div>
-
 {% endblock content %}
-
-{# --- ここから下に書き足します --- #}
-{% comment %} {% block script %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const statusField = document.querySelector('[name="status"]');
-    const weekdayField = document.querySelector('[name="weekday"]');
-    const dateArea = document.getElementById('specific-date-area');
-    const dateInput = document.getElementById('specific_date');
-    const errorMsg = document.getElementById('date-error');
-
-    function toggleDateInput() {
-        const statusText = statusField.options[statusField.selectedIndex].text;
-        if (statusText.includes('休講')) {
-            dateArea.style.display = 'block';
-        } else {
-            dateArea.style.display = 'none';
-            dateInput.value = '';
-        }
-    }
-
-    statusField.addEventListener('change', toggleDateInput);
-    toggleDateInput();
-
-    dateInput.addEventListener('change', function() {
-        if (!this.value) return;
-        const date = new Date(this.value);
-        const day = date.getDay(); 
-        
-        // Djangoの曜日(0:月...)をJSの曜日(1:月...)に変換
-        const selectedWeekdayValue = parseInt(weekdayField.value); 
-        const targetDay = selectedWeekdayValue + 1; 
-
-        if (day !== targetDay) {
-            const weekdayName = weekdayField.options[weekdayField.selectedIndex].text;
-            errorMsg.textContent = `※${weekdayName}の日付を選択してください。`;
-            this.value = '';
-            this.classList.add('is-invalid');
-        } else {
-            errorMsg.textContent = "";
-            this.classList.remove('is-invalid');
-        }
-    });
-});
-</script>
-{% endblock script %} {% endcomment %}

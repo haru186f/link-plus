@@ -1,8 +1,6 @@
 from django.db import models
-
 from apps.accounts.models import Profile
-from django.conf import settings
-from django.core.exceptions import ValidationError
+
 
 # ==========================================================
 # バスモデル
@@ -265,6 +263,10 @@ class LectureSchedule(models.Model):
             if overlapping_qs.exists():
                 errors["start_period"] = "この時限帯には既に毎週の授業が登録されています。"
 
+        # ③ 休講(status=CANCELED) の場合は canceled_date を必須にする
+        if self.status == LectureSchedule.Status.CANCELED and not self.canceled_date:
+            errors["canceled_date"] = "休講の場合は休講日を入力してください。"
+
         if errors:
             raise ValidationError(errors)
 
@@ -316,28 +318,20 @@ class ReceivedEmail(models.Model):
 # ==========================================================
 
 class Event(models.Model):
+
     title = models.CharField(max_length=200)
     start_date = models.DateField()
     end_date = models.DateField()
     description = models.TextField(blank=True)
 
-    target_department = models.ForeignKey(
-        Department,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-    )
-
-    target_grade = models.PositiveIntegerField(
-        choices=Profile.GRADE_CHOICES,
-        null=True,
-        blank=True,
-    )
-
     class Meta:
-        ordering = ["start_date"]
+        ordering = ["start_date", "end_date"]
 
     def __str__(self):
-        dept_name = self.target_department.name if self.target_department else "全学科"
-        grade_name = f"{self.target_grade}年" if self.target_grade else "全学年"
-        return f"[{dept_name} {grade_name}] {self.title}（{self.start_date}〜{self.end_date}）"
+
+        if self.start_date == self.end_date:
+            date_str = self.start_date
+        else:
+            date_str = f"{self.start_date}〜{self.end_date}"
+
+        return f"[{self.title}（{date_str}）"

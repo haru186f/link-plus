@@ -1,5 +1,9 @@
 @charset "UTF-8";
 
+
+/* ========================================================= */
+/*      メイン
+/* ========================================================= */
 body {
     margin: 0;
     padding: 0;
@@ -7,193 +11,44 @@ body {
     background-color: #f4f4f4; /* 背景色 */
 }
 
-
-.main-content {
-    display:grid;
-    /* 1列目: 68%, 2列目: 28% */
-    grid-template-columns: 68% 28%;
-    /* 行の定義: 1行目(calendar/news)をコンテンツの高さ(auto)に、
-       2行目(dairy/bus)をコンテンツの高さ(auto)にする */
-    grid-template-rows: auto auto;
-    /* row-gap(行間)とcolumn-gap(列間)を設定 */
-    gap: 20px 4%; /* 上下20px、左右4%の間隔（元の margin と width に合わせるため） */
-    margin: 20px;
-}
-.distanceright {
-    margin-right:1rem;
-}
-.distanceleft {
-    margin-left:1rem;
-}
-
-/*メインコンテンツ*/
-header {
-    display:flex;
-    height:20%;
-    justify-content:space-between;
-    align-items:center;
-    border-bottom:2px solid black;
-}
-.head {
-    display:flex;
-    align-items:center;
-    padding:20px;
-    margin:0;
-    width:33.3%;
-    height:90%;
-}
-
-.head img {
-    width:5em;
-    height: 5em;
-}
-.headerCenter {
-    justify-content:center;
-}
-
-.headerRight {
-    justify-content:flex-end;
-
-}
-.headerRight h3 {
-    padding-right:3rem;
-}
-
-.calendar-container {
-    border: 1px solid #333; /* スケッチの太枠 */
-}
-
-.calendar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items:center;
-    margin-bottom: 10px;
-}
-.calendar-header button {
-    padding: 0 10px;
-    font-size: 16px;
-}
-
-.calendar {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed; /* セルの幅を均等に */
-}
-
-.calendar th, .calendar td {
-    border: 1px solid #ccc;
-    text-align: center;
-    padding: 5px 0;
-    height: 30px; /* セルの高さを確保 */
-}
-
-.calendar th {
-    background-color: #eee;
-}
-/*------news------*/
-.news {
-    border: 1px solid #333;
-}
-.news table{
-    width:100%;
-    height:100%;
-    border: 1px solid #333;
-}
-.sync,.title {
-    text-align:center;
-}
-
-.sync {
-    width:20%;
-}
-.title {
-    width:80%;
-}
 th,td {
     border: 1px solid #333;
 }
+
 td {
     text-align:center;
 }
-/*------dairy------*/
-.dairy {
-    display:flex;
-    flex-wrap:nowrap;
-    justify-content:flex-start;
-    border: 1px solid #333;
-    margin-top:20px;
-}
-.slot {
-    width:12.5%;
-    border-right: 1px solid #333;
-    border-left: 1px solid #333;
-}
-.slot h3{
-    text-align:center;
-}
-/*------bus------*/
-.bus-container {
-    /* bus要素同士の間隔を確保 */
-    width:100%;
-}
+
+
+/* ========================================================= */
+/*      バス
+/* ========================================================= */
 .bus {
-    /* width:100%; は grid-template-columns で指定済みなので削除 */
-    /* height:100%; を削除し、コンテンツの高さに合わせる */
-    /* margin-top:20px; は gap で対応できるため削除 */
-    /* border: 1px solid #333; */
     align-self:start;
     max-width:100%;
 }
+
 .bus-info {
     display:flex;
     justify-content:center;
     align-items:center;
     height:3rem;
 }
-.bus-info h3 {
-    font-size: 150%;
-    /* width:17%; */
-    text-align:center;
-    justify-content:space-between;
-    margin-right:2rem;
-}
-.bus button  {
-    width:auto;
-    height:100%;
-    margin-right:10px;
-}
-.bus-info a {
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    width:auto;
-    height:100%;
-}
-.bus-info img {
-    width:auto;
-    height:100%;
-}
+
 .bus-png {
     width:70%;
     height:auto;
     margin-right:2rem;
     margin-left:2rem;
 }
-.bus h4 {
-    text-align:center;
-}
+
 .bus-times {
     width:auto;
     display:flex;
     justify-content:center;
     align-items:center;
 }
-.bus-times h5  {
-    padding-right:10px;
-}
-footer {
-    padding-bottom:50px;
-}
+
 
 /* ========================================================= */
 /*      メールモーダル
@@ -253,6 +108,7 @@ footer {
     max-height: 60vh;
 }
 
+
 /* ========================================================= */
 /*      マップモーダル
 /* ========================================================= */
@@ -276,26 +132,31 @@ footer {
     border-radius: 8px;
 }
 
+
+/* ========================================================= */
+/*      FullCalendar
+/* ========================================================= */
 .fc a {
-  text-decoration: none !important;
-  color: inherit !important;
+    text-decoration: none !important;
+    color: inherit !important;
 }
 
-.fc-daygrid-body tr {
-  height: calc(100% / 5)  !important;
-}
-
-.event-canceled .fc-daygrid-event-dot {
-  border-color: red !important;
-}
-
+.event-canceled .fc-daygrid-event-dot,
 .event-canceled .fc-list-event-dot {
-  border-color: red !important;
+    border-color: red !important;
 }
 
 .note-icon {
-  margin-left: 6px;
-  color: #0d6efd;
-  cursor: help;
-  font-weight: normal;
+    margin-left: 6px;
+    color: #0d6efd;
+    cursor: help;
+    font-weight: normal;
+}
+
+.fc-event.is-hidden {
+    display: none !important;
+}
+
+.fc .fc-daygrid-body tr {
+    height: 100px !important;
 }

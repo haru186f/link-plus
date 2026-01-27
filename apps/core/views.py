@@ -1,29 +1,39 @@
-from .models import BusStop, BusSchedule
-import math
+import json, logging, datetime
 from django.views import View
+from django.views.generic import (
+    TemplateView,
+    CreateView,
+    UpdateView,
+    DeleteView,
+    ListView,
+)
 from django.http import JsonResponse
-from datetime import datetime, timedelta
-from django.utils import timezone
-from django.shortcuts import render, redirect
-from django.views.generic import TemplateView, CreateView, UpdateView, DeleteView, ListView
-from datetime import datetime
-from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.messages.views import SuccessMessageMixin
-from django.core import serializers
 from django.urls import reverse_lazy
-from django.shortcuts import redirect
-import datetime
-from django.db.models import Q  # 複雑なクエリのためにQオブジェクトをインポート
-from .models import LectureSchedule
-from django.contrib.auth.decorators import user_passes_test
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.utils import timezone
+from django.db.models import Q
+from django.core import serializers
 from django.core.exceptions import ValidationError
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from apps.core.models import College, Department, Course, BusSchedule, BusStop, ReceivedEmail, LectureSchedule, Event
-from apps.core.forms import LectureScheduleForm, EventForm, NewsForm
-import json
-import logging
+from django.contrib.auth.mixins import (
+    LoginRequiredMixin,
+    UserPassesTestMixin,
+)
+from django.contrib.messages.views import SuccessMessageMixin
+from apps.core.models import (
+    Department,
+    Course,
+    BusSchedule,
+    BusStop,
+    ReceivedEmail,
+    LectureSchedule,
+    Event,
+)
+from apps.core.forms import (
+    LectureScheduleForm,
+    EventForm,
+    NewsForm,
+)
 logger = logging.getLogger(__name__)
 
 
@@ -77,7 +87,10 @@ class TeacherRequiredMixin(UserPassesTestMixin):
 # ニュースビュー（お知らせのリストを返す）
 # ==========================================================
 
-class NewsListView(ListView):
+class NewsListView(
+    ListView,
+    LoginRequiredMixin
+    ):
     model = ReceivedEmail
     template_name = 'news/news_list.html'
     context_object_name = 'all_emails'
@@ -101,6 +114,7 @@ class NewsListView(ListView):
     }
 
 
+@login_required
 def get_data_for_modal(request):
     """
     データベースからデータを取得し、JSONで返すビュー
@@ -381,6 +395,7 @@ class GetGradesView(View):
         return JsonResponse({'max_grade': max_grade})
 
 
+@login_required
 def receive_email_webhook(request):
     if request.method == 'POST':
         # 外部からのリクエストデータから情報を取得（例：Webhookペイロード）
@@ -405,6 +420,7 @@ def receive_email_webhook(request):
     return JsonResponse({'status': 'method not allowed'}, status=405)
 
 
+@login_required
 def api_email_body(request, pk):
     """
     指定された主キー(pk)のメール本文と件名をJSONで返すAPIエンドポイント。
@@ -567,6 +583,7 @@ class DebugBusSchedule(View):
 #   FullCalendarAPI
 # ==========================================================
 
+@login_required
 def lecture_events(request):
     try:
         user_profile = request.user.profile
@@ -622,7 +639,7 @@ def lecture_events(request):
         print(f"GENERATE: [ID:{reg_event['id']}] {lec.subject:<10} | Every {weekday_name} | {start_t} - {end_t} | Status: Normal")
 
         # --- 2. 特定適用日 (Special Event / Cancellation) ---
-        if lec.canceled_date:
+        if lec.status == 1:
             cancel_id = f"cancel-{lec.id}"
             status_label = "休講 (Canceled)" if lec.status == 1 else "✅ 変更 (Changed)"
             canceled_event = {
@@ -654,36 +671,24 @@ def lecture_events(request):
     return JsonResponse(events, safe=False)
 
 
+@login_required
 def all_day_events(request):
     """
     イベントを FullCalendar 形式で返却
-    （ログインユーザーの学科・学年に応じて絞り込み）
+    （学科・学年による絞り込みなし）
     """
-    try:
-        user_profile = request.user.profile
-    except Exception:
-        return JsonResponse([], safe=False)
-
-    target_department = user_profile.department
-    target_grade = user_profile.grade
-
     events = []
 
-    qs = Event.objects.filter(
-        Q(target_department__isnull=True) | Q(target_department=target_department),
-        Q(target_grade__isnull=True) | Q(target_grade=target_grade),
-    )
+    qs = Event.objects.all()
 
     for e in qs:
         events.append({
             "title": e.title,
             "start": e.start_date.isoformat(),
-            "end": (e.end_date + timedelta(days=1)).isoformat(),
+            "end": (e.end_date + datetime.timedelta(days=1)).isoformat(),
             "allDay": True,
             "extendedProps": {
                 "description": e.description,
-                "target_department": e.target_department_id,
-                "target_grade": e.target_grade,
             },
         })
 

@@ -1,7 +1,13 @@
 from django import forms
-from .models import ReceivedEmail
 from django.contrib.auth import get_user_model
-from apps.core.models import Department, LectureSchedule, SchoolPeriod, Room, Event
+from .models import ReceivedEmail
+from apps.core.models import (
+    Department,
+    LectureSchedule,
+    SchoolPeriod,
+    Room,
+    Event,
+)
 from apps.accounts.models import Profile
 
 
@@ -49,6 +55,7 @@ class LectureScheduleForm(forms.ModelForm):
         widget=forms.DateInput(attrs={
             "class": "form-control",
             "type": "date",  # これでブラウザ標準のカレンダーが出ます
+            "id": "id_canceled_date",
         }),
         help_text="※特定の日だけを休講にする場合に選択してください。毎週の場合は空欄のままでOK。"
     )

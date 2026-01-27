@@ -1,9 +1,28 @@
 from django.urls import path
-from .views import HomeView
-from .views import GetDepartmentsView, GetCoursesView, GetGradesView, NewsListView, NewsCreateView
-from .views import receive_email_webhook, api_email_body, lecture_events, get_data_for_modal
-from .views import GetNextBusInfo, EventCreateView, all_day_events, DebugBusSchedule
-from .views import LectureScheduleListView, LectureScheduleCreateView, LectureScheduleUpdateView, LectureScheduleDeleteView
+from .views import (
+     # Views
+     HomeView,
+     NewsListView,
+     NewsCreateView,
+     LectureScheduleListView,
+     LectureScheduleCreateView,
+     LectureScheduleUpdateView,
+     LectureScheduleDeleteView,
+     EventCreateView,
+
+     # APIs
+     GetDepartmentsView,
+     GetCoursesView,
+     GetGradesView,
+     GetNextBusInfo,
+     DebugBusSchedule,
+     receive_email_webhook,
+     api_email_body,
+     lecture_events,
+     all_day_events,
+     get_data_for_modal,
+)
+
 
 app_name = 'core'
 urlpatterns = [
