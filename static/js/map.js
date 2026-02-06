@@ -1,7 +1,19 @@
+const panZoom = document.querySelector("#map-modal-img");
+let panZoomInstance = null;
 // モーダル表示
 function showMapModal(imgSrc) {
     $("#map-modal-img").attr("src", imgSrc);
     $("#map-modal-overlay").fadeIn(200);
+    // Panzoom初期化
+        if (panZoomInstance !== null) {
+            panZoomInstance = null;
+        }
+        panZoomInstance = panzoom(panZoom, {
+            bounds: true,
+            boundsPadding: 0.4,
+            maxScale: 5,
+            minScale: 1
+        });
 }
 
 // モーダル非表示
